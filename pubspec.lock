@@ -36,10 +36,11 @@ packages:
   bip39:
     dependency: "direct main"
     description:
-      name: bip39
-      sha256: de1ee27ebe7d96b84bb3a04a4132a0a3007dcdd5ad27dd14aa87a29d97c45edc
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: "0cd6d54e2860bea68fc50c801cb9db2a760192fb"
+      resolved-ref: "0cd6d54e2860bea68fc50c801cb9db2a760192fb"
+      url: "https://github.com/cypherstack/stack-bip39"
+    source: git
     version: "1.0.6"
   bitcoin_base:
     dependency: "direct main"

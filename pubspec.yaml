@@ -59,7 +59,16 @@ dependencies:
   flutter_launcher_icons: 0.14.4
   gpt_markdown: 1.1.4
   polyseed: 0.0.7
-  bip39: 1.0.6
+  # The dart-bitcoin/bip39 repository has an unresolved issue that results in lower seed entropy
+  # than ideal: https://github.com/dart-bitcoin/bip39/issues/23
+  # It also is no longer maintained.
+  # Cypher Stack (Stack Wallet) maintains a fork of this repository with a fix for this
+  # (https://github.com/cypherstack/stack-bip39/commit/2e9bfc1387d6078c31b14356090ea6058046de72);
+  # we use their repository to benefit from these improvements.
+  bip39:
+    git:
+      url: https://github.com/cypherstack/stack-bip39
+      ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb # master @ 2023-06-07, includes the entropy fix
   bip32: 2.0.0
   package_info_plus: 8.3.0
   pointycastle: 3.9.1
