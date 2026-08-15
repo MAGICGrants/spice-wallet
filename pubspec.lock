@@ -36,25 +36,26 @@ packages:
   bip39:
     dependency: "direct main"
     description:
-      name: bip39
-      sha256: de1ee27ebe7d96b84bb3a04a4132a0a3007dcdd5ad27dd14aa87a29d97c45edc
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: "0cd6d54e2860bea68fc50c801cb9db2a760192fb"
+      resolved-ref: "0cd6d54e2860bea68fc50c801cb9db2a760192fb"
+      url: "https://github.com/cypherstack/stack-bip39"
+    source: git
     version: "1.0.6"
   bitcoin_base:
-    dependency: "direct main"
+    dependency: transitive
     description:
       path: "."
-      ref: cake-update-v11
+      ref: bda0e2904effa799ec835b4578cc3fc5d31caa78
       resolved-ref: bda0e2904effa799ec835b4578cc3fc5d31caa78
       url: "https://github.com/cake-tech/bitcoin_base"
     source: git
     version: "4.7.0"
   blockchain_utils:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
       path: "."
-      ref: cake-update-v2
+      ref: "59fdf29d72068e0522a96a8953ed7272833a9f57"
       resolved-ref: "59fdf29d72068e0522a96a8953ed7272833a9f57"
       url: "https://github.com/cake-tech/blockchain_utils"
     source: git
@@ -707,9 +708,9 @@ packages:
     dependency: "direct main"
     description:
       path: "impls/monero.dart"
-      ref: lwsf
-      resolved-ref: e3645fc466b429c976aa5c4e6abc94db65aebcf1
-      url: "https://github.com/vtnerd/monero_c"
+      ref: "757bf8ef3874953a076b07a2407b17bf9eeef5c0"
+      resolved-ref: "757bf8ef3874953a076b07a2407b17bf9eeef5c0"
+      url: "https://github.com/magicgrants/monero_c"
     source: git
     version: "0.0.0"
   nested:
@@ -720,13 +721,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
-  openalias_ffi:
-    dependency: "direct main"
-    description:
-      path: "plugins/openalias_ffi"
-      relative: true
-    source: path
-    version: "0.0.1"
   package_info_plus:
     dependency: "direct main"
     description:
@@ -1184,7 +1178,7 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: main
+      ref: c2706eeb66174273a4a98113d7a8cd910ba124e6
       resolved-ref: c2706eeb66174273a4a98113d7a8cd910ba124e6
       url: "https://github.com/cypherstack/tor"
     source: git
@@ -1301,6 +1295,48 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.13"
+  wallet_bitcoin:
+    dependency: "direct main"
+    description:
+      path: "../wallet-core/packages/wallet_bitcoin"
+      relative: true
+    source: path
+    version: "0.1.0"
+  wallet_domain:
+    dependency: "direct main"
+    description:
+      path: "../wallet-core/packages/wallet_domain"
+      relative: true
+    source: path
+    version: "0.1.0"
+  wallet_ethereum:
+    dependency: "direct main"
+    description:
+      path: "../wallet-core/packages/wallet_ethereum"
+      relative: true
+    source: path
+    version: "0.1.0"
+  wallet_infra:
+    dependency: "direct main"
+    description:
+      path: "../wallet-core/packages/wallet_infra"
+      relative: true
+    source: path
+    version: "0.1.0"
+  wallet_monero:
+    dependency: "direct main"
+    description:
+      path: "../wallet-core/packages/wallet_monero"
+      relative: true
+    source: path
+    version: "0.1.0"
+  wallet_openalias:
+    dependency: "direct main"
+    description:
+      path: "../wallet-core/packages/wallet_openalias"
+      relative: true
+    source: path
+    version: "0.1.0"
   web:
     dependency: transitive
     description:
@@ -1310,10 +1346,10 @@ packages:
     source: hosted
     version: "1.1.1"
   web3dart:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
       path: "."
-      ref: cake
+      ref: aa3f932dbf54eda651b7bd01ad00204acf998bd0
       resolved-ref: aa3f932dbf54eda651b7bd01ad00204acf998bd0
       url: "https://github.com/cake-tech/web3dart.git"
     source: git

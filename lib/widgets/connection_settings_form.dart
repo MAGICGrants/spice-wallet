@@ -12,7 +12,7 @@ import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/util/logging.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 
 const isDemoMode = String.fromEnvironment('DEMO_MODE') == 'true';
 
@@ -70,14 +70,23 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
   TorConnectionStatus _torStatus = TorService.sharedInstance.status;
   Timer? _torStatusTimer;
 
-  /// Background-sync toggles are Android-only and Monero-specific (node scan).
-  bool get _showSyncOptions => Platform.isAndroid && widget.coinSymbol == 'XMR' && !_isExplorer;
+  /// Background / continuous sync only matter for a Monero **node** scan — the
+  /// one heavy background job. LWS syncs server-side, so the toggles are hidden
+  /// there (nothing to keep advancing in the background). Android-only.
+  bool get _showSyncOptions =>
+      Platform.isAndroid &&
+      widget.coinSymbol == 'XMR' &&
+      !_isExplorer &&
+      _connectionType == 'node';
 
   @override
   void initState() {
     super.initState();
     _loadPersistedConnection();
-    if (_showSyncOptions) _loadSyncPrefs();
+    // Load the toggle values up front (they're cheap global prefs); their
+    // visibility is gated by _showSyncOptions, which only shows them in node
+    // mode once the connection type has loaded / been selected.
+    if (Platform.isAndroid && widget.coinSymbol == 'XMR' && !_isExplorer) _loadSyncPrefs();
   }
 
   Future<void> _loadSyncPrefs() async {
@@ -103,11 +112,35 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
 
   void _setForegroundSyncEnabled(bool value) async {
     setState(() => _foregroundSyncEnabled = value);
+    // Capture before the await so context isn't used across an async gap. Seed
+    // the notification "synced" only when every active wallet is caught up.
+    final active = value
+        ? Provider.of<WalletManager>(context, listen: false).activeWallets
+        : const <CryptoWallet>[];
+    final synced = active.isNotEmpty && active.every(isWalletFullySynced);
     await SharedPreferencesService.set<bool>(SharedPreferencesKeys.foregroundSyncEnabled, value);
     if (value) {
-      await startForegroundSync();
+      await startForegroundSync(synced: synced);
     } else {
       await stopForegroundSync();
+    }
+  }
+
+  /// Turns off both node-only sync options and stops their services. Called when
+  /// an LWS connection is saved: LWS has nothing to keep advancing in the
+  /// background, and the toggles are hidden there. The WorkManager task is then
+  /// re-evaluated — it stays only if Notifications still needs it, on the lighter
+  /// constraint.
+  Future<void> _disableSyncForLws() async {
+    await SharedPreferencesService.set<bool>(SharedPreferencesKeys.backgroundSyncEnabled, false);
+    await SharedPreferencesService.set<bool>(SharedPreferencesKeys.foregroundSyncEnabled, false);
+    await stopForegroundSync();
+    await applyBackgroundTaskRegistration();
+    if (mounted) {
+      setState(() {
+        _backgroundSyncEnabled = false;
+        _foregroundSyncEnabled = false;
+      });
     }
   }
 
@@ -446,6 +479,13 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
         connectionType: _connectionType,
       );
       await wallet.persistCurrentConnection();
+
+      // Background / continuous sync are node-only; saving an LWS connection
+      // stops any that were enabled for node mode, since the toggles are now
+      // hidden and would otherwise keep a service running with no way to stop it.
+      if (Platform.isAndroid && widget.coinSymbol == 'XMR' && _connectionType != 'node') {
+        await _disableSyncForLws();
+      }
     }
     await widget.onBeforeSave?.call();
 

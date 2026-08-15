@@ -9,7 +9,7 @@ import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/socks_http.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 
 enum FiatApiMode { torOnly, clearnet, disabled }
 
@@ -127,7 +127,9 @@ class FiatRateModel with ChangeNotifier {
   void _startRateFetchTimer() {
     if (_fiatApiMode == FiatApiMode.disabled) {
       _isDisabled = true;
+      _hasFailed = false; // a disabled API is not a failed one
       log(LogLevel.info, 'Fiat API is disabled. Not starting rate fetch timer.');
+      notifyListeners();
       return;
     } else {
       _isDisabled = false;
@@ -240,6 +242,7 @@ class FiatRateModel with ChangeNotifier {
       _rateFetchTimer?.cancel();
       _rateFetchTimer = null;
       _isDisabled = true;
+      _hasFailed = false; // a disabled API is not a failed one
       notifyListeners();
       return;
     }

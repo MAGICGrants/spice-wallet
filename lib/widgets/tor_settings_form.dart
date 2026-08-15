@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/util/socks_http.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 
 /// Shared form widget used by both TorSettingsScreen and the Tor settings dialog
 class TorSettingsForm extends StatefulWidget {

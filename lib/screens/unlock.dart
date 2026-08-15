@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/util/logging.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 import 'package:spice_wallet/widgets/loading_button.dart';
 
 class UnlockScreen extends StatefulWidget {

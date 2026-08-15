@@ -49,7 +49,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get welcomeDescription =>
-      'A spice é uma das mais simples carteiras de Monero. Nós o ajudaremos a configurar uma carteira e se conectar à um servidor.';
+      'A spice é uma das mais simples carteiras de criptomoedas. Nós o ajudaremos a configurar uma carteira e se conectar à um servidor.';
 
   @override
   String get welcomeGetStarted => 'Começar';
@@ -59,7 +59,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get restoreWarningDescription =>
-      'Você tem certeza? O servidor ao qual você se conectar poderá ver seu histórico de transações Monero passadas e futuras.';
+      'Você tem certeza? O servidor ao qual você se conectar poderá ver seu histórico de transações passadas e futuras.';
 
   @override
   String get restoreWarningContinueButton => 'Continuar';
@@ -134,7 +134,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get createWalletDescription =>
-      'Você já possui uma seed de carteira Monero ou precisa criar uma nova?';
+      'Você já possui uma seed de carteira ou precisa criar uma nova?';
 
   @override
   String get createWalletRestoreExistingButton => 'Restaurar Existente';
@@ -338,11 +338,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsNotifyNewTxsLabel => 'Notificar Novas Transações';
 
   @override
+  String get settingsNotifyNewTxsDescription =>
+      'Mostra uma notificação quando você recebe uma transação. Ao conectar-se a um nó Monero, a Sincronização em Segundo Plano também precisa estar ativada.';
+
+  @override
+  String get settingsNotifyNewTxsDescriptionIos =>
+      'Mostra uma notificação quando você recebe uma transação.';
+
+  @override
   String get settingsBackgroundSyncLabel => 'Sincronização em Segundo Plano';
 
   @override
   String get settingsBackgroundSyncDescription =>
-      'Sincroniza o Monero periodicamente em segundo plano para que esteja atualizado ao abrir o app.';
+      'Sincroniza suas carteiras periodicamente em segundo plano para que estejam atualizadas ao abrir o app.';
 
   @override
   String get settingsBackgroundSyncIntervalLabel => 'Intervalo de Sincronização';
@@ -352,7 +360,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settingsForegroundSyncDescription =>
-      'Mantém o Monero sincronizando continuamente enquanto o app roda em segundo plano, com uma notificação persistente. Usa mais bateria.';
+      'Mantém suas carteiras sincronizando continuamente enquanto o app roda em segundo plano, com uma notificação persistente. Usa mais bateria.';
 
   @override
   String get settingsAppLockLabel => 'Desbloqueio com PIN/Biometria';

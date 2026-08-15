@@ -8,7 +8,7 @@ import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/create_wallet.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 import 'package:spice_wallet/widgets/loading_button.dart';
 
 class GenerateSeedScreen extends StatefulWidget {
@@ -22,14 +22,16 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
   List<String> _seed = [];
   DateTime? _restoreDate;
   String? _mnemonic;
+  SeedSource? _seedSource;
   bool _isCreating = false;
 
   @override
   void initState() {
     super.initState();
     final result = Provider.of<WalletManager>(context, listen: false).generateSeed();
-    _mnemonic = result.mnemonic;
-    _seed = result.mnemonic.split(' ');
+    _seedSource = result.seed;
+    _mnemonic = result.seed.mnemonic;
+    _seed = result.seed.mnemonic.split(' ');
     _restoreDate = result.restoreDate;
   }
 
@@ -43,7 +45,7 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
     final manager = Provider.of<WalletManager>(context, listen: false);
 
     try {
-      await manager.restoreAll(bip39Mnemonic: _mnemonic!, restoreDate: _restoreDate!);
+      await manager.restoreAll(seed: _seedSource!, from: RestorePoint.date(_restoreDate!));
     } catch (error) {
       log(LogLevel.error, error.toString());
       if (mounted) {

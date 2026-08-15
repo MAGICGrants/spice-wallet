@@ -5,10 +5,10 @@ import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/widgets/loading_button.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
+import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/util/formatting.dart';
 import 'package:spice_wallet/util/logging.dart';
-import 'package:spice_wallet/wallets/crypto_wallet.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 
 class ConfirmSendScreenArgs {
   final String coinSymbol;
@@ -59,11 +59,17 @@ class _ConfirmSendScreenState extends State<ConfirmSendScreen> {
       throw Exception('Args missing');
     }
 
+    final wallet = Provider.of<WalletManager>(context, listen: false).getWallet(args.coinSymbol);
+
     setState(() {
       _coinSymbol = args.coinSymbol;
       _tx = args.tx;
-      _amount = args.tx.amount;
-      _fee = args.tx.fee;
+      _amount = wallet == null
+          ? 0
+          : displayAmount(args.tx.amountBaseUnits, wallet.baseUnitDecimals);
+      _fee = wallet == null
+          ? 0
+          : displayAmount(args.tx.feeBaseUnits, wallet.feeBaseUnitDecimals);
       _destinationOpenAlias = args.destinationOpenAlias;
       _destinationAddress = args.destinationAddress;
       _destinationContactName = args.destinationContactName;

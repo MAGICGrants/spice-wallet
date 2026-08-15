@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 import 'package:spice_wallet/widgets/connection_settings_form.dart';
 
 class ConnectionSetupScreenArgs {
@@ -39,7 +39,7 @@ class _ConnectionSetupScreenState extends State<ConnectionSetupScreen> {
       unawaited(() async {
         // Rebuild first if the server kind changed (e.g. Monero LWS↔node),
         // then refresh against the new connection.
-        await manager.reopenWallet(coinSymbol);
+        await manager.applyConnectionChange(coinSymbol);
         await manager.getWallet(coinSymbol)?.load();
       }());
 

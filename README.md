@@ -2,7 +2,7 @@
 
 ![Spice Wallet feature graphic](assets/feature_graphic.png)
 
-A modern, open-source, and self-custody Monero light-wallet built with Flutter.
+A modern, open-source, and self-custody multicoin light-wallet built with Flutter.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Flutter](https://img.shields.io/badge/Flutter-3.8.1+-02569B.svg?logo=flutter)

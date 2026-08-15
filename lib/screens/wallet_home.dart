@@ -10,8 +10,7 @@ import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
-import 'package:spice_wallet/wallets/crypto_wallet.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 import 'package:spice_wallet/widgets/coin_amount.dart';
 import 'package:spice_wallet/widgets/fiat_amount.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
@@ -143,7 +142,7 @@ class _TotalBalanceHeader extends StatelessWidget {
                 FiatAmount(prefix: fiatSymbol, amount: totalFiat, maxFontSize: 32)
               else
                 Text('--', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w700)),
-              if (fiatRate.hasFailed)
+              if (fiatRate.hasFailed && !fiatRate.isDisabled)
                 Tooltip(
                   message: i18n.homeFiatApiError,
                   child: Icon(Icons.warning_rounded, size: 18, color: Colors.red),

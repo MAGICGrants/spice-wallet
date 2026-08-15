@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import workmanager_apple
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -15,6 +16,22 @@ import UIKit
 
     // Enable background fetch for workmanager
     UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
+
+    // BGTaskScheduler requires every identifier to be registered before launch
+    // finishes, and each must also appear in BGTaskSchedulerPermittedIdentifiers.
+    // Whether either task is actually scheduled is decided in Dart, from the
+    // notifications toggle and the wallets' connections.
+    let bundleId = Bundle.main.bundleIdentifier ?? "org.magicgrants.spicewallet"
+
+    // Short opportunistic wake-up (~30s). Only ever scheduled for light,
+    // clearnet wallets — a Tor bootstrap or node scan can't finish in the window.
+    WorkmanagerPlugin.registerPeriodicTask(
+      withIdentifier: "\(bundleId).refresh",
+      frequency: NSNumber(value: 15 * 60)
+    )
+
+    // Longer run, only while charging and idle — room for Tor to bootstrap first.
+    WorkmanagerPlugin.registerBGProcessingTask(withIdentifier: "\(bundleId).processing")
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

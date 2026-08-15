@@ -8,7 +8,7 @@ import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/secure_clipboard.dart';
 import 'package:spice_wallet/util/wallet.dart';
 import 'package:spice_wallet/util/wallet_password.dart';
-import 'package:spice_wallet/wallets/coins/monero/legacy_monero_wallet.dart';
+import 'package:spice_wallet/legacy_monero_wallet.dart';
 
 /// Shown on launch when a v1 (legacy/polyseed) wallet file is found. Explains
 /// that these seeds are no longer supported, lets the user reveal the old seed
@@ -72,7 +72,7 @@ class _LegacyWalletScreenState extends State<LegacyWalletScreen> {
     final legacy = LegacyMoneroWallet();
     try {
       await legacy.openExisting(password: password);
-      final seed = legacy.seedPhrase();
+      final seed = await legacy.seedPhrase();
       if (!mounted) return;
       setState(() {
         _seed = seed;

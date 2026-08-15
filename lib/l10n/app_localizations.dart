@@ -174,7 +174,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Spice is one of the simplest Monero wallets. We will help you set up a wallet and connect to a server.'**
+  /// **'Spice is one of the simplest crypto wallets. We will help you set up a wallet and connect to a server.'**
   String get welcomeDescription;
 
   /// No description provided for @welcomeGetStarted.
@@ -192,7 +192,7 @@ abstract class AppLocalizations {
   /// No description provided for @restoreWarningDescription.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure? The server that you connect to will be able to see your past and future Monero transaction history.'**
+  /// **'Are you sure? The server that you connect to will be able to see your past and future transaction history.'**
   String get restoreWarningDescription;
 
   /// No description provided for @restoreWarningContinueButton.
@@ -336,7 +336,7 @@ abstract class AppLocalizations {
   /// No description provided for @createWalletDescription.
   ///
   /// In en, this message translates to:
-  /// **'Do you already have a Monero wallet seed, or do you need to make a new one?'**
+  /// **'Do you already have a wallet seed, or do you need to make a new one?'**
   String get createWalletDescription;
 
   /// No description provided for @createWalletRestoreExistingButton.
@@ -723,6 +723,18 @@ abstract class AppLocalizations {
   /// **'Notify New Transactions'**
   String get settingsNotifyNewTxsLabel;
 
+  /// No description provided for @settingsNotifyNewTxsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows a notification when you receive a transaction. When connected to a Monero node, Background Sync must also be enabled.'**
+  String get settingsNotifyNewTxsDescription;
+
+  /// No description provided for @settingsNotifyNewTxsDescriptionIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows a notification when you receive a transaction.'**
+  String get settingsNotifyNewTxsDescriptionIos;
+
   /// No description provided for @settingsBackgroundSyncLabel.
   ///
   /// In en, this message translates to:
@@ -732,7 +744,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsBackgroundSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Periodically sync Monero in the background so it\'s up to date when you open the app.'**
+  /// **'Periodically sync your wallets in the background so they\'re up to date when you open the app.'**
   String get settingsBackgroundSyncDescription;
 
   /// No description provided for @settingsBackgroundSyncIntervalLabel.
@@ -750,7 +762,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsForegroundSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Keep Monero syncing continuously while the app runs in the background, with a persistent notification. Uses more battery.'**
+  /// **'Keep your wallets syncing continuously while the app runs in the background, with a persistent notification. Uses more battery.'**
   String get settingsForegroundSyncDescription;
 
   /// No description provided for @settingsAppLockLabel.

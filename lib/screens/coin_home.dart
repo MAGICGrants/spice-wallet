@@ -10,12 +10,12 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
+import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
 import 'package:spice_wallet/screens/explorer_setup.dart';
 import 'package:spice_wallet/screens/receive.dart';
 import 'package:spice_wallet/screens/send.dart';
-import 'package:spice_wallet/wallets/crypto_wallet.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 import 'package:spice_wallet/widgets/coin_amount.dart';
 import 'package:spice_wallet/widgets/fiat_amount.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
@@ -489,7 +489,8 @@ class _TransactionListItemState extends State<_TransactionListItem> {
   @override
   Widget build(BuildContext context) {
     final coinRate = widget.fiatRate.rateFor(widget.wallet.coinSymbol);
-    final amountFiat = coinRate != null ? widget.tx.amount * coinRate : null;
+    final txAmount = displayAmount(widget.tx.amountBaseUnits, widget.wallet.baseUnitDecimals);
+    final amountFiat = coinRate != null ? txAmount * coinRate : null;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -534,7 +535,7 @@ class _TransactionListItemState extends State<_TransactionListItem> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CoinAmount(
-                      amount: widget.tx.amount,
+                      amount: txAmount,
                       decimals: widget.wallet.decimals,
                       smallerDigits: widget.wallet.smallerDigits,
                       maxFontSize: 16,

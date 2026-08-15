@@ -7,7 +7,7 @@ import 'package:spice_wallet/consts.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 
 class FiatApiSetupScreen extends StatefulWidget {
   const FiatApiSetupScreen({super.key});

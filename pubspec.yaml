@@ -1,5 +1,5 @@
 name: spice_wallet
-description: "A light Monero wallet."
+description: "A light multicoin wallet."
 publish_to: "none"
 version: 1.0.0+1
 
@@ -23,17 +23,52 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  # SHA-pinned (not `main`) to unify with wallet_infra's tor pin and keep
+  # rebuilds reproducible.
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor
-      ref: main
-  openalias_ffi:
-    path: plugins/openalias_ffi
+      ref: c2706eeb66174273a4a98113d7a8cd910ba124e6
+  # magicgrants/monero_c (not vtnerd/lwsf) to match wallet_monero — its pin
+  # carries Wallet_estimateTransactionFee and lwsf armv7/mingw fixes (D1).
   monero:
     git:
-      url: https://github.com/vtnerd/monero_c
-      ref: lwsf
+      url: https://github.com/magicgrants/monero_c
+      ref: 757bf8ef3874953a076b07a2407b17bf9eeef5c0
       path: impls/monero.dart
+
+  # wallet-core packages; SHA-pinned for release, redirected to the local
+  # sibling clone by the gitignored pubspec_overrides.yaml for dev.
+  wallet_infra:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: f674cb907ab971126a88dcc78c33b549b630f58f
+      path: packages/wallet_infra
+  wallet_domain:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: f674cb907ab971126a88dcc78c33b549b630f58f
+      path: packages/wallet_domain
+  wallet_monero:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: f674cb907ab971126a88dcc78c33b549b630f58f
+      path: packages/wallet_monero
+  wallet_bitcoin:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: f674cb907ab971126a88dcc78c33b549b630f58f
+      path: packages/wallet_bitcoin
+  wallet_ethereum:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: f674cb907ab971126a88dcc78c33b549b630f58f
+      path: packages/wallet_ethereum
+  wallet_openalias:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: f674cb907ab971126a88dcc78c33b549b630f58f
+      path: packages/wallet_openalias
   cupertino_icons: 1.0.8
   path: 1.9.1
   provider: 6.1.5+1
@@ -63,25 +98,28 @@ dependencies:
   bip32: 2.0.0
   package_info_plus: 8.3.0
   pointycastle: 3.9.1
-  bitcoin_base:
-    git:
-      url: https://github.com/cake-tech/bitcoin_base
-      ref: cake-update-v11
-  blockchain_utils:
-    git:
-      url: https://github.com/cake-tech/blockchain_utils
-      ref: cake-update-v2
   webcrypto: 0.6.0
-  web3dart: 2.7.1
   screen_protector: 1.5.2
 
+# bitcoin_base, blockchain_utils and web3dart are no longer direct deps — the
+# wallet_bitcoin / wallet_ethereum packages own them. The overrides below pin
+# the forks to SHAs, since dependency_overrides do not transit package
+# boundaries (D13): a consumer of wallet-core must repeat them.
 dependency_overrides:
   hashlib: 1.19.2
   intl: any
+  bip39:
+    git:
+      url: https://github.com/cypherstack/stack-bip39
+      ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
   web3dart:
     git:
       url: https://github.com/cake-tech/web3dart.git
-      ref: cake
+      ref: aa3f932dbf54eda651b7bd01ad00204acf998bd0
+  blockchain_utils:
+    git:
+      url: https://github.com/cake-tech/blockchain_utils
+      ref: 59fdf29d72068e0522a96a8953ed7272833a9f57
 
 dev_dependencies:
   flutter_test:

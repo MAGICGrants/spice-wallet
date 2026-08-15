@@ -12,7 +12,7 @@ import 'package:spice_wallet/widgets/fiat_api_settings_form.dart';
 import 'package:spice_wallet/widgets/tor_settings_form.dart';
 import 'package:spice_wallet/models/language_model.dart';
 import 'package:spice_wallet/models/theme_model.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 import 'package:spice_wallet/periodic_tasks.dart';
 import 'package:spice_wallet/services/foreground_sync_service.dart';
 import 'package:spice_wallet/services/notifications_service.dart';
@@ -381,11 +381,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Switch(value: _appLockEnabled, onChanged: _setAppLockEnabled),
                 ],
               ),
-            if (Platform.isAndroid)
+            if (Platform.isAndroid || Platform.isIOS)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(i18n.settingsNotifyNewTxsLabel, style: TextStyle(fontSize: 18)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(i18n.settingsNotifyNewTxsLabel, style: TextStyle(fontSize: 18)),
+                        Text(
+                          Platform.isIOS
+                              ? i18n.settingsNotifyNewTxsDescriptionIos
+                              : i18n.settingsNotifyNewTxsDescription,
+                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  ),
                   Switch(value: _newTxNotificationsEnabled, onChanged: _setTxNotificationsEnabled),
                 ],
               ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:spice_wallet/services/tor_service.dart';
-import 'package:spice_wallet/wallets/crypto_wallet.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 
 enum ConnectionIndicatorState { ok, loading, error }
 

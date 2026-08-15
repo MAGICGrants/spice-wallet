@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/util/secure_clipboard.dart';
-import 'package:spice_wallet/wallets/crypto_wallet.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 
 class TxDetailsDialog {
   static void show(BuildContext context, CryptoWallet wallet, TxDetails txDetails) {
@@ -42,8 +43,14 @@ class _TxDetailsDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
-    final amountSent = txDetails.amount.toStringAsFixed(wallet.decimals);
-    final fee = txDetails.fee.toStringAsFixed(wallet.feeDecimals);
+    final amountSent = displayAmount(
+      txDetails.amountBaseUnits,
+      wallet.baseUnitDecimals,
+    ).toStringAsFixed(wallet.decimals);
+    final fee = displayAmount(
+      txDetails.feeBaseUnits,
+      wallet.feeBaseUnitDecimals,
+    ).toStringAsFixed(wallet.feeDecimals);
 
     final dateTime = DateTime.fromMillisecondsSinceEpoch(txDetails.timestamp * 1000);
 
@@ -207,7 +214,10 @@ class _TxDetailsDialog extends StatelessWidget {
                       separatorBuilder: (context, index) => SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final recipient = txDetails.recipients[index];
-                        final amountStr = recipient.amount.toStringAsFixed(wallet.decimals);
+                        final amountStr = displayAmount(
+                          recipient.amountBaseUnits,
+                          wallet.baseUnitDecimals,
+                        ).toStringAsFixed(wallet.decimals);
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.end,

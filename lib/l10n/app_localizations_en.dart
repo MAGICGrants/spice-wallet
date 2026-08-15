@@ -49,7 +49,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeDescription =>
-      'Spice is one of the simplest Monero wallets. We will help you set up a wallet and connect to a server.';
+      'Spice is one of the simplest crypto wallets. We will help you set up a wallet and connect to a server.';
 
   @override
   String get welcomeGetStarted => 'Get Started';
@@ -59,7 +59,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restoreWarningDescription =>
-      'Are you sure? The server that you connect to will be able to see your past and future Monero transaction history.';
+      'Are you sure? The server that you connect to will be able to see your past and future transaction history.';
 
   @override
   String get restoreWarningContinueButton => 'Continue';
@@ -134,7 +134,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createWalletDescription =>
-      'Do you already have a Monero wallet seed, or do you need to make a new one?';
+      'Do you already have a wallet seed, or do you need to make a new one?';
 
   @override
   String get createWalletRestoreExistingButton => 'Restore Existing';
@@ -338,11 +338,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsNotifyNewTxsLabel => 'Notify New Transactions';
 
   @override
+  String get settingsNotifyNewTxsDescription =>
+      'Shows a notification when you receive a transaction. When connected to a Monero node, Background Sync must also be enabled.';
+
+  @override
+  String get settingsNotifyNewTxsDescriptionIos =>
+      'Shows a notification when you receive a transaction.';
+
+  @override
   String get settingsBackgroundSyncLabel => 'Background Sync';
 
   @override
   String get settingsBackgroundSyncDescription =>
-      'Periodically sync Monero in the background so it\'s up to date when you open the app.';
+      'Periodically sync your wallets in the background so they\'re up to date when you open the app.';
 
   @override
   String get settingsBackgroundSyncIntervalLabel => 'Sync Interval';
@@ -352,7 +360,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsForegroundSyncDescription =>
-      'Keep Monero syncing continuously while the app runs in the background, with a persistent notification. Uses more battery.';
+      'Keep your wallets syncing continuously while the app runs in the background, with a persistent notification. Uses more battery.';
 
   @override
   String get settingsAppLockLabel => 'App Lock';

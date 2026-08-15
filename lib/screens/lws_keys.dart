@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/util/secure_clipboard.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
-import 'package:spice_wallet/wallets/coins/monero/monero_wallet.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_monero/wallet_monero.dart' show MoneroWallet;
+import 'package:wallet_domain/wallet_domain.dart';
 
 /// Shows the Monero wallet's LWS details (primary address, secret view key,
 /// restore height) so the user can whitelist the wallet on a light-wallet
@@ -20,19 +20,24 @@ class LwsKeysScreen extends StatefulWidget {
 
 class _LwsKeysScreenState extends State<LwsKeysScreen> with SecureScreenMixin {
   var _restoreHeight = 0;
+  var _secretViewKey = '';
 
   @override
   void initState() {
     super.initState();
-    _loadRestoreHeight();
+    _loadDetails();
   }
 
-  Future<void> _loadRestoreHeight() async {
+  Future<void> _loadDetails() async {
     final wallet = Provider.of<WalletManager>(context, listen: false).getWallet('XMR');
-    if (wallet == null) return;
+    if (wallet is! MoneroWallet) return;
     final restoreHeight = await wallet.getRestoreHeight();
+    final secretViewKey = await wallet.readSecretViewKey();
     if (!mounted) return;
-    setState(() => _restoreHeight = restoreHeight);
+    setState(() {
+      _restoreHeight = restoreHeight;
+      _secretViewKey = secretViewKey;
+    });
   }
 
   Widget _copyField(String label, String value, {bool sensitive = false}) {
@@ -57,7 +62,7 @@ class _LwsKeysScreenState extends State<LwsKeysScreen> with SecureScreenMixin {
     final i18n = AppLocalizations.of(context)!;
     final wallet = context.watch<WalletManager>().getWallet('XMR') as MoneroWallet?;
     final primaryAddress = wallet?.getPrimaryAddress() ?? '';
-    final secretViewKey = wallet?.w2Wallet?.secretViewKey() ?? '';
+    final secretViewKey = _secretViewKey;
 
     return Scaffold(
       appBar: AppBar(title: Text(i18n.lwsKeysTitle)),

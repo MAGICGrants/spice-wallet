@@ -8,8 +8,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
-import 'package:spice_wallet/wallets/coins/monero/monero_wallet.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_monero/wallet_monero.dart' show MoneroWallet;
+import 'package:wallet_domain/wallet_domain.dart';
 
 class ReceiveScreenArgs {
   final String coinSymbol;

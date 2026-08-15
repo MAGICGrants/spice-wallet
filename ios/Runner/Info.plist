@@ -5,6 +5,10 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+		<!-- Short opportunistic wake-up: light wallets (LWS/Electrum/RPC) only. -->
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).refresh</string>
+		<!-- Longer run while charging and idle; the window Tor can bootstrap in. -->
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).processing</string>
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>

@@ -46,8 +46,8 @@ import 'package:spice_wallet/util/dirs.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/cacert.dart';
 import 'package:spice_wallet/util/wallet.dart';
-import 'package:spice_wallet/util/wallet_file_crypto.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:spice_wallet/wallet_core_glue.dart';
+import 'package:wallet_domain/wallet_domain.dart' show WalletManager;
 
 final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 final isMobile = Platform.isAndroid || Platform.isIOS;
@@ -56,6 +56,8 @@ void main() async {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+
+      installWalletCore();
 
       FlutterError.onError = (FlutterErrorDetails details) {
         log(LogLevel.error, 'Flutter error: ${details.exception}');
@@ -84,6 +86,10 @@ void main() async {
 
       if (Platform.isIOS) {
         await cleanTorDirectoriesOnIOS();
+        // Background sync on iOS is BGTaskScheduler-driven and gated by the
+        // notifications toggle; see periodic_tasks._applyIosBackgroundTasks.
+        registerPeriodicTasks();
+        NotificationService().init();
       }
 
       cleanOldLogFiles();
@@ -99,19 +105,6 @@ void main() async {
   );
 }
 
-/// Fast wallet-file probe for startup routing (no FFI / network).
-Future<bool> _anyWalletFileExists() async {
-  for (final symbol in ['XMR', 'BTC', 'TBTC']) {
-    final path = await getWalletPath(symbol);
-    final file = File(path);
-    if (!await file.exists()) continue;
-    if (symbol == 'XMR') return true;
-    final length = await file.length();
-    if (length >= WalletFileCrypto.minBlobLength) return true;
-  }
-  return false;
-}
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -119,7 +112,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => WalletManager()),
+        walletManagerProvider(),
         ChangeNotifierProvider(create: (_) => LanguageModel()),
         ChangeNotifierProvider(create: (_) => ThemeModel()),
         ChangeNotifierProvider(create: (_) => FiatRateModel()),
@@ -142,6 +135,10 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
   bool _startedServices = false;
   bool _walletExists = false;
   bool _relockPending = false;
+  // Desktop-only foreground announce: desktop has no background isolate, so the
+  // foreground announces incoming txs when the wallets' history grows.
+  WalletManager? _announceManager;
+  int _lastAnnouncedTxCount = 0;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   void _startServicesOnce() {
@@ -161,6 +158,7 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _announceManager?.removeListener(_announceNewTxsOnGrowth);
     super.dispose();
   }
 
@@ -169,10 +167,30 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     if (!isMobile) return;
     if (state == AppLifecycleState.paused) {
       _maybeArmRelock();
+      // Mark everything on screen as seen so a background isolate won't
+      // re-announce a tx the user just watched arrive. Records only; fires no
+      // notification (announce: false).
+      if (_walletExists) {
+        unawaited(context.read<WalletManager>().notifyNewIncomingTxsAll(announce: false));
+      }
     } else if (state == AppLifecycleState.resumed && _relockPending) {
       _relockPending = false;
       _navigatorKey.currentState?.pushNamedAndRemoveUntil('/unlock', (route) => false);
     }
+  }
+
+  // Desktop has no background isolate to announce incoming txs, so the
+  // foreground announces when the wallets' combined history grows. The count is
+  // a cheap gate so unrelated notifications (balance, connectivity) don't hit
+  // the keystore; notifyNewIncomingTxsAll is the decider (hash-based, respects
+  // the notifications toggle).
+  void _announceNewTxsOnGrowth() {
+    final manager = _announceManager;
+    if (manager == null) return;
+    final count = manager.allWallets.fold<int>(0, (sum, w) => sum + w.txHistory.length);
+    if (count <= _lastAnnouncedTxCount) return;
+    _lastAnnouncedTxCount = count;
+    unawaited(manager.notifyNewIncomingTxsAll());
   }
 
   /// On background: if app lock is on and a wallet exists, clear the in-memory
@@ -187,15 +205,14 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
 
   Future<void> _bootstrap() async {
     try {
+      final manager = context.read<WalletManager>();
       final prefs = await SharedPreferences.getInstance();
-      final walletExists = await _anyWalletFileExists();
+      final walletExists = await manager.hasAnyExistingWallet();
 
-      if (mounted) {
-        unawaited(context.read<WalletManager>().loadPreferences());
-      }
+      unawaited(manager.loadPreferences());
 
-      if (walletExists && mounted) {
-        unawaited(context.read<WalletManager>().loadCachedDisplayState());
+      if (walletExists) {
+        unawaited(manager.loadCachedDisplayState());
       }
 
       final appLockEnabled = prefs.getBool(SharedPreferencesKeys.appLockEnabled) ?? false;
@@ -223,6 +240,11 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
 
       if (walletExists) {
         context.read<FiatRateModel>().startService(walletManager: context.read<WalletManager>());
+
+        // Desktop announces incoming txs from the foreground (no bg isolate).
+        if (isDesktop) {
+          _announceManager = manager..addListener(_announceNewTxsOnGrowth);
+        }
       }
     } catch (e) {
       log(LogLevel.error, 'App bootstrap failed: $e');

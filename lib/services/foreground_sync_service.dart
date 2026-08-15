@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -5,7 +6,8 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_service.dart';
 import 'package:spice_wallet/util/logging.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:spice_wallet/wallet_core_glue.dart';
+import 'package:wallet_domain/wallet_domain.dart' show WalletManager, CryptoWallet;
 
 /// Android foreground service that keeps Monero (and other) wallets syncing
 /// while the app is backgrounded — a persistent-notification alternative to the
@@ -25,7 +27,8 @@ class _SyncTaskHandler extends TaskHandler {
 
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    final manager = WalletManager();
+    installWalletCore();
+    final manager = WalletManager(coins: buildCoins);
     _manager = manager;
     try {
       if (!await manager.hasAnyExistingWallet()) return;
@@ -58,18 +61,33 @@ class _SyncTaskHandler extends TaskHandler {
 
   @override
   void onRepeatEvent(DateTime timestamp) {
-    final wallets = _manager?.activeWallets ?? const [];
+    final wallets = _manager?.activeWallets ?? const <CryptoWallet>[];
     final syncing = wallets.any(
-      (w) => w.connectionAddress.isNotEmpty && !(w.isConnected && w.isSynced),
+      (w) => w.connectionAddress.isNotEmpty && !isWalletFullySynced(w),
     );
     FlutterForegroundTask.updateService(
       notificationTitle: 'Spice Wallet',
       notificationText: syncing ? 'Syncing…' : 'Wallet up to date',
     );
+
+    // While this service runs it is the thing watching the chain, so it is the
+    // thing that announces what it finds; the WorkManager task runs on its own
+    // schedule and would otherwise never see these.
+    final manager = _manager;
+    if (manager != null) {
+      unawaited(
+        manager.notifyNewIncomingTxsAll().catchError((Object e) {
+          log(LogLevel.warn, '[FG sync] notifying new transactions failed: $e');
+        }),
+      );
+    }
   }
 
   @override
   Future<void> onDestroy(DateTime timestamp) async {
+    // Checkpoint scan progress before tearing down, or everything scanned since
+    // the last periodic store is lost.
+    await _manager?.pauseSyncAndStoreAll();
     _manager?.dispose();
     _manager = null;
   }
@@ -94,14 +112,23 @@ void initForegroundSync() {
   );
 }
 
-Future<void> startForegroundSync() async {
+/// A wallet is fully caught up only once a real height has loaded: [isSynced]
+/// can flip true in the post-open window before [syncedHeight] arrives (LWS
+/// reports 0 first), which would otherwise show "up to date" prematurely.
+bool isWalletFullySynced(CryptoWallet w) =>
+    w.isConnected && w.isSynced && (w.syncedHeight ?? 0) > 0;
+
+/// [synced] seeds the initial notification text so toggling the service on while
+/// already caught up shows "up to date" immediately, not a stale "Syncing…"
+/// until the first repeat tick.
+Future<void> startForegroundSync({bool synced = false}) async {
   if (!Platform.isAndroid) return;
   initForegroundSync();
   await FlutterForegroundTask.requestNotificationPermission();
   if (await FlutterForegroundTask.isRunningService) return;
   await FlutterForegroundTask.startService(
     notificationTitle: 'Spice Wallet',
-    notificationText: 'Syncing…',
+    notificationText: synced ? 'Wallet up to date' : 'Syncing…',
     callback: foregroundSyncCallback,
   );
 }

@@ -14,8 +14,7 @@ import 'package:spice_wallet/widgets/loading_button.dart';
 import 'package:spice_wallet/models/contact_model.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/confirm_send.dart';
-import 'package:spice_wallet/wallets/crypto_wallet.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 import 'package:spice_wallet/widgets/coin_amount.dart';
 import 'package:spice_wallet/widgets/fiat_amount.dart';
 
@@ -102,7 +101,7 @@ class _SendScreenState extends State<SendScreen> {
     if (!domainRegex.hasMatch(value)) return value;
     // All coins use the DNSSEC-over-Tor OpenAlias resolver (Monero included).
     // Empty result → caller shows the resolve error.
-    if (wallet.openAliasAsset.isNotEmpty) {
+    if (wallet.aliasAsset.isNotEmpty) {
       if (value == _resolveCacheInput) return _resolveCacheOutput; // avoid re-lookup
       final i18n = AppLocalizations.of(context)!;
       // Counter (not a bool): resolution runs from several call sites that can
@@ -112,7 +111,7 @@ class _SendScreenState extends State<SendScreen> {
       String resolved = '';
       String error = '';
       try {
-        resolved = (await wallet.resolveOpenAliasAddress(value)) ?? '';
+        resolved = (await wallet.resolveAlias(value))?.address ?? '';
         error = resolved.isEmpty ? i18n.sendOpenAliasResolveError : '';
       } catch (e) {
         log(LogLevel.warn, 'openalias resolve failed: $e', coin: wallet.coinSymbol);
@@ -319,18 +318,17 @@ class _SendScreenState extends State<SendScreen> {
 
   Future<PendingTransaction?> _createTxForPriority(
     String destinationAddress,
-    double amount,
     int priority,
   ) async {
     final wallet = _wallet(context);
+    final amountUnits = _amountUnits(wallet) ?? BigInt.zero;
     final maxRetries = 10;
 
     for (int i = 0; i < maxRetries; i++) {
       try {
         return await wallet.createTx(
           destinationAddress,
-          amount,
-          _amountController.text,
+          amountUnits,
           _isSweepAll,
           priority: priority,
         );
@@ -370,7 +368,6 @@ class _SendScreenState extends State<SendScreen> {
     _feeRevision.value++;
 
     final destinationAddress = await _resolveDestinationAddress();
-    final amount = double.parse(_amountController.text);
 
     try {
       final fees = List<PendingTransaction?>.filled(3, null);
@@ -385,7 +382,7 @@ class _SendScreenState extends State<SendScreen> {
 
         await Future<void>.delayed(Duration.zero);
 
-        fees[idx] = await _createTxForPriority(destinationAddress, amount, idx + 1);
+        fees[idx] = await _createTxForPriority(destinationAddress, idx + 1);
 
         if (currentRequest == _feeCalculationCounter && mounted) {
           setState(() {
@@ -449,7 +446,7 @@ class _SendScreenState extends State<SendScreen> {
     }
 
     final destinationAddressUnresolved = _destinationAddressController.text;
-    final amount = double.parse(_amountController.text);
+    final amountUnits = _amountUnits(wallet) ?? BigInt.zero;
     String destinationAddress = '';
     String? destinationOpenAlias;
 
@@ -473,8 +470,7 @@ class _SendScreenState extends State<SendScreen> {
       } else {
         tx = await wallet.createTx(
           destinationAddress,
-          amount,
-          _amountController.text,
+          amountUnits,
           _isSweepAll,
           priority: _selectedPriority + 1,
         );
@@ -623,7 +619,7 @@ class _SendScreenState extends State<SendScreen> {
 
     final text = _destinationAddressController.text;
     final isOpenAliasDomain =
-        domainRegex.hasMatch(text) && _wallet(context).openAliasAsset.isNotEmpty;
+        domainRegex.hasMatch(text) && _wallet(context).aliasAsset.isNotEmpty;
 
     // While the user is actively typing a domain, defer the (network) OpenAlias
     // resolution until the field unfocuses. Just clear fees + disable send.
@@ -883,7 +879,10 @@ class _SendScreenState extends State<SendScreen> {
                                             height: 14,
                                           ),
                                           CoinAmount(
-                                            amount: selectedTx.fee,
+                                            amount: displayAmount(
+                                              selectedTx.feeBaseUnits,
+                                              wallet.feeBaseUnitDecimals,
+                                            ),
                                             decimals: wallet.feeDecimals,
                                             smallerDigits: wallet.smallerDigits,
                                             maxFontSize: 14,
@@ -1101,7 +1100,9 @@ class _PriorityOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
     final feeTx = fees?[priority];
-    final fee = feeTx?.fee;
+    final fee = feeTx == null
+        ? null
+        : displayAmount(feeTx.feeBaseUnits, wallet.feeBaseUnitDecimals);
     final currentFiatRate = fiatRate;
 
     return InkWell(

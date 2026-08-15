@@ -7,7 +7,7 @@ import 'package:spice_wallet/widgets/loading_button.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
-import 'package:spice_wallet/wallets/wallet_manager.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 
 class RestoreWalletScreen extends StatefulWidget {
   const RestoreWalletScreen({super.key});
@@ -86,7 +86,7 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
     });
 
     try {
-      await manager.restoreAll(bip39Mnemonic: mnemonic, restoreDate: _restoreDate);
+      await manager.restoreAll(seed: Bip39Seed(mnemonic), from: RestorePoint.date(_restoreDate));
     } catch (error) {
       log(LogLevel.error, error.toString());
       setState(() {

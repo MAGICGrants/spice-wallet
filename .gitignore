@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local dev dependency redirects (points at ../wallet-core)
+pubspec_overrides.yaml
