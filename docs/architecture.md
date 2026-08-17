@@ -63,11 +63,13 @@ is the only heavy, locally-scanning connection. ERC-20 (DAI) pays fees in ETH
 
 The background-sync + tx-notification **design is shared with Skylight**, not
 spice-specific: the security rationale (key exposure vs. the LWS/node mode split)
-is wallet-core's `background-sync.md`, and the app-level orchestration
-(`periodic_tasks.dart`, `foreground_sync_service.dart`, the desktop announce and
-mobile mark-seen in `main.dart`, the iOS `BGTaskScheduler` scheduling, and gating
-a node scan behind the Background Sync toggle) is near-identical in both apps —
-it's a candidate to move into wallet-core.
+is wallet-core's `background-sync.md`, and the orchestration now lives in the
+shared **`wallet_background`** package (wallet-core D22). Spice keeps only the
+thin isolate **entry points** (`periodic_tasks.dart`, `foreground_sync_service.dart`
+— they bootstrap the isolate then delegate), the `BackgroundSync.install(...)`
+config in the glue (coin registry, a Tor hook, iOS bundle id, foreground title),
+the desktop-announce/mobile-mark-seen in `main.dart` (widget-lifecycle-bound),
+and the native `AppDelegate.swift`/`Info.plist`.
 
 The only genuinely **spice-specific** part is that spice is multicoin:
 

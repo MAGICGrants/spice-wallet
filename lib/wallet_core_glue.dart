@@ -2,11 +2,15 @@ import 'dart:io';
 
 import 'package:provider/provider.dart';
 
+import 'package:spice_wallet/periodic_tasks.dart' show backgroundDispatcher;
+import 'package:spice_wallet/services/foreground_sync_service.dart' show foregroundSyncCallback;
 import 'package:spice_wallet/services/notifications_service.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
+import 'package:spice_wallet/services/tor_service.dart';
 import 'package:spice_wallet/util/logging.dart';
 
 import 'package:wallet_infra/wallet_infra.dart' as wcore;
+import 'package:wallet_background/wallet_background.dart' show BackgroundSync;
 import 'package:wallet_domain/wallet_domain.dart'
     show WalletAppConfig, WalletManager, CryptoWallet, baseUnitsToDecimalString;
 import 'package:wallet_monero/wallet_monero.dart' show MoneroWallet;
@@ -58,6 +62,15 @@ void installWalletCore() {
   wcore.NotificationService.windowsAppUserModelId = 'org.magicgrants.spice';
   wcore.NotificationService.windowsGuid = '6dcf17a9-fb5f-4f47-b0b9-6d655e90adbf';
 
+  BackgroundSync.install(
+    coins: buildCoins,
+    workmanagerCallback: backgroundDispatcher,
+    foregroundCallback: foregroundSyncCallback,
+    ensureTorConnected: _ensureTorConnected,
+    iosBundleId: 'org.magicgrants.spicewallet',
+    foregroundTitle: 'Spice Wallet',
+  );
+
   wcore.WalletLog.sink = const _SpiceLogSink();
   wcore.WalletLog.isVerbose = () async =>
       await SharedPreferencesService.get<bool>(SharedPreferencesKeys.verboseLoggingEnabled) ??
@@ -81,6 +94,18 @@ void installWalletCore() {
       if (on ?? false) show();
     });
   };
+}
+
+/// Brings spice's Tor up and reports whether it connected — the seam
+/// `wallet_background` uses so a background isolate starts the *same* Tor the
+/// wallet connects through.
+Future<bool> _ensureTorConnected() async {
+  await TorService.sharedInstance.start();
+  await TorService.sharedInstance.waitUntilConnected().timeout(
+    const Duration(minutes: 2),
+    onTimeout: () {},
+  );
+  return TorService.sharedInstance.status == TorConnectionStatus.connected;
 }
 
 /// The wallet-core [WalletManager] provider.
