@@ -11,6 +11,7 @@ class SharedPreferencesKeys {
   static const String fiatCurrency = SettingsKeys.fiatCurrency;
   static const String fiatApiMode = SettingsKeys.fiatApiMode;
   static const String fiatRate = SettingsKeys.fiatRate;
+  static const String fiatAutoDisabledByTor = SettingsKeys.fiatAutoDisabledByTor;
   static const String theme = SettingsKeys.theme;
   static const String notificationsEnabled = SettingsKeys.notificationsEnabled;
   static const String appLockEnabled = SettingsKeys.appLockEnabled;

@@ -1323,6 +1323,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  wallet_fiat:
+    dependency: "direct main"
+    description:
+      path: "../wallet-core/packages/wallet_fiat"
+      relative: true
+    source: path
+    version: "0.1.0"
   wallet_infra:
     dependency: "direct main"
     description:

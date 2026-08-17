@@ -43,12 +43,15 @@ navigation, branding, and app-support glue.
   helpers, `NotificationService` re-export. wallet-core has its own internal
   copies (`wallet_infra`); the two are bridged by **injection**, not by importing
   `wallet_infra` into the UI.
-- **Shared via wallet-core** (deleted from Spice): the entire wallet engine
-  (`CryptoWallet`/`WalletManager`/coins), plus — as of the sharing work — the
-  `SharedPreferencesService` and `NotificationService` (Spice re-exports them),
-  and the common setting-key strings via `wallet_infra`'s `SettingsKeys` (see
-  wallet-core **D21**). Spice's `SharedPreferencesKeys` references those and adds
-  its multicoin-only keys.
+- **Shared via wallet-core** (deleted from / re-exported by Spice): the entire
+  wallet engine (`CryptoWallet`/`WalletManager`/coins); the
+  `SharedPreferencesService` + `SettingsKeys` and `NotificationService` in
+  `wallet_infra` (D21); the background-sync/notification orchestration in
+  `wallet_background` (D22); and the `FiatRateModel` in `wallet_fiat` (D23). Spice
+  re-exports the models under their old paths, keeps its `SharedPreferencesKeys`
+  (referencing `SettingsKeys` + its 2 extras), and injects the app seams
+  (`BackgroundSync.install`, `FiatRates.install`, notification branding) in the
+  glue.
 
 ## Coin registry
 

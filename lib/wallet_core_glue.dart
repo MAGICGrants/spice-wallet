@@ -7,10 +7,12 @@ import 'package:spice_wallet/services/foreground_sync_service.dart' show foregro
 import 'package:spice_wallet/services/notifications_service.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_service.dart';
+import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/util/logging.dart';
 
 import 'package:wallet_infra/wallet_infra.dart' as wcore;
 import 'package:wallet_background/wallet_background.dart' show BackgroundSync;
+import 'package:wallet_fiat/wallet_fiat.dart' show FiatRates;
 import 'package:wallet_domain/wallet_domain.dart'
     show WalletAppConfig, WalletManager, CryptoWallet, baseUnitsToDecimalString;
 import 'package:wallet_monero/wallet_monero.dart' show MoneroWallet;
@@ -70,6 +72,8 @@ void installWalletCore() {
     iosBundleId: 'org.magicgrants.spicewallet',
     foregroundTitle: 'Spice Wallet',
   );
+
+  FiatRates.install(getTorProxy: TorSettingsService.sharedInstance.getProxy);
 
   wcore.WalletLog.sink = const _SpiceLogSink();
   wcore.WalletLog.isVerbose = () async =>

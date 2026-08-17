@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/models/fiat_rate_model.dart';
+import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/util/socks_http.dart';
 import 'package:wallet_domain/wallet_domain.dart';
@@ -55,6 +57,7 @@ class _TorSettingsFormState extends State<TorSettingsForm> {
   void _onSavePressed() async {
     final previousMode = TorSettingsService.sharedInstance.torMode;
     final disablingTor = _selectedMode == TorMode.disabled && previousMode != TorMode.disabled;
+    final enablingTor = _selectedMode != TorMode.disabled && previousMode == TorMode.disabled;
 
     if (disablingTor) {
       final affected = Provider.of<WalletManager>(
@@ -70,8 +73,30 @@ class _TorSettingsFormState extends State<TorSettingsForm> {
       }
     }
 
+    var fiatChanged = false;
+
+    // The fiat API can't reach Kraken over a Tor that's now off, so a Tor-only
+    // fiat setting is turned off too. Remember it was us, not the user, so
+    // re-enabling Tor can restore it.
+    if (disablingTor && await FiatRateModel.loadFiatApiMode() == FiatApiMode.torOnly) {
+      await FiatRateModel.saveFiatApiMode(FiatApiMode.disabled);
+      await SharedPreferencesService.set<bool>(SharedPreferencesKeys.fiatAutoDisabledByTor, true);
+      fiatChanged = true;
+    }
+
+    // Turning Tor back on restores the fiat API to Tor mode, but only if we were
+    // the ones who disabled it (a user who disabled it themselves keeps it off).
+    if (enablingTor &&
+        (await SharedPreferencesService.get<bool>(SharedPreferencesKeys.fiatAutoDisabledByTor) ??
+            false)) {
+      await FiatRateModel.saveFiatApiMode(FiatApiMode.torOnly);
+      await SharedPreferencesService.remove(SharedPreferencesKeys.fiatAutoDisabledByTor);
+      fiatChanged = true;
+    }
+
     await _saveSettings();
     if (!mounted) return;
+    if (fiatChanged) Provider.of<FiatRateModel>(context, listen: false).startService();
     widget.onSaved();
   }
 
