@@ -54,6 +54,10 @@ void installWalletCore() {
   WalletAppConfig.install(WalletAppConfig.spice);
   CryptoWallet.aliasResolver = resolveOpenAlias;
 
+  wcore.NotificationService.windowsAppName = 'Spice Wallet';
+  wcore.NotificationService.windowsAppUserModelId = 'org.magicgrants.spice';
+  wcore.NotificationService.windowsGuid = '6dcf17a9-fb5f-4f47-b0b9-6d655e90adbf';
+
   wcore.WalletLog.sink = const _SpiceLogSink();
   wcore.WalletLog.isVerbose = () async =>
       await SharedPreferencesService.get<bool>(SharedPreferencesKeys.verboseLoggingEnabled) ??
@@ -62,15 +66,19 @@ void installWalletCore() {
   CryptoWallet.incomingTxNotifier = (tx, coinSymbol) {
     final decimals = _baseUnitDecimals[coinSymbol] ?? 0;
     final amount = double.tryParse(baseUnitsToDecimalString(tx.amountBaseUnits, decimals)) ?? 0;
+    void show() => NotificationService().showIncomingTxNotification(
+      title: 'Incoming transaction',
+      body: 'You received $amount $coinSymbol',
+    );
     if (!_isMobile) {
       // Desktop has no notifications toggle (Android/iOS-only), so it always
       // shows an incoming-tx notification.
-      NotificationService().showIncomingTxNotification(amount);
+      show();
       return;
     }
     // Mobile respects the toggle.
     SharedPreferencesService.get<bool>(SharedPreferencesKeys.notificationsEnabled).then((on) {
-      if (on ?? false) NotificationService().showIncomingTxNotification(amount);
+      if (on ?? false) show();
     });
   };
 }

@@ -1,73 +1,29 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wallet_infra/wallet_infra.dart' show SettingsKeys;
 
+// The prefs service itself lives in wallet-core (injectable, test-seamed). Kept
+// under the same import path so call sites are unchanged.
+export 'package:wallet_infra/wallet_infra.dart' show SharedPreferencesService;
+
+/// Spice's preference keys. The common ones are the shared [SettingsKeys] so the
+/// key strings can't drift from skylight; only spice-specific keys are new here.
 class SharedPreferencesKeys {
-  static const String language = 'language';
-  static const String fiatCurrency = 'fiatCurrency';
-  static const String fiatApiMode = 'fiatApiMode';
-  static const String fiatRate = 'fiatRate';
-  static const String theme = 'theme';
-  static const String notificationsEnabled = 'notificationsEnabled';
-  static const String appLockEnabled = 'appLockEnabled';
-  static const String verboseLoggingEnabled = 'verboseLoggingEnabled';
+  static const String language = SettingsKeys.language;
+  static const String fiatCurrency = SettingsKeys.fiatCurrency;
+  static const String fiatApiMode = SettingsKeys.fiatApiMode;
+  static const String fiatRate = SettingsKeys.fiatRate;
+  static const String theme = SettingsKeys.theme;
+  static const String notificationsEnabled = SettingsKeys.notificationsEnabled;
+  static const String appLockEnabled = SettingsKeys.appLockEnabled;
+  static const String verboseLoggingEnabled = SettingsKeys.verboseLoggingEnabled;
+  static const String contacts = SettingsKeys.contacts;
+  static const String torMode = SettingsKeys.torMode;
+  static const String torSocksPort = SettingsKeys.torSocksPort;
+  static const String torUseOrbot = SettingsKeys.torUseOrbot;
+  static const String backgroundSyncEnabled = SettingsKeys.backgroundSyncEnabled;
+  static const String backgroundSyncIntervalMinutes = SettingsKeys.backgroundSyncIntervalMinutes;
+  static const String foregroundSyncEnabled = SettingsKeys.foregroundSyncEnabled;
+
+  // Spice-specific (multicoin):
   static const String pendingOutgoingTxs = 'pendingOutgoingTxs';
-  static const String contacts = 'contacts';
-  static const String torMode = 'torMode';
-  static const String torSocksPort = 'torSocksPort';
-  static const String torUseOrbot = 'torUseOrbot';
   static const String testnetCoinsEnabled = 'testnetCoinsEnabled';
-  static const String backgroundSyncEnabled = 'backgroundSyncEnabled';
-  static const String backgroundSyncIntervalMinutes = 'backgroundSyncIntervalMinutes';
-  static const String foregroundSyncEnabled = 'foregroundSyncEnabled';
-}
-
-class SharedPreferencesService {
-  SharedPreferencesService._();
-
-  static SharedPreferences? _prefs;
-
-  static Future<SharedPreferences> _instance() async {
-    return _prefs ??= await SharedPreferences.getInstance();
-  }
-
-  static Future<T?> get<T>(String key) async {
-    final prefs = await _instance();
-    final String keyString = key.toString();
-
-    switch (T) {
-      // ignore: type_literal_in_constant_pattern
-      case bool:
-        return prefs.getBool(keyString) as T?;
-      // ignore: type_literal_in_constant_pattern
-      case String:
-        return prefs.getString(keyString) as T?;
-      // ignore: type_literal_in_constant_pattern
-      case int:
-        return prefs.getInt(keyString) as T?;
-      // ignore: type_literal_in_constant_pattern
-      case double:
-        return prefs.getDouble(keyString) as T?;
-      default:
-        return null;
-    }
-  }
-
-  static Future<void> set<T>(String key, T value) async {
-    final prefs = await _instance();
-    final String keyString = key.toString();
-
-    if (value is bool) {
-      await prefs.setBool(keyString, value);
-    } else if (value is String) {
-      await prefs.setString(keyString, value);
-    } else if (value is int) {
-      await prefs.setInt(keyString, value);
-    } else if (value is double) {
-      await prefs.setDouble(keyString, value);
-    }
-  }
-
-  static Future<void> remove(String key) async {
-    final prefs = await _instance();
-    await prefs.remove(key);
-  }
 }
