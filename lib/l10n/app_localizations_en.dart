@@ -42,6 +42,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addressCopied => 'Address copied to clipboard';
 
   @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
   String get fieldEmptyError => 'This field cannot be empty.';
 
   @override

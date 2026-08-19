@@ -11,6 +11,7 @@
   "pending": "Pending",
   "copy": "Copy",
   "addressCopied": "Address copied to clipboard",
+  "copiedToClipboard": "Copied to clipboard",
   "fieldEmptyError": "This field cannot be empty.",
   "welcomeTitle": "Welcome!",
   "welcomeDescription": "Spice is one of the simplest crypto wallets. We will help you set up a wallet and connect to a server.",

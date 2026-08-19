@@ -39,19 +39,21 @@ navigation, branding, and app-support glue.
 ## App-local vs shared
 
 - **Kept app-local** (`lib/util/`, `lib/services/`): logging, dirs, Tor service,
-  `TorSettingsService`, secure clipboard/screen, socks, cacert, amount/formatting
-  helpers, `NotificationService` re-export. wallet-core has its own internal
-  copies (`wallet_infra`); the two are bridged by **injection**, not by importing
-  `wallet_infra` into the UI.
+  `TorSettingsService`, secure screen, socks, cacert, amount/formatting helpers.
+  wallet-core has its own internal copies (`wallet_infra`); the two are bridged by
+  **injection**, not by importing `wallet_infra` into the UI.
 - **Shared via wallet-core** (deleted from / re-exported by Spice): the entire
   wallet engine (`CryptoWallet`/`WalletManager`/coins); the
-  `SharedPreferencesService` + `SettingsKeys` and `NotificationService` in
-  `wallet_infra` (D21); the background-sync/notification orchestration in
-  `wallet_background` (D22); and the `FiatRateModel` in `wallet_fiat` (D23). Spice
-  re-exports the models under their old paths, keeps its `SharedPreferencesKeys`
-  (referencing `SettingsKeys` + its 2 extras), and injects the app seams
+  `SharedPreferencesService` + `SettingsKeys`, `NotificationService` and
+  `SecureClipboard` in `wallet_infra` (D21, D10); the background-sync/notification
+  orchestration in `wallet_background` (D22); the `FiatRateModel` in `wallet_fiat`
+  (D23); and the tx-details popup in `wallet_ui` (D24). Spice re-exports the moved
+  symbols under their old paths (and keeps a thin `TxDetailsDialog` adapter that
+  supplies its l10n strings), keeps its `SharedPreferencesKeys` (referencing
+  `SettingsKeys` + its 2 extras), and injects the app seams
   (`BackgroundSync.install`, `FiatRates.install`, notification branding) in the
-  glue.
+  glue. `SecureClipboard`'s native handler is registered under the shared neutral
+  channel name (`org.magicgrants.wallet/secure_clipboard`).
 
 ## Coin registry
 

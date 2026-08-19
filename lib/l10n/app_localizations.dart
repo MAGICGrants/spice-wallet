@@ -159,6 +159,12 @@ abstract class AppLocalizations {
   /// **'Address copied to clipboard'**
   String get addressCopied;
 
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
+
   /// No description provided for @fieldEmptyError.
   ///
   /// In en, this message translates to:

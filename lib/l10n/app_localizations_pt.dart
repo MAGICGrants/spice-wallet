@@ -42,6 +42,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get addressCopied => 'Endereço copiado para a área de transferência';
 
   @override
+  String get copiedToClipboard => 'Copiado para a área de transferência';
+
+  @override
   String get fieldEmptyError => 'Este campo não pode ficar vazio.';
 
   @override
@@ -49,7 +52,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get welcomeDescription =>
-      'A spice é uma das mais simples carteiras de criptomoedas. Nós o ajudaremos a configurar uma carteira e se conectar à um servidor.';
+      'A Spice é uma das mais simples carteiras de criptomoedas. Nós o ajudaremos a configurar uma carteira e se conectar à um servidor.';
 
   @override
   String get welcomeGetStarted => 'Começar';
@@ -609,7 +612,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get torInfoDescription =>
-      'A Carteira spice usa automaticamente Tor integrado para proteger suas conexões de internet.';
+      'A Carteira Spice usa automaticamente Tor integrado para proteger suas conexões de internet.';
 
   @override
   String get torInfoContinueButton => 'Continuar';
