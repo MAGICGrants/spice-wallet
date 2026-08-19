@@ -115,6 +115,7 @@ class _CreateWalletPasswordScreenState extends State<CreateWalletPasswordScreen>
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
+                        textInputAction: TextInputAction.next,
                         validator: _validatePassword,
                         decoration: InputDecoration(
                           labelText: 'Password',
@@ -134,6 +135,7 @@ class _CreateWalletPasswordScreenState extends State<CreateWalletPasswordScreen>
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirmPassword,
+                        textInputAction: TextInputAction.done,
                         validator: _validateConfirmPassword,
                         decoration: InputDecoration(
                           labelText: 'Confirm Password',

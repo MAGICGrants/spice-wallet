@@ -180,6 +180,7 @@ class _LegacyWalletScreenState extends State<LegacyWalletScreen> {
                       controller: _passwordController,
                       obscureText: true,
                       enabled: !_busy,
+                      textInputAction: TextInputAction.done,
                       decoration: InputDecoration(
                         labelText: i18n.unlockPasswordLabel,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),

@@ -86,6 +86,7 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                   child: TextField(
                     controller: _searchController,
                     onChanged: _onSearchChanged,
+                    textInputAction: TextInputAction.done,
                     decoration: InputDecoration(
                       hintText: i18n.addressBookSearchHint,
                       prefixIcon: Icon(Icons.search),
@@ -408,6 +409,7 @@ class _ContactDialogState extends State<_ContactDialog> {
                 ),
                 validator: _validateName,
                 textCapitalization: TextCapitalization.words,
+                textInputAction: TextInputAction.next,
               ),
               SizedBox(height: 16),
               for (final wallet in wallets) ...[
@@ -419,6 +421,7 @@ class _ContactDialogState extends State<_ContactDialog> {
                   ),
                   validator: (value) => _validateAddress(value, wallet),
                   maxLines: 2,
+                  textInputAction: TextInputAction.done,
                 ),
                 SizedBox(height: 12),
               ],

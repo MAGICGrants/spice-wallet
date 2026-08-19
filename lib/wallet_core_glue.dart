@@ -8,7 +8,6 @@ import 'package:spice_wallet/services/notifications_service.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
-import 'package:spice_wallet/util/logging.dart';
 
 import 'package:wallet_infra/wallet_infra.dart' as wcore;
 import 'package:wallet_background/wallet_background.dart' show BackgroundSync;
@@ -75,7 +74,12 @@ void installWalletCore() {
 
   FiatRates.install(getTorProxy: TorSettingsService.sharedInstance.getProxy);
 
-  wcore.WalletLog.sink = const _SpiceLogSink();
+  // The whole logger lives in wallet-core now (D25): console + file sinks fan out
+  // from one installed sink; the file sink is verbose-gated internally.
+  wcore.WalletLog.sink = wcore.CompositeLogSink([
+    const wcore.DebugPrintLogSink(),
+    wcore.FileLogSink(),
+  ]);
   wcore.WalletLog.isVerbose = () async =>
       await SharedPreferencesService.get<bool>(SharedPreferencesKeys.verboseLoggingEnabled) ??
       false;
@@ -115,15 +119,3 @@ Future<bool> _ensureTorConnected() async {
 /// The wallet-core [WalletManager] provider.
 ChangeNotifierProvider<WalletManager> walletManagerProvider() =>
     ChangeNotifierProvider(create: (_) => WalletManager(coins: buildCoins));
-
-/// Routes wallet-core log lines into spice's logger.
-class _SpiceLogSink extends wcore.LogSink {
-  const _SpiceLogSink();
-
-  @override
-  Future<void> write(wcore.LogLevel level, String line) => log(switch (level) {
-    wcore.LogLevel.info => LogLevel.info,
-    wcore.LogLevel.warn => LogLevel.warn,
-    wcore.LogLevel.error => LogLevel.error,
-  }, line);
-}
