@@ -792,7 +792,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsVerboseLoggingLabel.
   ///
   /// In en, this message translates to:
-  /// **'Verbose Logging'**
+  /// **'Enable Logging to File'**
   String get settingsVerboseLoggingLabel;
 
   /// No description provided for @settingsTestnetCoinsLabel.

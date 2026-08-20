@@ -376,7 +376,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Unable to authenticate. Make sure you have device unlock set up.';
 
   @override
-  String get settingsVerboseLoggingLabel => 'Verbose Logging';
+  String get settingsVerboseLoggingLabel => 'Enable Logging to File';
 
   @override
   String get settingsTestnetCoinsLabel => 'Testnet Coins';

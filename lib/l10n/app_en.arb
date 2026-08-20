@@ -130,7 +130,7 @@
   "settingsAppLockLabel": "App Lock",
   "settingsAppLockUnlockReason": "Unlock wallet",
   "settingsAppLockUnableToAuthError": "Unable to authenticate. Make sure you have device unlock set up.",
-  "settingsVerboseLoggingLabel": "Verbose Logging",
+  "settingsVerboseLoggingLabel": "Enable Logging to File",
   "settingsTestnetCoinsLabel": "Testnet Coins",
   "settingsTestnetCoinsDescription": "Show testnet coins (e.g. Bitcoin Testnet) in your coin list.",
   "settingsVerboseLoggingDescription": "Logs wallet operations to a text file in the app's data folder for debugging purposes.",
