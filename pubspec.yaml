@@ -42,47 +42,47 @@ dependencies:
   wallet_infra:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: e0300fef4cba38c31131e05d85dd41e758bf1566
+      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
       path: packages/wallet_infra
   wallet_domain:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: e0300fef4cba38c31131e05d85dd41e758bf1566
+      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
       path: packages/wallet_domain
   wallet_monero:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: e0300fef4cba38c31131e05d85dd41e758bf1566
+      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
       path: packages/wallet_monero
   wallet_bitcoin:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: e0300fef4cba38c31131e05d85dd41e758bf1566
+      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
       path: packages/wallet_bitcoin
   wallet_ethereum:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: e0300fef4cba38c31131e05d85dd41e758bf1566
+      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
       path: packages/wallet_ethereum
   wallet_openalias:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: e0300fef4cba38c31131e05d85dd41e758bf1566
+      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
       path: packages/wallet_openalias
   wallet_background:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: e0300fef4cba38c31131e05d85dd41e758bf1566
+      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
       path: packages/wallet_background
   wallet_fiat:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: e0300fef4cba38c31131e05d85dd41e758bf1566
+      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
       path: packages/wallet_fiat
   wallet_ui:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: e0300fef4cba38c31131e05d85dd41e758bf1566
+      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
       path: packages/wallet_ui
   cupertino_icons: 1.0.8
   path: 1.9.1

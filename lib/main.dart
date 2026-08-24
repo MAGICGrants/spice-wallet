@@ -290,7 +290,12 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final languageProvider = context.watch<LanguageModel>();
-    final themeMode = context.watch<ThemeModel>().themeMode;
+    // ThemeModel is Material-free (wallet_infra); map its string to ThemeMode here.
+    final themeMode = switch (context.watch<ThemeModel>().theme) {
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      _ => ThemeMode.system,
+    };
 
     return MaterialApp(
       navigatorKey: _navigatorKey,
