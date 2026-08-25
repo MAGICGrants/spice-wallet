@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/widgets/ui/ui.dart';
 
 class CreateWalletScreenArgs {
   String toastMessage;
-
   CreateWalletScreenArgs({required this.toastMessage});
 }
 
@@ -24,7 +25,6 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
   void _showErrorIfNeeded() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments as CreateWalletScreenArgs?;
-
       if (args != null && args.toastMessage != '') {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(args.toastMessage)));
       }
@@ -36,40 +36,111 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
     final i18n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Spice Wallet')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 20,
-          children: [
-            Text(i18n.createWalletTitle, style: Theme.of(context).textTheme.headlineMedium),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40),
-              child: Text(
-                i18n.createWalletDescription,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge,
+      backgroundColor: BrandColors.paper,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: BrandSpacing.xl),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: BrandSpacing.sm),
+              BrandScreenHeader(
+                onBack: () => Navigator.maybePop(context),
+                center: const StepDots(count: 4, index: 2),
+              ),
+              const SizedBox(height: BrandSpacing.lg),
+              Text(i18n.createWalletTitle, style: BrandText.title),
+              const SizedBox(height: BrandSpacing.sm),
+              Text(i18n.createWalletDescription, style: BrandText.bodyMuted),
+              const SizedBox(height: BrandSpacing.xl),
+              _OptionCard(
+                icon: Icons.add,
+                title: i18n.createWalletCreateNewButton,
+                description: i18n.createWalletCreateNewDesc,
+                onTap: () => Navigator.pushNamed(context, '/generate_seed'),
+              ),
+              const SizedBox(height: BrandSpacing.md),
+              _OptionCard(
+                icon: Icons.refresh,
+                title: i18n.createWalletRestoreExistingButton,
+                description: i18n.createWalletRestoreExistingDesc,
+                onTap: () => Navigator.pushNamed(context, '/restore_wallet'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Full-width choice card: icon tile + title + description + chevron.
+class _OptionCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+  final VoidCallback onTap;
+
+  const _OptionCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: BrandColors.card,
+        borderRadius: BrandRadii.rField,
+        border: Border.all(color: BrandColors.border),
+      ),
+      child: ClipRRect(
+        borderRadius: BrandRadii.rField,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: BrandColors.surfaceSunken,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(icon, color: BrandColors.cinnamon, size: 22),
+                  ),
+                  const SizedBox(width: 13),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontFamily: 'Ubuntu',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: BrandColors.ink,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(description, style: BrandText.caption),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: BrandSpacing.sm),
+                  const Icon(Icons.chevron_right, color: BrandColors.inkFaint, size: 20),
+                ],
               ),
             ),
-            Row(
-              spacing: 20,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/restore_warning'),
-                  child: Text(i18n.createWalletRestoreExistingButton),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/generate_seed',
-                    (Route<dynamic> route) => false,
-                  ),
-                  child: Text(i18n.createWalletCreateNewButton),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );

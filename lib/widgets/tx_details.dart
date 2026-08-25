@@ -28,6 +28,7 @@ class TxDetailsDialog {
         close: i18n.close,
         copied: i18n.copiedToClipboard,
       ),
+      monoFontFamily: 'Ubuntu Mono',
     );
   }
 }

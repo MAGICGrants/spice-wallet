@@ -52,20 +52,51 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get welcomeDescription =>
-      'A Spice é uma das mais simples carteiras de criptomoedas. Nós o ajudaremos a configurar uma carteira e se conectar à um servidor.';
+      'Uma carteira de autocustódia para Monero, Bitcoin, Ethereum e DAI. Suas chaves nunca saem deste dispositivo.';
 
   @override
   String get welcomeGetStarted => 'Começar';
 
   @override
-  String get restoreWarningTitle => 'Aviso de Restauração';
+  String get welcomeAgreePrefix => 'Ao continuar, você concorda com os ';
 
   @override
-  String get restoreWarningDescription =>
-      'Você tem certeza? O servidor ao qual você se conectar poderá ver seu histórico de transações passadas e futuras.';
+  String get welcomeTermsLink => 'Termos de Serviço';
 
   @override
-  String get restoreWarningContinueButton => 'Continuar';
+  String get welcomeAgreeMiddle => ' e a ';
+
+  @override
+  String get welcomePrivacyLink => 'Política de Privacidade';
+
+  @override
+  String get torChoiceTitle => 'Como a Spice Wallet deve acessar a rede?';
+
+  @override
+  String get torChoiceSubtitle =>
+      'Nada se conecta até você escolher. O Tor oculta seu endereço IP dos servidores com os quais a Spice Wallet se comunica.';
+
+  @override
+  String get torChoiceBuiltInDesc => 'Incluído na Spice Wallet · recomendado';
+
+  @override
+  String get torChoiceExternalDesc => 'Orbot, ou um daemon que você mesmo executa';
+
+  @override
+  String get torChoiceNoTorDesc =>
+      'Os servidores aos quais você se conecta podem ver seu endereço IP';
+
+  @override
+  String get torChoiceOrbot => 'Usar Orbot — a porta é fixa em 9050';
+
+  @override
+  String get torChoiceTestFailed => 'Falha no teste';
+
+  @override
+  String get torChoiceConnected => 'Conectado ao Tor';
+
+  @override
+  String get torChoiceRecommended => 'Recomendado';
 
   @override
   String get lwsSetupTitle => 'Configuração do LWS';
@@ -115,7 +146,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get fiatApiSetupTitle => 'Exibição de Saldo em Fiat';
 
   @override
-  String get fiatApiSetupDescription => 'Preço de referência opcional para seu saldo em XMR.';
+  String get fiatApiSetupDescription =>
+      'Um preço de referência opcional ao lado dos seus saldos. Buscá-lo significa falar com um servidor de cotações, então como isso acontece é você quem decide.';
 
   @override
   String get fiatApiSettingsModeLabel => 'Modo';
@@ -124,36 +156,74 @@ class AppLocalizationsPt extends AppLocalizations {
   String get fiatApiSettingsModeTorOnly => 'Somente Tor';
 
   @override
-  String get fiatApiSettingsModeClearnet => 'Somente Clearnet (não privado)';
+  String get fiatApiSettingsModeClearnet => 'Somente Clearnet';
 
   @override
   String get fiatApiSettingsModeDisabled => 'Desativado';
 
   @override
+  String get fiatModeTorOnlyDesc => 'Cotações buscadas pelo Tor · recomendado';
+
+  @override
+  String get fiatModeClearnetDesc => 'Não privado — o servidor de cotações vê seu endereço IP';
+
+  @override
+  String get fiatModeDisabledDesc => 'Sem cotações; saldos exibidos apenas em cripto';
+
+  @override
   String get fiatApiSettingsDisplayCurrencyLabel => 'Moeda de Exibição';
 
   @override
-  String get createWalletTitle => 'Criar Carteira';
+  String get createWalletTitle => 'Começar do zero ou restaurar?';
 
   @override
   String get createWalletDescription =>
-      'Você já possui uma seed de carteira ou precisa criar uma nova?';
+      'Uma única seed cobre todas as quatro redes. Se você já tem uma, pode restaurá-la agora.';
 
   @override
-  String get createWalletRestoreExistingButton => 'Restaurar Existente';
+  String get createWalletRestoreExistingButton => 'Restaurar de uma seed';
 
   @override
-  String get createWalletCreateNewButton => 'Criar Nova';
+  String get createWalletRestoreExistingDesc => 'Qualquer frase BIP39';
 
   @override
-  String get generateSeedTitle => 'Nova Carteira';
+  String get createWalletCreateNewButton => 'Criar uma nova carteira';
 
   @override
-  String get generateSeedDescription =>
-      'Esta é a sua seed de 15 palavras. Anote-a e guarde-a em um lugar seguro. Ela pode restaurar todas as moedas desta carteira.';
+  String get createWalletCreateNewDesc => 'A Spice Wallet gera uma seed BIP39 de 15 palavras';
 
   @override
-  String get generateSeedContinueButton => 'Eu anotei';
+  String get generateSeedTitle => 'Anote estas palavras, em ordem';
+
+  @override
+  String get generateSeedTitleCovered => 'Sua frase seed';
+
+  @override
+  String get generateSeedSubtitleCovered =>
+      'Estas quinze palavras, nesta ordem, são a carteira. Anote-as no papel — não em uma foto ou app de notas.';
+
+  @override
+  String get generateSeedSubtitleRevealed => 'Qualquer pessoa com estas palavras tem seus fundos.';
+
+  @override
+  String get generateSeedScreenshotNote =>
+      'As capturas de tela estão bloqueadas nesta tela. Certifique-se de que ninguém está olhando por cima do seu ombro.';
+
+  @override
+  String get generateSeedReveal => 'Toque para revelar';
+
+  @override
+  String get generateSeedBirthdayLabel => 'Aniversário da carteira';
+
+  @override
+  String get generateSeedBirthdayReason => 'Onde uma futura restauração começa a escanear';
+
+  @override
+  String get generateSeedConfirm =>
+      'Anotei todas as 15 palavras e as guardei em um lugar que só eu posso acessar.';
+
+  @override
+  String get generateSeedContinueButton => 'Continuar';
 
   @override
   String get lwsDetailsTitle => 'Detalhes da Carteira';
@@ -172,7 +242,62 @@ class AppLocalizationsPt extends AppLocalizations {
   String get lwsDetailsRestoreHeightLabel => 'Bloco de Restauração';
 
   @override
-  String get restoreWalletTitle => 'Restaurar Carteira';
+  String get restoreWalletTitle => 'Restaurar carteira';
+
+  @override
+  String get restoreWalletSubtitle => 'Qualquer frase BIP39, da Spice Wallet ou de outra carteira.';
+
+  @override
+  String get restoreWalletSeedLength => 'Tamanho da seed';
+
+  @override
+  String get restoreWalletPaste => 'Colar';
+
+  @override
+  String get restoreWalletScanFrom => 'Escanear a partir de';
+
+  @override
+  String get restoreWalletScanFromReason => 'Mais cedo é mais lento, mas nunca perde fundos.';
+
+  @override
+  String get restoreWalletNotSet => 'Não definido';
+
+  @override
+  String get restoreScanTitle => 'Quando esta seed teve fundos pela primeira vez?';
+
+  @override
+  String get restoreScanDescription =>
+      'Para alguns ativos, a Spice Wallet só escaneia a partir deste ponto. Chute cedo — uma resposta mais antiga custa tempo de sincronização, uma mais recente esconde transações.';
+
+  @override
+  String get restoreScanPickMonth => 'Escolher um mês';
+
+  @override
+  String get restoreScanNotSure => 'Não tenho certeza';
+
+  @override
+  String get restoreScanNotSureDesc =>
+      'Escanear tudo. Mais lento nesta configuração inicial, mas não depois. Sempre completo.';
+
+  @override
+  String get restoreScanFromStart => 'Genesis';
+
+  @override
+  String get restoreScanDone => 'Concluir';
+
+  @override
+  String restoreWalletBadWord(int position) {
+    return 'A palavra $position não é uma palavra BIP39.';
+  }
+
+  @override
+  String restoreWalletDidYouMean(String word) {
+    return 'Você quis dizer $word?';
+  }
+
+  @override
+  String get restoreWalletChecksumError =>
+      'Esta não é uma frase seed válida — verifique as palavras e a ordem.';
 
   @override
   String get restoreWalletDescription =>

@@ -41,7 +41,7 @@ class PrivacyPolicy extends StatelessWidget {
 
   TextStyle get bodyStyle => TextStyle(fontSize: 14, height: 1.4);
 
-  TextStyle get monospaceStyle => TextStyle(fontSize: 13, fontFamily: 'monospace', height: 1.4);
+  TextStyle get monospaceStyle => TextStyle(fontSize: 13, fontFamily: 'Ubuntu Mono', height: 1.4);
 
   Widget sectionHeading(String text) => Padding(
     padding: EdgeInsets.only(top: 18.0, bottom: 6.0),

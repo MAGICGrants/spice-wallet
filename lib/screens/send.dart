@@ -1057,7 +1057,7 @@ class _ContactPickerDialogState extends State<_ContactPickerDialog> {
                         title: Text(contact.name, style: TextStyle(fontWeight: FontWeight.w500)),
                         subtitle: Text(
                           address,
-                          style: TextStyle(fontFamily: 'monospace', fontSize: 12),
+                          style: TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 12),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),

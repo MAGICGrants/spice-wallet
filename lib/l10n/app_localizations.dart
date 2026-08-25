@@ -180,7 +180,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Spice is one of the simplest crypto wallets. We will help you set up a wallet and connect to a server.'**
+  /// **'A self-custody wallet for Monero, Bitcoin, Ethereum and DAI. Your keys never leave this device.'**
   String get welcomeDescription;
 
   /// No description provided for @welcomeGetStarted.
@@ -189,23 +189,83 @@ abstract class AppLocalizations {
   /// **'Get Started'**
   String get welcomeGetStarted;
 
-  /// No description provided for @restoreWarningTitle.
+  /// No description provided for @welcomeAgreePrefix.
   ///
   /// In en, this message translates to:
-  /// **'Restore Warning'**
-  String get restoreWarningTitle;
+  /// **'By continuing you agree to the '**
+  String get welcomeAgreePrefix;
 
-  /// No description provided for @restoreWarningDescription.
+  /// No description provided for @welcomeTermsLink.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure? The server that you connect to will be able to see your past and future transaction history.'**
-  String get restoreWarningDescription;
+  /// **'Terms of Service'**
+  String get welcomeTermsLink;
 
-  /// No description provided for @restoreWarningContinueButton.
+  /// No description provided for @welcomeAgreeMiddle.
   ///
   /// In en, this message translates to:
-  /// **'Continue'**
-  String get restoreWarningContinueButton;
+  /// **' and '**
+  String get welcomeAgreeMiddle;
+
+  /// No description provided for @welcomePrivacyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get welcomePrivacyLink;
+
+  /// No description provided for @torChoiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How should Spice Wallet reach the network?'**
+  String get torChoiceTitle;
+
+  /// No description provided for @torChoiceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing connects until you choose. Tor hides your IP address from the servers Spice Wallet talks to.'**
+  String get torChoiceSubtitle;
+
+  /// No description provided for @torChoiceBuiltInDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundled with Spice Wallet · recommended'**
+  String get torChoiceBuiltInDesc;
+
+  /// No description provided for @torChoiceExternalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Orbot, or a daemon you run yourself'**
+  String get torChoiceExternalDesc;
+
+  /// No description provided for @torChoiceNoTorDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Servers you connect to can see your IP address'**
+  String get torChoiceNoTorDesc;
+
+  /// No description provided for @torChoiceOrbot.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Orbot — port is fixed at 9050'**
+  String get torChoiceOrbot;
+
+  /// No description provided for @torChoiceTestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Test failed'**
+  String get torChoiceTestFailed;
+
+  /// No description provided for @torChoiceConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected to Tor'**
+  String get torChoiceConnected;
+
+  /// No description provided for @torChoiceRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get torChoiceRecommended;
 
   /// No description provided for @lwsSetupTitle.
   ///
@@ -300,7 +360,7 @@ abstract class AppLocalizations {
   /// No description provided for @fiatApiSetupDescription.
   ///
   /// In en, this message translates to:
-  /// **'Optional reference price for your XMR balance.'**
+  /// **'An optional reference price beside your balances. Fetching it means talking to a rate server, so how that happens is up to you.'**
   String get fiatApiSetupDescription;
 
   /// No description provided for @fiatApiSettingsModeLabel.
@@ -318,7 +378,7 @@ abstract class AppLocalizations {
   /// No description provided for @fiatApiSettingsModeClearnet.
   ///
   /// In en, this message translates to:
-  /// **'Clearnet-Only (not private)'**
+  /// **'Clearnet-Only'**
   String get fiatApiSettingsModeClearnet;
 
   /// No description provided for @fiatApiSettingsModeDisabled.
@@ -326,6 +386,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Disabled'**
   String get fiatApiSettingsModeDisabled;
+
+  /// No description provided for @fiatModeTorOnlyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Rates fetched over Tor · recommended'**
+  String get fiatModeTorOnlyDesc;
+
+  /// No description provided for @fiatModeClearnetDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Not private — the rate server sees your IP address'**
+  String get fiatModeClearnetDesc;
+
+  /// No description provided for @fiatModeDisabledDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'No rates fetched, balances shown in crypto only'**
+  String get fiatModeDisabledDesc;
 
   /// No description provided for @fiatApiSettingsDisplayCurrencyLabel.
   ///
@@ -336,43 +414,97 @@ abstract class AppLocalizations {
   /// No description provided for @createWalletTitle.
   ///
   /// In en, this message translates to:
-  /// **'Create Wallet'**
+  /// **'Start fresh, or restore?'**
   String get createWalletTitle;
 
   /// No description provided for @createWalletDescription.
   ///
   /// In en, this message translates to:
-  /// **'Do you already have a wallet seed, or do you need to make a new one?'**
+  /// **'One seed phrase covers all four chains. If you already have one, you can restore it now.'**
   String get createWalletDescription;
 
   /// No description provided for @createWalletRestoreExistingButton.
   ///
   /// In en, this message translates to:
-  /// **'Restore Existing'**
+  /// **'Restore from a seed'**
   String get createWalletRestoreExistingButton;
+
+  /// No description provided for @createWalletRestoreExistingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Any BIP39 phrase'**
+  String get createWalletRestoreExistingDesc;
 
   /// No description provided for @createWalletCreateNewButton.
   ///
   /// In en, this message translates to:
-  /// **'Create New'**
+  /// **'Create a new wallet'**
   String get createWalletCreateNewButton;
+
+  /// No description provided for @createWalletCreateNewDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Spice Wallet generates a 15-word BIP39 seed'**
+  String get createWalletCreateNewDesc;
 
   /// No description provided for @generateSeedTitle.
   ///
   /// In en, this message translates to:
-  /// **'New Wallet'**
+  /// **'Write these down, in order'**
   String get generateSeedTitle;
 
-  /// No description provided for @generateSeedDescription.
+  /// No description provided for @generateSeedTitleCovered.
   ///
   /// In en, this message translates to:
-  /// **'This is your 15-word seed phrase. Write it down and keep it in a safe place. It can restore every coin in this wallet.'**
-  String get generateSeedDescription;
+  /// **'Your seed phrase'**
+  String get generateSeedTitleCovered;
+
+  /// No description provided for @generateSeedSubtitleCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'These fifteen words, in this order, are the wallet. Write them on paper — not in a photo or a notes app.'**
+  String get generateSeedSubtitleCovered;
+
+  /// No description provided for @generateSeedSubtitleRevealed.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone with these words has your funds.'**
+  String get generateSeedSubtitleRevealed;
+
+  /// No description provided for @generateSeedScreenshotNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshots are blocked on this screen. Make sure nobody is looking over your shoulder.'**
+  String get generateSeedScreenshotNote;
+
+  /// No description provided for @generateSeedReveal.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to reveal'**
+  String get generateSeedReveal;
+
+  /// No description provided for @generateSeedBirthdayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet birthday'**
+  String get generateSeedBirthdayLabel;
+
+  /// No description provided for @generateSeedBirthdayReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Where a future restore starts scanning'**
+  String get generateSeedBirthdayReason;
+
+  /// No description provided for @generateSeedConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'I have written down all 15 words and stored them somewhere only I can reach.'**
+  String get generateSeedConfirm;
 
   /// No description provided for @generateSeedContinueButton.
   ///
   /// In en, this message translates to:
-  /// **'I wrote it down'**
+  /// **'Continue'**
   String get generateSeedContinueButton;
 
   /// No description provided for @lwsDetailsTitle.
@@ -408,8 +540,104 @@ abstract class AppLocalizations {
   /// No description provided for @restoreWalletTitle.
   ///
   /// In en, this message translates to:
-  /// **'Restore Wallet'**
+  /// **'Restore wallet'**
   String get restoreWalletTitle;
+
+  /// No description provided for @restoreWalletSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Any BIP39 phrase, from Spice Wallet or another wallet.'**
+  String get restoreWalletSubtitle;
+
+  /// No description provided for @restoreWalletSeedLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed length'**
+  String get restoreWalletSeedLength;
+
+  /// No description provided for @restoreWalletPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get restoreWalletPaste;
+
+  /// No description provided for @restoreWalletScanFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan from'**
+  String get restoreWalletScanFrom;
+
+  /// No description provided for @restoreWalletScanFromReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier is slower but never misses funds.'**
+  String get restoreWalletScanFromReason;
+
+  /// No description provided for @restoreWalletNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get restoreWalletNotSet;
+
+  /// No description provided for @restoreScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When did this seed first hold funds?'**
+  String get restoreScanTitle;
+
+  /// No description provided for @restoreScanDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'For some assets, Spice Wallet only scans forward from this point. Guess early — a wrong-but-earlier answer costs sync time, a wrong-but-later one hides transactions.'**
+  String get restoreScanDescription;
+
+  /// No description provided for @restoreScanPickMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a month'**
+  String get restoreScanPickMonth;
+
+  /// No description provided for @restoreScanNotSure.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m not sure'**
+  String get restoreScanNotSure;
+
+  /// No description provided for @restoreScanNotSureDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan everything. Slower this first setup but not any slower later. Always complete.'**
+  String get restoreScanNotSureDesc;
+
+  /// No description provided for @restoreScanFromStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Genesis'**
+  String get restoreScanFromStart;
+
+  /// No description provided for @restoreScanDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get restoreScanDone;
+
+  /// No description provided for @restoreWalletBadWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Word {position} isn\'t a BIP39 word.'**
+  String restoreWalletBadWord(int position);
+
+  /// No description provided for @restoreWalletDidYouMean.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you mean {word}?'**
+  String restoreWalletDidYouMean(String word);
+
+  /// No description provided for @restoreWalletChecksumError.
+  ///
+  /// In en, this message translates to:
+  /// **'This isn\'t a valid seed phrase — check the words and their order.'**
+  String get restoreWalletChecksumError;
 
   /// No description provided for @restoreWalletDescription.
   ///

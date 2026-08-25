@@ -29,10 +29,11 @@ import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/screens/create_wallet.dart';
 import 'package:spice_wallet/screens/create_wallet_password.dart';
 import 'package:spice_wallet/screens/restore_wallet.dart';
-import 'package:spice_wallet/screens/restore_warning.dart';
 import 'package:spice_wallet/screens/wallet_home.dart';
 import 'package:spice_wallet/screens/welcome.dart';
+import 'package:spice_wallet/screens/dev/brand_gallery.dart';
 import 'package:spice_wallet/screens/tor_info.dart';
+import 'package:spice_wallet/theme/brand.dart';
 import 'package:spice_wallet/screens/tor_settings.dart';
 import 'package:spice_wallet/screens/address_book.dart';
 import 'package:spice_wallet/screens/privacy_policy.dart';
@@ -145,7 +146,9 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     if (_startedServices) return;
     _startedServices = true;
     TorSettingsService.sharedInstance.loadSettings();
-    TorService.sharedInstance.start();
+    // Fire-and-forget: a failed Tor bootstrap is logged inside start() and must
+    // not surface as an uncaught async error (nothing awaits this).
+    unawaited(TorService.sharedInstance.start().catchError((Object _) {}));
   }
 
   @override
@@ -254,14 +257,13 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     }
   }
 
-  ThemeData get _themeData => ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue));
-
-  ThemeData get _darkThemeData => ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark),
-  );
+  // Theme built from the brand tokens in theme/brand.dart.
+  ThemeData get _themeData => brandLightTheme();
+  ThemeData get _darkThemeData => brandDarkTheme();
 
   Map<String, WidgetBuilder> get _routes => {
     '/welcome': (context) => WelcomeScreen(),
+    '/brand_gallery': (context) => const BrandGalleryScreen(),
     '/tor_info': (context) => TorInfoScreen(),
     '/tor_settings': (context) => TorSettingsScreen(),
     '/connection_setup': (context) => ConnectionSetupScreen(),
@@ -272,7 +274,6 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     '/generate_seed': (context) => GenerateSeedScreen(),
     '/legacy_wallet': (context) => LegacyWalletScreen(),
     '/lws_keys': (context) => LwsKeysScreen(),
-    '/restore_warning': (context) => RestoreWarningScreen(),
     '/restore_wallet': (context) => RestoreWalletScreen(),
     '/unlock': (context) => UnlockScreen(),
     '/wallet_home': (context) => WalletHomeScreen(),

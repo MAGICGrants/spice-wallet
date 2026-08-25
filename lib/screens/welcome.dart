@@ -1,7 +1,10 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -20,12 +23,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   Future<void> _pushHomeIfWalletExists() async {
     final manager = Provider.of<WalletManager>(context, listen: false);
-
     if (await manager.hasAnyExistingWallet()) {
       await manager.openAll();
-
       if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(context, '/wallet_home', (Route<dynamic> route) => false);
+        Navigator.pushNamedAndRemoveUntil(context, '/wallet_home', (route) => false);
       }
     }
   }
@@ -35,28 +36,79 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final i18n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Spice Wallet')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 20,
-          children: [
-            Text(i18n.welcomeTitle, style: Theme.of(context).textTheme.headlineMedium),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40),
-              child: Text(
+      backgroundColor: BrandColors.paper,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: BrandSpacing.xl),
+          child: Column(
+            children: [
+              const Spacer(flex: 3),
+              SvgPicture.asset('assets/spice-mark.svg', width: 96, height: 96),
+              const SizedBox(height: BrandSpacing.xl),
+              const Text(
+                'Spice Wallet',
+                style: TextStyle(
+                  fontFamily: 'Ubuntu',
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                  color: BrandColors.cinnamonDeep,
+                ),
+              ),
+              const SizedBox(height: BrandSpacing.md),
+              Text(
                 i18n.welcomeDescription,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: BrandText.bodyMuted,
               ),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pushNamed(context, '/tor_info'),
-              child: Text(i18n.welcomeGetStarted),
-            ),
-          ],
+              const Spacer(flex: 4),
+              BrandButton(
+                label: i18n.welcomeGetStarted,
+                onPressed: () => Navigator.pushNamed(context, '/tor_settings'),
+              ),
+              const SizedBox(height: BrandSpacing.lg),
+              const _TermsLine(),
+              const SizedBox(height: BrandSpacing.sm),
+            ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _TermsLine extends StatelessWidget {
+  const _TermsLine();
+
+  TapGestureRecognizer _to(BuildContext context, String route) =>
+      TapGestureRecognizer()..onTap = () => Navigator.pushNamed(context, route);
+
+  @override
+  Widget build(BuildContext context) {
+    final i18n = AppLocalizations.of(context)!;
+    final link = BrandText.caption.copyWith(
+      color: BrandColors.cinnamonDeep,
+      fontWeight: FontWeight.w500,
+    );
+    return Text.rich(
+      TextSpan(
+        style: BrandText.caption,
+        children: [
+          TextSpan(text: i18n.welcomeAgreePrefix),
+          TextSpan(
+            text: i18n.welcomeTermsLink,
+            style: link,
+            recognizer: _to(context, '/terms_of_service'),
+          ),
+          TextSpan(text: i18n.welcomeAgreeMiddle),
+          TextSpan(
+            text: i18n.welcomePrivacyLink,
+            style: link,
+            recognizer: _to(context, '/privacy_policy'),
+          ),
+        ],
+      ),
+      textAlign: TextAlign.center,
     );
   }
 }

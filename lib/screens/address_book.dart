@@ -208,7 +208,7 @@ class _ContactListItem extends StatelessWidget {
                       ),
                       TextSpan(
                         text: entry.value,
-                        style: TextStyle(fontFamily: 'monospace', fontSize: 12),
+                        style: TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 12),
                       ),
                     ],
                   ),

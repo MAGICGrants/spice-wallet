@@ -151,7 +151,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                         child: Text(
                           address,
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontFamily: 'monospace'),
+                          style: TextStyle(fontFamily: 'Ubuntu Mono'),
                         ),
                         onTap: () => _copyAddressToClipboard(address!),
                       ),
