@@ -11,6 +11,7 @@ import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/models/contact_model.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
+import 'package:spice_wallet/screens/coin_settings.dart';
 import 'package:spice_wallet/screens/confirm_send.dart';
 import 'package:spice_wallet/screens/scan_qr.dart';
 import 'package:spice_wallet/services/tor_service.dart';
@@ -278,6 +279,7 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     '/unlock': (context) => UnlockScreen(),
     '/wallet_home': (context) => WalletHomeScreen(),
     '/coin_home': (context) => CoinHomeScreen(),
+    '/coin_settings': (context) => const CoinSettingsScreen(),
     '/settings': (context) => SettingsScreen(),
     '/send': (context) => SendScreen(),
     '/confirm_send': (context) => ConfirmSendScreen(),

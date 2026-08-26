@@ -437,7 +437,6 @@ class _WordSlotState extends State<_WordSlot> {
                 // vertical padding (which made the slot tall + misaligned the no.).
                 strutStyle: const StrutStyle(forceStrutHeight: true, height: 1, fontSize: 13.5),
                 style: TextStyle(
-                  fontFamily: 'Ubuntu',
                   fontSize: 13.5,
                   height: 1,
                   fontWeight: FontWeight.w500,
@@ -497,7 +496,6 @@ class _SeedLengthSelector extends StatelessWidget {
                 child: Text(
                   '$n',
                   style: TextStyle(
-                    fontFamily: 'Ubuntu',
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: n == selected ? BrandColors.ink : BrandColors.inkMuted,
@@ -527,7 +525,6 @@ class _PasteChip extends StatelessWidget {
         child: Text(
           label,
           style: const TextStyle(
-            fontFamily: 'Ubuntu',
             fontSize: 13,
             fontWeight: FontWeight.w500,
             color: BrandColors.cinnamon,

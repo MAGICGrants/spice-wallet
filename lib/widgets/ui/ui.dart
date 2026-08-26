@@ -11,6 +11,7 @@ export 'brand_button.dart';
 export 'brand_card.dart';
 export 'brand_screen_header.dart';
 export 'brand_text_field.dart';
+export 'coin_mark.dart';
 export 'coin_tile.dart';
 export 'icon_badge.dart';
 export 'icon_circle_button.dart';

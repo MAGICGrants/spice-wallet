@@ -136,6 +136,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lwsSetupTestConnectionButton => 'Test Connection';
 
   @override
+  String get connectionProxyPortLabel => 'HTTP Proxy Port';
+
+  @override
+  String get connectionProxyPortHint => 'Optional';
+
+  @override
+  String get connectionTestingTitle => 'Testing connection';
+
+  @override
+  String get connectionTestingDetail => 'Checking whether the server answers.';
+
+  @override
+  String get connectionTestStop => 'Stop';
+
+  @override
+  String get connectionResultWorksTitle => 'Connection works';
+
+  @override
+  String get connectionResultWorksDetail => 'The server responded successfully.';
+
+  @override
+  String get connectionReachedOverTor => 'Reached over Tor';
+
+  @override
+  String get connectionReachedViaProxy => 'Reached through your proxy';
+
+  @override
+  String get connectionReachedDirect => 'Reached directly';
+
+  @override
+  String get connectionResultFailedTitle => 'Could not reach this server';
+
+  @override
+  String get connectionResultFailedDetail =>
+      'Nothing answered. Check the address and port, and whether the server accepts your connection.';
+
+  @override
+  String get connectionTestAgain => 'Test again';
+
+  @override
   String get lwsSetupStartingTor => 'Starting Tor...';
 
   @override
@@ -321,6 +361,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navigationBarWallet => 'Wallet';
 
   @override
+  String get navigationBarHome => 'Home';
+
+  @override
   String get navigationBarSettings => 'Settings';
 
   @override
@@ -334,6 +377,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unlockTitle => 'Unlock Wallet';
+
+  @override
+  String get unlockLockedTitle => 'Spice Wallet is locked';
+
+  @override
+  String get unlockWithFaceId => 'Unlock with Face ID';
+
+  @override
+  String get unlockWithTouchId => 'Unlock with Touch ID';
 
   @override
   String get unlockDescription => 'Enter your wallet password to unlock';
@@ -352,6 +404,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeSyncing => 'Syncing';
+
+  @override
+  String get homeSynced => 'Synced';
+
+  @override
+  String get homeNoConnection => 'No connection';
+
+  @override
+  String homeAssetsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count assets',
+      one: '1 asset',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get coinHomeAssetsTitle => 'Assets';
+
+  @override
+  String get coinHomeActivityTitle => 'Activity';
+
+  @override
+  String get coinHomeSwap => 'Swap';
+
+  @override
+  String get coinHomeSwapComingSoon => 'Swap is coming soon.';
+
+  @override
+  String get coinHomeReceived => 'Received';
+
+  @override
+  String get coinHomeSent => 'Sent';
+
+  @override
+  String get coinHomeServerConnection => 'Server connection';
+
+  @override
+  String get coinHomeViewKeys => 'View keys';
+
+  @override
+  String get coinHomeRouteTor => 'Tor';
+
+  @override
+  String get coinHomeRouteProxy => 'Proxy';
+
+  @override
+  String get coinHomeRouteDirect => 'Direct';
+
+  @override
+  String get coinHomeAddExplorerTitle => 'Add an explorer to see history';
+
+  @override
+  String get coinHomeAddExplorerButton => 'Add explorer';
+
+  @override
+  String get homeFiatSource => 'Kraken over Tor';
 
   @override
   String get homeHeight => 'Height';
@@ -426,6 +537,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'You have reached the maximum number of subaddresses supported by this server. This is a used address.';
 
   @override
+  String get receiveSubaddressTab => 'Subaddress';
+
+  @override
+  String get receivePrimaryTab => 'Primary address';
+
+  @override
+  String get receiveCopyAddress => 'Copy address';
+
+  @override
+  String receiveAddressHeading(String coin) {
+    return 'Your $coin address';
+  }
+
+  @override
+  String receiveBlockchainSubtitle(String coin) {
+    return '$coin blockchain';
+  }
+
+  @override
   String get sendTitle => 'Send';
 
   @override
@@ -455,6 +585,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsSectionGeneral => 'General';
+
+  @override
+  String get settingsSectionBehaviour => 'Behaviour';
+
+  @override
+  String get settingsSectionAbout => 'About';
+
+  @override
+  String get settingsSectionWallet => 'Wallet';
+
+  @override
+  String get settingsCoinConnectionSection => 'Connection';
+
+  @override
+  String get settingsCoinKeysSection => 'Keys';
+
+  @override
+  String get settingsCoinConnectionSetup => 'Connection setup';
+
+  @override
+  String get settingsCoinExplorer => 'Explorer';
+
+  @override
+  String get settingsCoinNotConfigured => 'Not configured';
 
   @override
   String homeBlocksRemaining(String count) {
@@ -581,7 +738,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsDeleteWalletDialogDeleteButton => 'Delete';
 
   @override
-  String get txDetailsTitle => 'Transaction';
+  String get txDetailsTitle => 'Transaction Details';
+
+  @override
+  String get txDetailsCopyHint => 'tap any value to copy';
 
   @override
   String get txDetailsHashLabel => 'Hash';
@@ -602,7 +762,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txDetailsRecipientsLabel => 'Recipients';
 
   @override
-  String get txDetailsChangeRecipientLabel => 'Change';
+  String get txDetailsChangeRecipientLabel => 'Change Recipient';
 
   @override
   String get lwsKeysTitle => 'LWS Keys';
@@ -724,6 +884,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sendFeeLabel => 'Fee';
+
+  @override
+  String get sendFromLabel => 'From';
+
+  @override
+  String get sendToLabel => 'To';
+
+  @override
+  String get sendPriorityHeading => 'Priority';
+
+  @override
+  String get sendAvailableSuffix => 'available';
+
+  @override
+  String get sendNetworkFee => 'Network fee';
+
+  @override
+  String get sendMaxButton => 'MAX';
+
+  @override
+  String get sendPasteButton => 'Paste';
+
+  @override
+  String get sendScanButton => 'Scan';
+
+  @override
+  String sendAddressHint(String coin) {
+    return '$coin address';
+  }
 
   @override
   String get sendBalanceLabel => 'Balance';

@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
-import 'package:spice_wallet/widgets/fiat_api_settings_form.dart';
 import 'package:spice_wallet/widgets/tor_settings_form.dart';
 import 'package:spice_wallet/models/language_model.dart';
 import 'package:spice_wallet/models/theme_model.dart';
@@ -16,10 +15,11 @@ import 'package:spice_wallet/periodic_tasks.dart';
 import 'package:spice_wallet/services/foreground_sync_service.dart';
 import 'package:spice_wallet/services/notifications_service.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
+import 'package:spice_wallet/widgets/settings_group.dart';
+import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
 import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
-import 'package:wallet_ui/wallet_ui.dart'
-    show DeleteWalletDialog, DeleteWalletLabels, ExportLogsDialog, ExportLogsLabels;
+import 'package:wallet_ui/wallet_ui.dart' show ExportLogsDialog, ExportLogsLabels;
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -33,6 +33,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   var _appLockEnabled = false;
   var _verboseLoggingEnabled = false;
   var _testnetCoinsEnabled = false;
+  // Toggles animate only after the stored values have loaded, so they don't
+  // slide from off→on when the screen first appears.
+  var _animateToggles = false;
   String _appVersion = '';
   String _buildNumber = '';
 
@@ -67,11 +70,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         await SharedPreferencesService.get<bool>(SharedPreferencesKeys.testnetCoinsEnabled) ??
         false;
 
+    if (!mounted) return;
     setState(() {
       _newTxNotificationsEnabled = newTxNotificationsEnabled;
       _appLockEnabled = appLockEnabled;
       _verboseLoggingEnabled = verboseLoggingEnabled;
       _testnetCoinsEnabled = testnetCoinsEnabled;
+    });
+    // Enable animation a frame after the loaded values are painted.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _animateToggles = true);
     });
   }
 
@@ -172,15 +180,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showDeleteWalletDialog() {
     final i18n = AppLocalizations.of(context)!;
-    DeleteWalletDialog.show(
-      context,
-      DeleteWalletLabels(
-        title: i18n.settingsDeleteWalletButton,
-        body: i18n.settingsDeleteWalletDialogText,
-        confirm: i18n.settingsDeleteWalletDialogDeleteButton,
-        cancel: i18n.cancel,
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: BrandColors.card,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        child: Padding(
+          padding: const EdgeInsets.all(22),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: BrandColors.errorBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.delete_outline, size: 20, color: BrandColors.error),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(i18n.settingsDeleteWalletButton, style: BrandText.sheetTitle),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(i18n.settingsDeleteWalletDialogText, style: BrandText.bodyMuted),
+              const SizedBox(height: 22),
+              BrandButton(
+                label: i18n.cancel,
+                onPressed: () => Navigator.pop(dialogContext),
+              ),
+              const SizedBox(height: 10),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  Navigator.pop(dialogContext);
+                  _deleteWallet();
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: BrandColors.borderStrong),
+                    borderRadius: BorderRadius.circular(BrandRadii.button),
+                  ),
+                  child: Text(
+                    i18n.settingsDeleteWalletDialogDeleteButton,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: BrandColors.error,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      onConfirm: _deleteWallet,
     );
   }
 
@@ -227,207 +290,218 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showFiatApiSettingsDialog() {
-    final i18n = AppLocalizations.of(context)!;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final dialogWidth = screenWidth.clamp(0.0, 500.0);
-
-    showDialog(
+  /// Bottom-sheet single-choice picker (theme / language).
+  void _showPicker(
+    String title,
+    List<(String value, String label)> options,
+    String current,
+    ValueChanged<String> onSelect,
+  ) {
+    showModalBottomSheet<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        constraints: BoxConstraints.tightFor(width: dialogWidth),
-        insetPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-        title: Text(i18n.settingsFiatApiSettingsLabel),
-        content: FiatApiSettingsForm(
-          saveButtonLabel: i18n.torSettingsSaveButton,
-          onSaved: () async {
-            final manager = Provider.of<WalletManager>(context, listen: false);
-            final fiatRate = Provider.of<FiatRateModel>(context, listen: false);
-            await fiatRate.startService(walletManager: manager);
-            if (dialogContext.mounted) {
-              Navigator.of(dialogContext).pop();
-            }
-          },
+      backgroundColor: BrandColors.paper,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(BrandRadii.sheet)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 18, 24, 8),
+              child: Text(title, style: BrandText.sheetTitle),
+            ),
+            for (final (value, label) in options)
+              InkWell(
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  if (value != current) onSelect(value);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text(label, style: BrandText.listTitle)),
+                      if (value == current)
+                        const Icon(Icons.check, size: 20, color: BrandColors.cinnamon),
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 8),
+          ],
         ),
       ),
     );
   }
+
+  static const _languageNames = {'en': 'English', 'pt': 'Português'};
 
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
     final language = context.watch<LanguageModel>();
     final theme = context.watch<ThemeModel>();
+    final isMobile = Platform.isAndroid || Platform.isIOS;
+
+    final themeLabel = {
+      'system': i18n.settingsThemeSystem,
+      'light': i18n.settingsThemeLight,
+      'dark': i18n.settingsThemeDark,
+    }[theme.theme];
 
     return Scaffold(
-      bottomNavigationBar: WalletNavigationBar(selectedIndex: 2),
-      appBar: AppBar(title: Text(i18n.settingsTitle)),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      backgroundColor: BrandColors.paper,
+      bottomNavigationBar: const WalletNavigationBar(selectedIndex: 2),
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(i18n.settingsThemeLabel, style: TextStyle(fontSize: 18)),
-                DropdownButton<String>(
-                  value: theme.theme,
-                  onChanged: theme.setTheme,
-                  items: [
-                    DropdownMenuItem<String>(
-                      value: 'system',
-                      child: Text(i18n.settingsThemeSystem),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  child: BrandScreenHeader(
+                    onBack: () => Navigator.pop(context),
+                    center: Text(
+                      i18n.settingsTitle,
+                      style: BrandText.appBar.copyWith(fontSize: 16),
                     ),
-                    DropdownMenuItem<String>(value: 'light', child: Text(i18n.settingsThemeLight)),
-                    DropdownMenuItem<String>(value: 'dark', child: Text(i18n.settingsThemeDark)),
-                  ],
+                  ),
                 ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(i18n.settingsLanguageLabel, style: TextStyle(fontSize: 18)),
-                DropdownButton<String>(
-                  value: language.language,
-                  onChanged: language.setLanguage,
-                  items: AppLocalizations.supportedLocales.map((Locale locale) {
-                    return DropdownMenuItem<String>(
-                      value: locale.languageCode,
-                      child: Text(locale.languageCode.toUpperCase()),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-            if (Platform.isAndroid || Platform.isIOS)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(i18n.settingsAppLockLabel, style: TextStyle(fontSize: 18)),
-                  Switch(value: _appLockEnabled, onChanged: _setAppLockEnabled),
-                ],
-              ),
-            if (Platform.isAndroid || Platform.isIOS)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(i18n.settingsNotifyNewTxsLabel, style: TextStyle(fontSize: 18)),
-                        Text(
-                          Platform.isIOS
-                              ? i18n.settingsNotifyNewTxsDescriptionIos
-                              : i18n.settingsNotifyNewTxsDescription,
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                    children: [
+                      SettingsGroup(
+                        label: i18n.settingsSectionGeneral,
+                        tiles: [
+                          SettingsNavTile(
+                            title: i18n.settingsThemeLabel,
+                            value: themeLabel,
+                            onTap: () => _showPicker(
+                              i18n.settingsThemeLabel,
+                              [
+                                ('system', i18n.settingsThemeSystem),
+                                ('light', i18n.settingsThemeLight),
+                                ('dark', i18n.settingsThemeDark),
+                              ],
+                              theme.theme,
+                              (v) => theme.setTheme(v),
+                            ),
+                          ),
+                          SettingsNavTile(
+                            title: i18n.settingsLanguageLabel,
+                            value:
+                                _languageNames[language.language] ??
+                                language.language.toUpperCase(),
+                            onTap: () => _showPicker(
+                              i18n.settingsLanguageLabel,
+                              [
+                                for (final l in AppLocalizations.supportedLocales)
+                                  (
+                                    l.languageCode,
+                                    _languageNames[l.languageCode] ?? l.languageCode.toUpperCase(),
+                                  ),
+                              ],
+                              language.language,
+                              (v) => language.setLanguage(v),
+                            ),
+                          ),
+                          if (isMobile)
+                            SettingsToggleTile(
+                              title: i18n.settingsAppLockLabel,
+                              value: _appLockEnabled,
+                              onChanged: _setAppLockEnabled,
+                              animate: _animateToggles,
+                            ),
+                          SettingsLinkTile(
+                            title: i18n.settingsTorSettingsLabel,
+                            linkLabel: i18n.settingsLwsViewKeysButton,
+                            onTap: _showTorSettingsDialog,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      SettingsGroup(
+                        label: i18n.settingsSectionBehaviour,
+                        tiles: [
+                          if (isMobile)
+                            SettingsToggleTile(
+                              title: i18n.settingsNotifyNewTxsLabel,
+                              description: Platform.isIOS
+                                  ? i18n.settingsNotifyNewTxsDescriptionIos
+                                  : i18n.settingsNotifyNewTxsDescription,
+                              value: _newTxNotificationsEnabled,
+                              onChanged: _setTxNotificationsEnabled,
+                              animate: _animateToggles,
+                            ),
+                          SettingsToggleTile(
+                            title: i18n.settingsTestnetCoinsLabel,
+                            description: i18n.settingsTestnetCoinsDescription,
+                            value: _testnetCoinsEnabled,
+                            onChanged: _setTestnetCoinsEnabled,
+                            animate: _animateToggles,
+                          ),
+                          SettingsToggleTile(
+                            title: i18n.settingsVerboseLoggingLabel,
+                            description: Platform.isIOS
+                                ? i18n.settingsVerboseLoggingDescriptionIos
+                                : i18n.settingsVerboseLoggingDescription,
+                            value: _verboseLoggingEnabled,
+                            onChanged: _setVerboseLoggingEnabled,
+                            animate: _animateToggles,
+                          ),
+                          // Only meaningful with logs to export.
+                          if (Platform.isIOS && _verboseLoggingEnabled)
+                            SettingsLinkTile(
+                              title: i18n.settingsExportLogsLabel,
+                              linkLabel: i18n.settingsExportLogsButton,
+                              onTap: _exportLogs,
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      SettingsGroup(
+                        label: i18n.settingsSectionAbout,
+                        tiles: [
+                          SettingsNavTile(
+                            title: i18n.welcomeTermsLink,
+                            onTap: () => Navigator.pushNamed(context, '/terms_of_service'),
+                          ),
+                          SettingsNavTile(
+                            title: i18n.welcomePrivacyLink,
+                            onTap: () => Navigator.pushNamed(context, '/privacy_policy'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      SettingsGroup(
+                        label: i18n.settingsSectionWallet,
+                        tiles: [
+                          SettingsLinkTile(
+                            title: i18n.settingsDeleteWalletButton,
+                            titleColor: BrandColors.error,
+                            onTap: _showDeleteWalletDialog,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: Text(
+                          'Spice Wallet v$_appVersion (build $_buildNumber)',
+                          style: BrandText.caption.copyWith(color: BrandColors.inkFaint),
                         ),
-                      ],
-                    ),
-                  ),
-                  Switch(value: _newTxNotificationsEnabled, onChanged: _setTxNotificationsEnabled),
-                ],
-              ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(i18n.settingsTestnetCoinsLabel, style: TextStyle(fontSize: 18)),
-                      Text(
-                        i18n.settingsTestnetCoinsDescription,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                     ],
                   ),
                 ),
-                Switch(value: _testnetCoinsEnabled, onChanged: _setTestnetCoinsEnabled),
               ],
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(i18n.settingsVerboseLoggingLabel, style: TextStyle(fontSize: 18)),
-                      Text(
-                        Platform.isIOS
-                            ? i18n.settingsVerboseLoggingDescriptionIos
-                            : i18n.settingsVerboseLoggingDescription,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ),
-                Switch(value: _verboseLoggingEnabled, onChanged: _setVerboseLoggingEnabled),
-              ],
-            ),
-            // Only meaningful with logs to export, so hide the whole row when
-            // verbose logging is off rather than showing a disabled button.
-            if (Platform.isIOS && _verboseLoggingEnabled)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(i18n.settingsExportLogsLabel, style: TextStyle(fontSize: 18)),
-                  TextButton.icon(
-                    onPressed: _exportLogs,
-                    icon: Icon(Icons.ios_share),
-                    label: Text(i18n.settingsExportLogsButton),
-                  ),
-                ],
-              ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(i18n.settingsTorSettingsLabel, style: TextStyle(fontSize: 18)),
-                TextButton.icon(
-                  onPressed: _showTorSettingsDialog,
-                  icon: Icon(Icons.security),
-                  label: Text(i18n.settingsLwsViewKeysButton),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(i18n.settingsFiatApiSettingsLabel, style: TextStyle(fontSize: 18)),
-                TextButton.icon(
-                  onPressed: _showFiatApiSettingsDialog,
-                  icon: Icon(Icons.currency_exchange),
-                  label: Text(i18n.settingsLwsViewKeysButton),
-                ),
-              ],
-            ),
-            Container(margin: EdgeInsetsGeometry.symmetric(vertical: 10), child: Divider()),
-            TextButton.icon(
-              onPressed: _showDeleteWalletDialog,
-              label: Text(i18n.settingsDeleteWalletButton),
-              icon: Icon(Icons.delete),
-              style: ButtonStyle(foregroundColor: WidgetStateProperty.all(Colors.red)),
-            ),
-            SizedBox(height: 20),
-            TextButton(
-              onPressed: () => Navigator.pushNamed(context, '/terms_of_service'),
-              child: Text('Terms of Service'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pushNamed(context, '/privacy_policy'),
-              child: Text('Privacy Policy'),
-            ),
-            SizedBox(height: 8),
-            Center(
-              child: Text(
-                'Spice Wallet v$_appVersion (build $_buildNumber)',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

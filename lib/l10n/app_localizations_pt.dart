@@ -137,6 +137,46 @@ class AppLocalizationsPt extends AppLocalizations {
   String get lwsSetupTestConnectionButton => 'Testar Conexão';
 
   @override
+  String get connectionProxyPortLabel => 'Porta do Proxy HTTP';
+
+  @override
+  String get connectionProxyPortHint => 'Opcional';
+
+  @override
+  String get connectionTestingTitle => 'Testando conexão';
+
+  @override
+  String get connectionTestingDetail => 'Verificando se o servidor responde.';
+
+  @override
+  String get connectionTestStop => 'Parar';
+
+  @override
+  String get connectionResultWorksTitle => 'A conexão funciona';
+
+  @override
+  String get connectionResultWorksDetail => 'O servidor respondeu com sucesso.';
+
+  @override
+  String get connectionReachedOverTor => 'Acessado via Tor';
+
+  @override
+  String get connectionReachedViaProxy => 'Acessado pelo seu proxy';
+
+  @override
+  String get connectionReachedDirect => 'Acessado diretamente';
+
+  @override
+  String get connectionResultFailedTitle => 'Não foi possível acessar este servidor';
+
+  @override
+  String get connectionResultFailedDetail =>
+      'Nada respondeu. Verifique o endereço e a porta, e se o servidor aceita sua conexão.';
+
+  @override
+  String get connectionTestAgain => 'Testar novamente';
+
+  @override
   String get lwsSetupStartingTor => 'Iniciando Tor...';
 
   @override
@@ -322,6 +362,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navigationBarWallet => 'Carteira';
 
   @override
+  String get navigationBarHome => 'Início';
+
+  @override
   String get navigationBarSettings => 'Configurações';
 
   @override
@@ -335,6 +378,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get unlockTitle => 'Desbloquear Carteira';
+
+  @override
+  String get unlockLockedTitle => 'A Spice Wallet está bloqueada';
+
+  @override
+  String get unlockWithFaceId => 'Desbloquear com Face ID';
+
+  @override
+  String get unlockWithTouchId => 'Desbloquear com Touch ID';
 
   @override
   String get unlockDescription => 'Digite a senha da sua carteira para desbloquear';
@@ -353,6 +405,65 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get homeSyncing => 'Sincronizando';
+
+  @override
+  String get homeSynced => 'Sincronizado';
+
+  @override
+  String get homeNoConnection => 'Sem conexão';
+
+  @override
+  String homeAssetsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ativos',
+      one: '1 ativo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get coinHomeAssetsTitle => 'Ativos';
+
+  @override
+  String get coinHomeActivityTitle => 'Atividade';
+
+  @override
+  String get coinHomeSwap => 'Trocar';
+
+  @override
+  String get coinHomeSwapComingSoon => 'A troca chegará em breve.';
+
+  @override
+  String get coinHomeReceived => 'Recebido';
+
+  @override
+  String get coinHomeSent => 'Enviado';
+
+  @override
+  String get coinHomeServerConnection => 'Conexão do servidor';
+
+  @override
+  String get coinHomeViewKeys => 'Ver chaves';
+
+  @override
+  String get coinHomeRouteTor => 'Tor';
+
+  @override
+  String get coinHomeRouteProxy => 'Proxy';
+
+  @override
+  String get coinHomeRouteDirect => 'Direto';
+
+  @override
+  String get coinHomeAddExplorerTitle => 'Adicione um explorador para ver o histórico';
+
+  @override
+  String get coinHomeAddExplorerButton => 'Adicionar explorador';
+
+  @override
+  String get homeFiatSource => 'Kraken via Tor';
 
   @override
   String get homeHeight => 'Bloco';
@@ -427,6 +538,25 @@ class AppLocalizationsPt extends AppLocalizations {
       'Você atingiu o número máximo de subendereços suportados por este servidor. Este é um endereço já usado.';
 
   @override
+  String get receiveSubaddressTab => 'Subendereço';
+
+  @override
+  String get receivePrimaryTab => 'Endereço primário';
+
+  @override
+  String get receiveCopyAddress => 'Copiar endereço';
+
+  @override
+  String receiveAddressHeading(String coin) {
+    return 'Seu endereço $coin';
+  }
+
+  @override
+  String receiveBlockchainSubtitle(String coin) {
+    return 'Blockchain $coin';
+  }
+
+  @override
   String get sendTitle => 'Enviar';
 
   @override
@@ -456,6 +586,33 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settingsTitle => 'Configurações';
+
+  @override
+  String get settingsSectionGeneral => 'Geral';
+
+  @override
+  String get settingsSectionBehaviour => 'Comportamento';
+
+  @override
+  String get settingsSectionAbout => 'Sobre';
+
+  @override
+  String get settingsSectionWallet => 'Carteira';
+
+  @override
+  String get settingsCoinConnectionSection => 'Conexão';
+
+  @override
+  String get settingsCoinKeysSection => 'Chaves';
+
+  @override
+  String get settingsCoinConnectionSetup => 'Configurar conexão';
+
+  @override
+  String get settingsCoinExplorer => 'Explorador';
+
+  @override
+  String get settingsCoinNotConfigured => 'Não configurado';
 
   @override
   String homeBlocksRemaining(String count) {
@@ -582,7 +739,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsDeleteWalletDialogDeleteButton => 'Excluir';
 
   @override
-  String get txDetailsTitle => 'Transação';
+  String get txDetailsTitle => 'Detalhes da transação';
+
+  @override
+  String get txDetailsCopyHint => 'toque em qualquer valor para copiar';
 
   @override
   String get txDetailsHashLabel => 'Hash';
@@ -603,7 +763,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get txDetailsRecipientsLabel => 'Destinatários';
 
   @override
-  String get txDetailsChangeRecipientLabel => 'Troco';
+  String get txDetailsChangeRecipientLabel => 'Destinatário de troco';
 
   @override
   String get lwsKeysTitle => 'Chaves do LWS';
@@ -725,6 +885,35 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sendFeeLabel => 'Taxa';
+
+  @override
+  String get sendFromLabel => 'De';
+
+  @override
+  String get sendToLabel => 'Para';
+
+  @override
+  String get sendPriorityHeading => 'Prioridade';
+
+  @override
+  String get sendAvailableSuffix => 'disponível';
+
+  @override
+  String get sendNetworkFee => 'Taxa de rede';
+
+  @override
+  String get sendMaxButton => 'MÁX';
+
+  @override
+  String get sendPasteButton => 'Colar';
+
+  @override
+  String get sendScanButton => 'Escanear';
+
+  @override
+  String sendAddressHint(String coin) {
+    return 'Endereço $coin';
+  }
 
   @override
   String get sendBalanceLabel => 'Saldo';

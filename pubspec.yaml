@@ -163,6 +163,7 @@ flutter:
   assets:
     - assets/icons/
     - assets/spice-mark.svg
+    - assets/spice-icon.svg
     - assets/cacert.pem
     - assets/app_icon.ico
 

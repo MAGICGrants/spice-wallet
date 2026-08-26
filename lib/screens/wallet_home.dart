@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -10,11 +11,13 @@ import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
-import 'package:wallet_domain/wallet_domain.dart';
-import 'package:spice_wallet/widgets/coin_amount.dart';
-import 'package:spice_wallet/widgets/fiat_amount.dart';
+import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
+import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
+import 'package:wallet_domain/wallet_domain.dart';
+
+final _fiatFormat = NumberFormat('#,##0.00');
 
 class WalletHomeScreen extends StatefulWidget {
   const WalletHomeScreen({super.key});
@@ -45,7 +48,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final i18n = AppLocalizations.of(context)!;
     final walletManager = context.watch<WalletManager>();
     final fiatRate = context.watch<FiatRateModel>();
     final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
@@ -55,7 +57,9 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     };
     final totalFiat = walletManager.totalUnlockedFiat(ratesBySymbol);
 
-    final wallets = [...walletManager.allWallets]
+    // Tokens (DAI/SDAI) don't get their own row — they live inside their parent
+    // chain's assets list. The parent row shows the aggregate value instead.
+    final wallets = walletManager.allWallets.where((w) => !isTokenWallet(w)).toList()
       ..sort((a, b) {
         final aConfigured = a.connectionAddress.isNotEmpty;
         final bConfigured = b.connectionAddress.isNotEmpty;
@@ -64,38 +68,49 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       });
 
     return Scaffold(
-      appBar: AppBar(title: Text('Spice Wallet')),
-      bottomNavigationBar: WalletNavigationBar(selectedIndex: 0),
+      backgroundColor: BrandColors.paper,
+      bottomNavigationBar: const WalletNavigationBar(selectedIndex: 0),
       body: SafeArea(
+        bottom: false,
         child: Center(
-          child: Container(
-            constraints: BoxConstraints(maxWidth: 700),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _TotalBalanceHeader(
-                  totalFiat: totalFiat,
-                  fiatSymbol: fiatSymbol,
-                  fiatRate: fiatRate,
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Text(
-                    i18n.homeYourCoinsTitle,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
+                const _Header(),
                 Expanded(
-                  child: ListView.separated(
-                    separatorBuilder: (context, _) => Container(
-                      height: 1,
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    ),
-                    itemCount: wallets.length,
-                    itemBuilder: (context, index) {
-                      final wallet = wallets[index];
-                      return _CoinRow(wallet: wallet, fiatRate: fiatRate, fiatSymbol: fiatSymbol);
-                    },
+                  child: ListView(
+                    padding: const EdgeInsets.only(bottom: BrandSpacing.lg),
+                    children: [
+                      _TotalBalanceHeader(
+                        totalFiat: totalFiat,
+                        fiatSymbol: fiatSymbol,
+                        fiatCode: fiatRate.fiatCode,
+                        fiatRate: fiatRate,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Column(
+                          children: [
+                            for (final wallet in wallets) ...[
+                              _CoinCard(
+                                wallet: wallet,
+                                fiatRate: fiatRate,
+                                fiatSymbol: fiatSymbol,
+                                tokenCount: tokensOf(walletManager, wallet.coinSymbol).length,
+                                fiatOverride: aggregateUnlockedFiat(
+                                  walletManager,
+                                  wallet,
+                                  fiatRate.rateFor,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -107,14 +122,48 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   }
 }
 
+class _Header extends StatelessWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, right: 12, top: 6, bottom: 2),
+      child: Row(
+        children: [
+          SvgPicture.asset('assets/spice-icon.svg', width: 30, height: 30),
+          const SizedBox(width: 9),
+          const Text(
+            'Spice Wallet',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 17,
+              height: 1,
+              color: BrandColors.cinnamonDeep,
+            ),
+          ),
+          const Spacer(),
+          IconCircleButton(
+            icon: Icons.tune,
+            color: BrandColors.card,
+            onPressed: () => Navigator.pushNamed(context, '/settings'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TotalBalanceHeader extends StatelessWidget {
   final double totalFiat;
   final String fiatSymbol;
+  final String fiatCode;
   final FiatRateModel fiatRate;
 
   const _TotalBalanceHeader({
     required this.totalFiat,
     required this.fiatSymbol,
+    required this.fiatCode,
     required this.fiatRate,
   });
 
@@ -123,74 +172,84 @@ class _TotalBalanceHeader extends StatelessWidget {
     final i18n = AppLocalizations.of(context)!;
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      padding: const EdgeInsets.fromLTRB(20, 32, 20, 28),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            i18n.homeTotalBalanceLabel,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ),
-          SizedBox(height: 6),
+          SectionHeader(label: i18n.homeTotalBalanceLabel, padding: EdgeInsets.zero),
+          const SizedBox(height: 11),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            spacing: 4,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (!fiatRate.isDisabled)
-                FiatAmount(prefix: fiatSymbol, amount: totalFiat, maxFontSize: 32)
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: BalanceText.split('$fiatSymbol${_fiatFormat.format(totalFiat)}'),
+                  ),
+                )
               else
-                Text('--', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w700)),
-              if (fiatRate.hasFailed && !fiatRate.isDisabled)
-                Tooltip(
-                  message: i18n.homeFiatApiError,
-                  child: Icon(Icons.warning_rounded, size: 18, color: Colors.red),
+                const Text('--', style: BrandText.balance),
+              if (fiatRate.hasFailed && !fiatRate.isDisabled) ...[
+                const SizedBox(width: 8),
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Tooltip(
+                    message: i18n.homeFiatApiError,
+                    child: const Icon(Icons.warning_rounded, size: 18, color: BrandColors.warning),
+                  ),
                 ),
+              ],
             ],
           ),
+          if (!fiatRate.isDisabled) ...[
+            const SizedBox(height: 11),
+            Text(
+              '$fiatCode · ${i18n.homeFiatSource}',
+              style: const TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w400,
+                height: 1,
+                color: BrandColors.inkMuted,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _CoinRow extends StatefulWidget {
+class _CoinCard extends StatelessWidget {
   final CryptoWallet wallet;
   final FiatRateModel fiatRate;
   final String fiatSymbol;
 
-  const _CoinRow({required this.wallet, required this.fiatRate, required this.fiatSymbol});
+  /// Number of tokens on this chain (>0 → the row shows "N assets" + aggregate).
+  final int tokenCount;
 
-  @override
-  State<_CoinRow> createState() => _CoinRowState();
-}
+  /// Aggregate fiat across the chain + its tokens; falls back to own fiat.
+  final double? fiatOverride;
 
-class _CoinRowState extends State<_CoinRow> {
-  bool _isHovered = false;
+  const _CoinCard({
+    required this.wallet,
+    required this.fiatRate,
+    required this.fiatSymbol,
+    this.tokenCount = 0,
+    this.fiatOverride,
+  });
 
-  ConnectionIndicatorState _connectionIndicatorState() {
-    // Unconfigured coins show the "Set up" button, not a red indicator.
-    if (widget.wallet.connectionAddress.isEmpty) return ConnectionIndicatorState.ok;
-    return connectionIndicatorStateFor(widget.wallet);
-  }
+  static const _cardBalanceStyle = TextStyle(
+    fontFamily: 'Ubuntu Mono',
+    fontSize: 14.5,
+    fontWeight: FontWeight.w700,
+    height: 1,
+    color: BrandColors.ink,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
 
-  String _connectionRowTooltip(AppLocalizations i18n) {
-    final wallet = widget.wallet;
-    switch (_connectionIndicatorState()) {
-      case ConnectionIndicatorState.ok:
-        return '';
-      case ConnectionIndicatorState.loading:
-        return i18n.homeConnecting;
-      case ConnectionIndicatorState.error:
-        return wallet.connectionAddress.isEmpty
-            ? i18n.homeCoinNotConfigured
-            : i18n.homeConnectionErrorTooltip;
-    }
-  }
-
-  void _openCoin() {
-    final wallet = widget.wallet;
+  void _open(BuildContext context) {
     if (wallet.connectionAddress.isEmpty) {
       Navigator.pushNamed(
         context,
@@ -206,91 +265,124 @@ class _CoinRowState extends State<_CoinRow> {
     }
   }
 
+  Widget _leading() =>
+      CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 40);
+
+  /// (dot colour, status text). Dot is null for unconfigured coins; a chain with
+  /// tokens prefixes the status with "N assets · ".
+  (Color?, String) _status(AppLocalizations i18n) {
+    final assets = tokenCount > 0 ? '${i18n.homeAssetsCount(tokenCount + 1)} · ' : '';
+    if (wallet.connectionAddress.isEmpty) {
+      return (null, '$assets${i18n.homeCoinNotConfigured}');
+    }
+    switch (connectionIndicatorStateFor(wallet)) {
+      case ConnectionIndicatorState.ok:
+        return (BrandColors.success, '$assets${i18n.homeSynced}');
+      case ConnectionIndicatorState.loading:
+        return (BrandColors.warning, '$assets${i18n.homeSyncing}');
+      case ConnectionIndicatorState.error:
+        return (BrandColors.error, '$assets${i18n.homeNoConnection}');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final wallet = widget.wallet;
-    final hasConnection = wallet.connectionAddress.isNotEmpty;
+    final configured = wallet.connectionAddress.isNotEmpty;
     final balance = wallet.unlockedBalance;
-    final coinRate = widget.fiatRate.rateFor(wallet.coinSymbol);
-    final balanceFiat = coinRate != null && balance is double ? balance * coinRate : null;
+    final coinRate = fiatRate.rateFor(wallet.coinSymbol);
+    final ownFiat = coinRate != null && balance is double ? balance * coinRate : null;
+    final balanceFiat = fiatOverride ?? ownFiat;
+    final (dotColor, statusText) = _status(i18n);
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: Container(
-        decoration: BoxDecoration(
-          color: _isHovered
-              ? Theme.of(context).colorScheme.surfaceContainerHighest
-              : Colors.transparent,
-        ),
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _openCoin,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            child: Row(
-              children: [
-                SvgPicture.asset(wallet.iconAsset, width: 36, height: 36),
-                SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        spacing: 8,
-                        children: [
-                          Text(
-                            wallet.coinName,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+    return Material(
+      color: BrandColors.card,
+      shape: RoundedRectangleBorder(
+        side: const BorderSide(color: BrandColors.border),
+        borderRadius: BorderRadius.circular(BrandRadii.field),
+      ),
+      child: InkWell(
+        onTap: () => _open(context),
+        borderRadius: BorderRadius.circular(BrandRadii.field),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
+          child: Row(
+            children: [
+              _leading(),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      wallet.coinName,
+                      style: const TextStyle(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w500,
+                        height: 1.25,
+                        color: BrandColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        if (dotColor != null) ...[
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
                           ),
-                          ConnectionStatusIndicator(
-                            state: _connectionIndicatorState(),
-                            tooltipMessage: _connectionRowTooltip(i18n),
-                          ),
+                          const SizedBox(width: 6),
                         ],
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        hasConnection ? wallet.coinSymbol : i18n.homeCoinNotConfigured,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        Flexible(
+                          child: Text(
+                            statusText,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w400,
+                              height: 1.3,
+                              color: BrandColors.inkMuted,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ),
-                if (hasConnection)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      if (balance == null)
-                        Skeletonizer(
-                          enabled: true,
-                          child: Text('0.000000', style: TextStyle(fontSize: 16)),
-                        )
-                      else
-                        CoinAmount(
-                          amount: balance,
-                          decimals: wallet.decimals,
-                          smallerDigits: wallet.smallerDigits,
-                          maxFontSize: 16,
-                        ),
-                      if (balanceFiat is double && !widget.fiatRate.isDisabled)
-                        FiatAmount(prefix: widget.fiatSymbol, amount: balanceFiat, maxFontSize: 12),
-                    ],
-                  )
-                else
-                  TextButton.icon(
-                    onPressed: _openCoin,
-                    icon: Icon(Icons.settings, size: 16),
-                    label: Text(i18n.homeCoinSetUp),
-                  ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 8),
+              if (configured) _trailingBalance(balance, balanceFiat),
+              const Icon(Icons.chevron_right, size: 20, color: BrandColors.inkMuted),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _trailingBalance(Object? balance, double? balanceFiat) {
+    // Prefer the fiat value (design); fall back to the coin amount when fiat is
+    // unavailable (disabled, no rate, or balance not yet loaded).
+    if (balanceFiat != null && !fiatRate.isDisabled) {
+      return Padding(
+        padding: const EdgeInsets.only(right: 7),
+        child: BalanceText.split(
+          '$fiatSymbol${_fiatFormat.format(balanceFiat)}',
+          style: _cardBalanceStyle,
+        ),
+      );
+    }
+    if (balance == null) {
+      return const Padding(
+        padding: EdgeInsets.only(right: 7),
+        child: Skeletonizer(child: Text('0.000000', style: _cardBalanceStyle)),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(right: 7),
+      child: Text(
+        (balance is double ? balance : 0.0).toStringAsFixed(wallet.decimals > 6 ? 6 : wallet.decimals),
+        style: _cardBalanceStyle,
       ),
     );
   }

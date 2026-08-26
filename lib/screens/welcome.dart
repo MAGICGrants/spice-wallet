@@ -48,7 +48,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               const Text(
                 'Spice Wallet',
                 style: TextStyle(
-                  fontFamily: 'Ubuntu',
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.3,

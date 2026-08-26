@@ -1,12 +1,15 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/util/logging.dart';
+import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
-import 'package:spice_wallet/widgets/loading_button.dart';
 
 class UnlockScreen extends StatefulWidget {
   const UnlockScreen({super.key});
@@ -16,17 +19,37 @@ class UnlockScreen extends StatefulWidget {
 }
 
 class _UnlockScreenState extends State<UnlockScreen> {
-  final TextEditingController _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _obscurePassword = true;
+  static bool get _isDesktop => Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+
+  final _passwordController = TextEditingController();
+  bool _obscure = true;
   bool _isLoading = false;
-  String? _errorMessage;
+  String? _error;
+  String? _biometricLabel; // resolved per device on iOS (Face ID vs Touch ID)
+  bool _started = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!Platform.isLinux && !Platform.isWindows && !Platform.isMacOS) {
-      _promptUnlock();
+    if (_started || _isDesktop) return;
+    _started = true;
+    _resolveBiometricLabel();
+    _promptUnlock();
+  }
+
+  /// iOS labels the affordance by the device's biometric (Face ID / Touch ID);
+  /// Android and desktop keep the generic "Unlock".
+  Future<void> _resolveBiometricLabel() async {
+    if (!Platform.isIOS) return;
+    final i18n = AppLocalizations.of(context)!;
+    try {
+      final types = await LocalAuthentication().getAvailableBiometrics();
+      final label = types.contains(BiometricType.face)
+          ? i18n.unlockWithFaceId
+          : i18n.unlockWithTouchId;
+      if (mounted) setState(() => _biometricLabel = label);
+    } catch (_) {
+      // Leave the generic label.
     }
   }
 
@@ -36,158 +59,112 @@ class _UnlockScreenState extends State<UnlockScreen> {
     super.dispose();
   }
 
+  void _toHome(WalletManager manager) {
+    Navigator.pushNamedAndRemoveUntil(context, '/wallet_home', (route) => false);
+    manager.openWalletFilesAndSync();
+  }
+
   Future<void> _promptUnlock() async {
     final i18n = AppLocalizations.of(context)!;
     final result = await BiometricAuth.authenticate(reason: i18n.unlockReason);
 
-    // Auto-prompted with a password field right there: stay silent on a decline
-    // (the user chose to type instead), report only a real error.
+    // Auto-prompted, so stay silent on a decline; report only a real error.
     if (result == BiometricAuthResult.failed) return;
     if (result == BiometricAuthResult.error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(i18n.unlockUnableToAuthError)));
-      }
+      _showError(i18n.unlockUnableToAuthError);
       return;
     }
 
     if (!mounted) return;
     final manager = Provider.of<WalletManager>(context, listen: false);
-    final loaded = await manager.loadMobileWalletPassword();
-    if (!loaded) {
+    if (!await manager.loadMobileWalletPassword()) {
       log(LogLevel.error, 'Biometric auth succeeded but no stored wallet password');
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(i18n.unlockUnableToAuthError)));
-      }
+      _showError(i18n.unlockUnableToAuthError);
       return;
     }
-
-    if (mounted) {
-      Navigator.pushNamedAndRemoveUntil(context, '/wallet_home', (route) => false);
-    }
-    manager.openWalletFilesAndSync();
+    if (mounted) _toHome(manager);
   }
 
   Future<void> _unlockWithPassword() async {
-    if (!_formKey.currentState!.validate()) {
+    final i18n = AppLocalizations.of(context)!;
+    if (_passwordController.text.isEmpty) {
+      setState(() => _error = i18n.fieldEmptyError);
       return;
     }
-
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
+      _error = null;
     });
-
     try {
-      final enteredPassword = _passwordController.text;
       final manager = Provider.of<WalletManager>(context, listen: false);
-
-      manager.setWalletPassword(enteredPassword);
-
+      manager.setWalletPassword(_passwordController.text);
+      if (mounted) _toHome(manager);
+    } catch (_) {
       if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(context, '/wallet_home', (Route<dynamic> route) => false);
-      }
-
-      manager.openWalletFilesAndSync();
-    } catch (e) {
-      if (mounted) {
-        final i18n = AppLocalizations.of(context)!;
-
         setState(() {
-          _errorMessage = i18n.unlockIncorrectPasswordError;
+          _error = i18n.unlockIncorrectPasswordError;
           _isLoading = false;
         });
       }
     }
   }
 
-  String? _validatePasswordField(String? value) {
-    if (value == null || value.isEmpty) {
-      return AppLocalizations.of(context)!.fieldEmptyError;
+  void _showError(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     }
-    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Spice Wallet')),
+      backgroundColor: BrandColors.paper,
       body: SafeArea(
-        child: Center(
-          child: Container(
-            constraints: BoxConstraints(maxWidth: 500),
-            padding: EdgeInsets.all(20),
-            child: isDesktop
-                ? Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 20,
-                      children: [
-                        Column(
-                          spacing: 10,
-                          children: [
-                            Text(
-                              i18n.unlockTitle,
-                              style: Theme.of(context).textTheme.headlineMedium,
-                            ),
-                            Text(
-                              i18n.unlockDescription,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                          ],
-                        ),
-                        Column(
-                          spacing: 15,
-                          children: [
-                            TextFormField(
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              textInputAction: TextInputAction.done,
-                              validator: _validatePasswordField,
-                              enabled: !_isLoading,
-                              decoration: InputDecoration(
-                                labelText: i18n.unlockPasswordLabel,
-                                hintText: i18n.unlockPasswordHint,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
-                                ),
-                                errorText: _errorMessage,
-                              ),
-                              onFieldSubmitted: (_) => _unlockWithPassword(),
-                            ),
-                            LoadingButton(
-                              isLoading: _isLoading,
-                              onPressed: _unlockWithPassword,
-                              label: i18n.unlockButton,
-                            ),
-                          ],
-                        ),
-                      ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: BrandSpacing.xl),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Spacer(flex: 3),
+              Center(child: SvgPicture.asset('assets/spice-mark.svg', width: 84, height: 84)),
+              const SizedBox(height: BrandSpacing.xl),
+              Text(i18n.unlockLockedTitle, textAlign: TextAlign.center, style: BrandText.title),
+              if (_isDesktop) ...[
+                const SizedBox(height: BrandSpacing.xl),
+                BrandTextField(
+                  controller: _passwordController,
+                  hint: i18n.unlockPasswordHint,
+                  obscureText: _obscure,
+                  suffix: IconButton(
+                    icon: Icon(
+                      _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                      color: BrandColors.inkMuted,
                     ),
-                  )
-                : FilledButton.icon(
-                    onPressed: _promptUnlock,
-                    label: Text(i18n.unlockButton),
-                    icon: Icon(Icons.lock_open),
+                    onPressed: () => setState(() => _obscure = !_obscure),
                   ),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: BrandSpacing.sm),
+                  Text(_error!, style: BrandText.caption.copyWith(color: BrandColors.error)),
+                ],
+              ],
+              const Spacer(flex: 4),
+              if (_isDesktop)
+                BrandButton(
+                  label: i18n.unlockButton,
+                  loading: _isLoading,
+                  onPressed: _unlockWithPassword,
+                )
+              else
+                BrandButton(
+                  label: _biometricLabel ?? i18n.unlockButton,
+                  icon: Icons.lock_outline,
+                  onPressed: _promptUnlock,
+                ),
+              const SizedBox(height: BrandSpacing.sm),
+            ],
           ),
         ),
       ),

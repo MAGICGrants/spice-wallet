@@ -37,7 +37,6 @@ class ActionButton extends StatelessWidget {
                     Text(
                       label,
                       style: const TextStyle(
-                        fontFamily: 'Ubuntu',
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         color: BrandColors.cinnamonDeep,

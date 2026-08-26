@@ -124,7 +124,6 @@ class _OptionCard extends StatelessWidget {
                         Text(
                           title,
                           style: const TextStyle(
-                            fontFamily: 'Ubuntu',
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: BrandColors.ink,

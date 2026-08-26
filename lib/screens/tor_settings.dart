@@ -374,7 +374,6 @@ class _TestChip extends StatelessWidget {
             child: Text(
               label,
               style: const TextStyle(
-                fontFamily: 'Ubuntu',
                 fontSize: 11.5,
                 fontWeight: FontWeight.w500,
                 color: BrandColors.cinnamonDeep,

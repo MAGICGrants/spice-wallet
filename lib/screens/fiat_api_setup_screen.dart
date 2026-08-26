@@ -217,7 +217,6 @@ class _CurrencyChip extends StatelessWidget {
               Text(
                 code,
                 style: TextStyle(
-                  fontFamily: 'Ubuntu',
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                   color: fg,

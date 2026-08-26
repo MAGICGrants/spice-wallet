@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
-import 'package:wallet_domain/wallet_domain.dart';
 import 'package:spice_wallet/widgets/connection_settings_form.dart';
+import 'package:spice_wallet/widgets/ui/ui.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 
 class ExplorerSetupScreenArgs {
   final String coinSymbol;
@@ -23,8 +24,9 @@ class ExplorerSetupScreen extends StatelessWidget {
     final i18n = AppLocalizations.of(context)!;
     final args = ModalRoute.of(context)?.settings.arguments as ExplorerSetupScreenArgs?;
     final coinSymbol = args?.coinSymbol ?? '';
-    final manager = Provider.of<WalletManager>(context);
+    final manager = Provider.of<WalletManager>(context, listen: false);
     final wallet = manager.getWallet(coinSymbol);
+    final configured = wallet?.explorerAddress.isNotEmpty ?? false;
 
     void onSaved() {
       // Refresh history through the newly-configured explorer.
@@ -43,49 +45,74 @@ class ExplorerSetupScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(wallet?.coinName ?? 'Spice Wallet')),
-      body: LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
+      backgroundColor: BrandColors.paper,
+      body: SafeArea(
+        child: Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(
-              child: Container(
-                constraints: BoxConstraints(maxWidth: 500),
-                padding: EdgeInsets.all(20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 20,
-                  children: [
-                    Text(
-                      i18n.explorerSetupTitle,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    Text(
-                      i18n.explorerSetupDescription,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    ConnectionSettingsForm(
-                      coinSymbol: coinSymbol,
-                      target: ConnectionTarget.explorer,
-                      saveButtonLabel: i18n.save,
-                      onSaved: onSaved,
-                    ),
-                    if (wallet?.explorerAddress.isNotEmpty ?? false)
-                      TextButton.icon(
-                        onPressed: onRemove,
-                        icon: Icon(Icons.delete),
-                        label: Text(i18n.explorerRemoveButton),
-                        style: ButtonStyle(foregroundColor: WidgetStateProperty.all(Colors.red)),
-                      ),
-                  ],
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  child: BrandScreenHeader(
+                    onBack: () => Navigator.pop(context),
+                    center: _CoinBadge(wallet: wallet, fallback: coinSymbol),
+                    action: configured
+                        ? IconCircleButton(icon: Icons.delete_outline, onPressed: onRemove)
+                        : null,
+                  ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(i18n.explorerSetupTitle, style: BrandText.title),
+                      const SizedBox(height: 8),
+                      Text(
+                        i18n.explorerSetupDescription,
+                        style: BrandText.bodyMuted.copyWith(fontSize: 13, height: 1.5),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Expanded(
+                  child: ConnectionSettingsForm(
+                    coinSymbol: coinSymbol,
+                    target: ConnectionTarget.explorer,
+                    saveButtonLabel: i18n.save,
+                    onSaved: onSaved,
+                    pinnedSave: true,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Chain tile + coin name, centred in the header.
+class _CoinBadge extends StatelessWidget {
+  final CryptoWallet? wallet;
+  final String fallback;
+
+  const _CoinBadge({required this.wallet, required this.fallback});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (wallet != null)
+          CoinMark(coinSymbol: wallet!.coinSymbol, iconAsset: wallet!.iconAsset, size: 22),
+        const SizedBox(width: 8),
+        Text(wallet?.coinName ?? fallback, style: BrandText.appBar.copyWith(fontSize: 16)),
+      ],
     );
   }
 }

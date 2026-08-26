@@ -339,6 +339,84 @@ abstract class AppLocalizations {
   /// **'Test Connection'**
   String get lwsSetupTestConnectionButton;
 
+  /// No description provided for @connectionProxyPortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'HTTP Proxy Port'**
+  String get connectionProxyPortLabel;
+
+  /// No description provided for @connectionProxyPortHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get connectionProxyPortHint;
+
+  /// No description provided for @connectionTestingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing connection'**
+  String get connectionTestingTitle;
+
+  /// No description provided for @connectionTestingDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking whether the server answers.'**
+  String get connectionTestingDetail;
+
+  /// No description provided for @connectionTestStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get connectionTestStop;
+
+  /// No description provided for @connectionResultWorksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection works'**
+  String get connectionResultWorksTitle;
+
+  /// No description provided for @connectionResultWorksDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The server responded successfully.'**
+  String get connectionResultWorksDetail;
+
+  /// No description provided for @connectionReachedOverTor.
+  ///
+  /// In en, this message translates to:
+  /// **'Reached over Tor'**
+  String get connectionReachedOverTor;
+
+  /// No description provided for @connectionReachedViaProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'Reached through your proxy'**
+  String get connectionReachedViaProxy;
+
+  /// No description provided for @connectionReachedDirect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reached directly'**
+  String get connectionReachedDirect;
+
+  /// No description provided for @connectionResultFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach this server'**
+  String get connectionResultFailedTitle;
+
+  /// No description provided for @connectionResultFailedDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing answered. Check the address and port, and whether the server accepts your connection.'**
+  String get connectionResultFailedDetail;
+
+  /// No description provided for @connectionTestAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Test again'**
+  String get connectionTestAgain;
+
   /// No description provided for @lwsSetupStartingTor.
   ///
   /// In en, this message translates to:
@@ -681,6 +759,12 @@ abstract class AppLocalizations {
   /// **'Wallet'**
   String get navigationBarWallet;
 
+  /// No description provided for @navigationBarHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navigationBarHome;
+
   /// No description provided for @navigationBarSettings.
   ///
   /// In en, this message translates to:
@@ -710,6 +794,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlock Wallet'**
   String get unlockTitle;
+
+  /// No description provided for @unlockLockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spice Wallet is locked'**
+  String get unlockLockedTitle;
+
+  /// No description provided for @unlockWithFaceId.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with Face ID'**
+  String get unlockWithFaceId;
+
+  /// No description provided for @unlockWithTouchId.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with Touch ID'**
+  String get unlockWithTouchId;
 
   /// No description provided for @unlockDescription.
   ///
@@ -746,6 +848,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Syncing'**
   String get homeSyncing;
+
+  /// No description provided for @homeSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get homeSynced;
+
+  /// No description provided for @homeNoConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection'**
+  String get homeNoConnection;
+
+  /// No description provided for @homeAssetsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 asset} other{{count} assets}}'**
+  String homeAssetsCount(int count);
+
+  /// No description provided for @coinHomeAssetsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Assets'**
+  String get coinHomeAssetsTitle;
+
+  /// No description provided for @coinHomeActivityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get coinHomeActivityTitle;
+
+  /// No description provided for @coinHomeSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap'**
+  String get coinHomeSwap;
+
+  /// No description provided for @coinHomeSwapComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap is coming soon.'**
+  String get coinHomeSwapComingSoon;
+
+  /// No description provided for @coinHomeReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get coinHomeReceived;
+
+  /// No description provided for @coinHomeSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get coinHomeSent;
+
+  /// No description provided for @coinHomeServerConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Server connection'**
+  String get coinHomeServerConnection;
+
+  /// No description provided for @coinHomeViewKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'View keys'**
+  String get coinHomeViewKeys;
+
+  /// No description provided for @coinHomeRouteTor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tor'**
+  String get coinHomeRouteTor;
+
+  /// No description provided for @coinHomeRouteProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy'**
+  String get coinHomeRouteProxy;
+
+  /// No description provided for @coinHomeRouteDirect.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct'**
+  String get coinHomeRouteDirect;
+
+  /// No description provided for @coinHomeAddExplorerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an explorer to see history'**
+  String get coinHomeAddExplorerTitle;
+
+  /// No description provided for @coinHomeAddExplorerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add explorer'**
+  String get coinHomeAddExplorerButton;
+
+  /// No description provided for @homeFiatSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Kraken over Tor'**
+  String get homeFiatSource;
 
   /// No description provided for @homeHeight.
   ///
@@ -885,6 +1089,36 @@ abstract class AppLocalizations {
   /// **'You have reached the maximum number of subaddresses supported by this server. This is a used address.'**
   String get receiveMaxSubaddressesReachedWarn;
 
+  /// No description provided for @receiveSubaddressTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Subaddress'**
+  String get receiveSubaddressTab;
+
+  /// No description provided for @receivePrimaryTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary address'**
+  String get receivePrimaryTab;
+
+  /// No description provided for @receiveCopyAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy address'**
+  String get receiveCopyAddress;
+
+  /// No description provided for @receiveAddressHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {coin} address'**
+  String receiveAddressHeading(String coin);
+
+  /// No description provided for @receiveBlockchainSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{coin} blockchain'**
+  String receiveBlockchainSubtitle(String coin);
+
   /// No description provided for @sendTitle.
   ///
   /// In en, this message translates to:
@@ -944,6 +1178,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get settingsTitle;
+
+  /// No description provided for @settingsSectionGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get settingsSectionGeneral;
+
+  /// No description provided for @settingsSectionBehaviour.
+  ///
+  /// In en, this message translates to:
+  /// **'Behaviour'**
+  String get settingsSectionBehaviour;
+
+  /// No description provided for @settingsSectionAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsSectionAbout;
+
+  /// No description provided for @settingsSectionWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get settingsSectionWallet;
+
+  /// No description provided for @settingsCoinConnectionSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get settingsCoinConnectionSection;
+
+  /// No description provided for @settingsCoinKeysSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Keys'**
+  String get settingsCoinKeysSection;
+
+  /// No description provided for @settingsCoinConnectionSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection setup'**
+  String get settingsCoinConnectionSetup;
+
+  /// No description provided for @settingsCoinExplorer.
+  ///
+  /// In en, this message translates to:
+  /// **'Explorer'**
+  String get settingsCoinExplorer;
+
+  /// No description provided for @settingsCoinNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Not configured'**
+  String get settingsCoinNotConfigured;
 
   /// No description provided for @homeBlocksRemaining.
   ///
@@ -1170,8 +1458,14 @@ abstract class AppLocalizations {
   /// No description provided for @txDetailsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Transaction'**
+  /// **'Transaction Details'**
   String get txDetailsTitle;
+
+  /// No description provided for @txDetailsCopyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'tap any value to copy'**
+  String get txDetailsCopyHint;
 
   /// No description provided for @txDetailsHashLabel.
   ///
@@ -1212,7 +1506,7 @@ abstract class AppLocalizations {
   /// No description provided for @txDetailsChangeRecipientLabel.
   ///
   /// In en, this message translates to:
-  /// **'Change'**
+  /// **'Change Recipient'**
   String get txDetailsChangeRecipientLabel;
 
   /// No description provided for @lwsKeysTitle.
@@ -1442,6 +1736,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fee'**
   String get sendFeeLabel;
+
+  /// No description provided for @sendFromLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get sendFromLabel;
+
+  /// No description provided for @sendToLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get sendToLabel;
+
+  /// No description provided for @sendPriorityHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority'**
+  String get sendPriorityHeading;
+
+  /// No description provided for @sendAvailableSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'available'**
+  String get sendAvailableSuffix;
+
+  /// No description provided for @sendNetworkFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Network fee'**
+  String get sendNetworkFee;
+
+  /// No description provided for @sendMaxButton.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX'**
+  String get sendMaxButton;
+
+  /// No description provided for @sendPasteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get sendPasteButton;
+
+  /// No description provided for @sendScanButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get sendScanButton;
+
+  /// No description provided for @sendAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{coin} address'**
+  String sendAddressHint(String coin);
 
   /// No description provided for @sendBalanceLabel.
   ///

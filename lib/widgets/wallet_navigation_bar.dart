@@ -1,29 +1,102 @@
 import 'package:flutter/material.dart';
-import 'package:spice_wallet/l10n/app_localizations.dart';
 
+import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/theme/brand.dart';
+
+/// Brand bottom nav — flat icon+label tabs on the cream ground with a hairline
+/// top border (see design `brand/screens`). Keeps the app's real destinations
+/// (Home / Contacts / Settings).
 class WalletNavigationBar extends StatelessWidget {
   final int selectedIndex;
 
   const WalletNavigationBar({super.key, required this.selectedIndex});
 
+  static const _routes = ['/wallet_home', '/address_book', '/settings'];
+
+  void _select(BuildContext context, int index) {
+    if (index == selectedIndex) return;
+    Navigator.pushNamed(context, _routes[index]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
+    final items = [
+      (Icons.home_outlined, i18n.navigationBarHome),
+      (Icons.people_outline, i18n.addressBookTitle),
+      (Icons.tune, i18n.navigationBarSettings),
+    ];
 
     return Hero(
       tag: 'main-navigation-bar',
-      child: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) => {
-          if (index == 0 && selectedIndex != 0) {Navigator.pushNamed(context, '/wallet_home')},
-          if (index == 1 && selectedIndex != 1) {Navigator.pushNamed(context, '/address_book')},
-          if (index == 2 && selectedIndex != 2) {Navigator.pushNamed(context, '/settings')},
-        },
-        destinations: [
-          NavigationDestination(icon: Icon(Icons.wallet), label: i18n.navigationBarWallet),
-          NavigationDestination(icon: Icon(Icons.contacts), label: i18n.addressBookTitle),
-          NavigationDestination(icon: Icon(Icons.settings), label: i18n.navigationBarSettings),
-        ],
+      child: Material(
+        color: BrandColors.paper,
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: BrandColors.border)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 9, left: 4, right: 4, bottom: 4),
+              child: Row(
+                children: [
+                  for (var i = 0; i < items.length; i++)
+                    Expanded(
+                      child: _NavTab(
+                        icon: items[i].$1,
+                        label: items[i].$2,
+                        selected: i == selectedIndex,
+                        onTap: () => _select(context, i),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavTab extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _NavTab({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? BrandColors.cinnamonDeep : BrandColors.inkMuted;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(BrandRadii.tile),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 23, color: color),
+            const SizedBox(height: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10.5,
+                height: 1,
+                fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
+                color: color,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

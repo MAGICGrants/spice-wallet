@@ -12,6 +12,7 @@ import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/util/logging.dart';
+import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 
 const isDemoMode = String.fromEnvironment('DEMO_MODE') == 'true';
@@ -39,6 +40,15 @@ class ConnectionSettingsForm extends StatefulWidget {
   final Future<void> Function()? onBeforeSave;
   final ConnectionTarget target;
 
+  /// When true the Save button is pinned to the bottom of the available height
+  /// (the fields scroll above it), matching the connection-setup screen. When
+  /// false Save sits inline at the end of the form (dialogs / explorer setup).
+  final bool pinnedSave;
+
+  /// Fires with the selected connection type ('lws' / 'node' / '') on load and
+  /// whenever the segmented control changes, so the screen can update its copy.
+  final ValueChanged<String>? onConnectionTypeChanged;
+
   const ConnectionSettingsForm({
     super.key,
     required this.coinSymbol,
@@ -47,6 +57,8 @@ class ConnectionSettingsForm extends StatefulWidget {
     this.isInDialog = false,
     this.onBeforeSave,
     this.target = ConnectionTarget.node,
+    this.pinnedSave = false,
+    this.onConnectionTypeChanged,
   });
 
   @override
@@ -69,6 +81,8 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
   bool _foregroundSyncEnabled = false;
   TorConnectionStatus _torStatus = TorService.sharedInstance.status;
   Timer? _torStatusTimer;
+  bool _testCancelled = false;
+  int? _latencyMs;
 
   /// Background / continuous sync only matter for a Monero **node** scan — the
   /// one heavy background job. LWS syncs server-side, so the toggles are hidden
@@ -175,6 +189,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
           ? conn.connectionType
           : (options.isNotEmpty ? options.first : '');
     });
+    widget.onConnectionTypeChanged?.call(_connectionType);
 
     if (conn.useTor && TorSettingsService.sharedInstance.torMode == TorMode.builtIn) {
       _pollTorStatus();
@@ -349,6 +364,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       _hasTested = false;
       _errorMessage = null;
     });
+    widget.onConnectionTypeChanged?.call(value);
   }
 
   String _connectionTypeLabel(AppLocalizations i18n, String type) {
@@ -406,12 +422,15 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     }
 
     setState(() {
+      _testCancelled = false;
       _hasTested = true;
       _connectionTestIsLoading = true;
       _connectionSuccess = false;
       _errorMessage = null;
+      _latencyMs = null;
     });
 
+    final stopwatch = Stopwatch()..start();
     try {
       final proxyPort = await _resolveProxyPort();
       if (_isExplorer) {
@@ -430,23 +449,35 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
           connectionType: _connectionType,
         );
       }
-      if (!mounted) return;
+      if (!mounted || _testCancelled) return;
       setState(() {
         _connectionSuccess = true;
+        _latencyMs = stopwatch.elapsedMilliseconds;
       });
     } catch (error) {
       log(LogLevel.warn, 'testConnection failed: $error', coin: widget.coinSymbol);
-      if (!mounted) return;
+      if (!mounted || _testCancelled) return;
       setState(() {
         _connectionSuccess = false;
       });
     } finally {
-      if (mounted) {
+      if (mounted && !_testCancelled) {
         setState(() {
           _connectionTestIsLoading = false;
         });
       }
     }
+  }
+
+  /// Best-effort UI cancel: the in-flight network call can't be aborted, but we
+  /// drop its result and return the card to the untested state.
+  void _stopTest() {
+    setState(() {
+      _testCancelled = true;
+      _hasTested = false;
+      _connectionTestIsLoading = false;
+      _connectionSuccess = false;
+    });
   }
 
   Future<void> _saveConnection() async {
@@ -492,78 +523,98 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     widget.onSaved();
   }
 
-  /// Right-aligned status chips under the address field (Tor / HTTPS / local).
-  Widget _syncCheckbox({
-    required String label,
-    required String description,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return CheckboxListTile(
-      title: Text(label),
-      value: value,
-      onChanged: (v) => onChanged(v ?? false),
-      controlAffinity: ListTileControlAffinity.leading,
-      contentPadding: EdgeInsets.zero,
-      secondary: Tooltip(
-        message: description,
-        triggerMode: TooltipTriggerMode.tap,
-        child: Icon(Icons.help_outline, size: 20),
-      ),
-    );
-  }
-
-  Widget _buildConnectionIndicators(AppLocalizations i18n, TorMode torMode) {
-    final chips = <Widget>[];
-
+  /// Route/security pills shown on the right of the Use-Tor row.
+  List<Widget> _routePills() {
+    final pills = <Widget>[];
+    final address = _cleanAddress(_addressController.text);
     if (_useTor) {
-      chips.add(
-        _statusChip(
-          icon: SvgPicture.asset('assets/icons/tor.svg', width: 13, height: 13),
-          label: torMode == TorMode.builtIn
-              ? i18n.connectionIndicatorTorInternal
-              : i18n.connectionIndicatorTorExternal(TorSettingsService.sharedInstance.socksPort),
-          color: Colors.purple,
+      pills.add(
+        const _RoutePill(
+          label: 'TOR',
+          color: BrandColors.routeTor,
+          bg: Color(0xFFEFE9F8),
+          icon: _PillIcon.tor,
+        ),
+      );
+    } else if (_customProxyPortController.text.trim().isNotEmpty) {
+      pills.add(
+        const _RoutePill(
+          label: 'PROXY',
+          color: BrandColors.routeProxy,
+          bg: Color(0xFFE6EEF7),
+          icon: _PillIcon.proxy,
         ),
       );
     }
-
     if (_useSsl) {
-      chips.add(
-        _statusChip(
-          icon: Icon(Icons.lock, size: 13, color: Colors.green),
-          label: i18n.connectionIndicatorHttps,
-          color: Colors.green,
+      pills.add(
+        const _RoutePill(
+          label: 'HTTPS',
+          color: BrandColors.success,
+          bg: BrandColors.successBg,
+          icon: _PillIcon.https,
         ),
       );
-    } else if (_isLocalAddress(_cleanAddress(_addressController.text))) {
-      chips.add(
-        _statusChip(
-          icon: Icon(Icons.lock_open, size: 13, color: Colors.grey),
-          label: i18n.connectionIndicatorLocal,
-          color: Colors.grey,
+    } else if (_isLocalAddress(address)) {
+      pills.add(
+        const _RoutePill(
+          label: 'LOCAL',
+          color: BrandColors.inkFaint,
+          bg: BrandColors.surfaceMuted,
+          icon: _PillIcon.local,
         ),
       );
     }
-
-    if (chips.isEmpty) return const SizedBox.shrink();
-
-    return Center(
-      child: Wrap(spacing: 16, alignment: WrapAlignment.center, children: chips),
-    );
+    return pills;
   }
 
-  Widget _statusChip({required Widget icon, required String label, required Color color}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        icon,
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w500),
-        ),
-      ],
+  /// How the successful probe reached the server (the one server fact we can
+  /// state from an unauthenticated test). Height / subaddress support aren't
+  /// returned by the probe, so they're not shown.
+  String _successDetail(AppLocalizations i18n) {
+    if (_useTor) return i18n.connectionReachedOverTor;
+    if (_customProxyPortController.text.trim().isNotEmpty) return i18n.connectionReachedViaProxy;
+    return i18n.connectionReachedDirect;
+  }
+
+  Widget _buildTestCard(AppLocalizations i18n, TorMode torMode) {
+    // Built-in Tor still bootstrapping takes over the test action.
+    if (_useTor && torMode == TorMode.builtIn && _torStatus != TorConnectionStatus.connected) {
+      return _StatusRowCard(
+        leading: const _Spinner(),
+        title: i18n.lwsSetupStartingTor,
+      );
+    }
+    if (!_hasTested) {
+      return _NotTestedCard(
+        label: i18n.lwsSetupTestConnectionButton,
+        onTest: _testConnection,
+      );
+    }
+    if (_connectionTestIsLoading) {
+      return _StatusRowCard(
+        leading: const _Spinner(),
+        title: i18n.connectionTestingTitle,
+        detail: i18n.connectionTestingDetail,
+        trailing: _CardTextButton(label: i18n.connectionTestStop, onPressed: _stopTest),
+      );
+    }
+    if (_connectionSuccess) {
+      return _ResultCard(
+        icon: const Icon(Icons.check, size: 13, color: BrandColors.success),
+        iconBg: BrandColors.successBg,
+        title: i18n.connectionResultWorksTitle,
+        trailing: _latencyMs != null ? '$_latencyMs ms' : null,
+        detail: _successDetail(i18n),
+        onTestAgain: _testConnection,
+        testAgainLabel: i18n.connectionTestAgain,
+      );
+    }
+    return _ResultCard.failure(
+      title: i18n.connectionResultFailedTitle,
+      detail: i18n.connectionResultFailedDetail,
+      onTestAgain: _testConnection,
+      testAgainLabel: i18n.connectionTestAgain,
     );
   }
 
@@ -578,128 +629,727 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
             : wallet?.connectionAddressExampleForType(_connectionType)) ??
         i18n.lwsSetupAddressHint;
     final addressLabel = _isExplorer ? i18n.explorerAddressLabel : i18n.address;
+    final canSave = _hasTested && _connectionSuccess && !_connectionTestIsLoading;
+
+    final content = <Widget>[
+        if (_connectionTypeOptions.length > 1) ...[
+          _SegmentedControl(
+            options: _connectionTypeOptions,
+            selected: _connectionType,
+            labelFor: (type) => _connectionTypeLabel(i18n, type),
+            onSelect: _setConnectionType,
+          ),
+          const SizedBox(height: 20),
+        ],
+        _InsetField(
+          label: addressLabel,
+          controller: _addressController,
+          hint: addressHint,
+          mono: true,
+          keyboardType: TextInputType.url,
+          onChanged: _onAddressChange,
+          trailing: (Platform.isAndroid || Platform.isIOS)
+              ? _FieldIconButton(icon: Icons.qr_code_2, onPressed: _scanQrCode)
+              : null,
+        ),
+        if (_errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Text(
+              _errorMessage!,
+              style: BrandText.caption.copyWith(color: BrandColors.error),
+            ),
+          ),
+        const SizedBox(height: 16),
+        _InsetField(
+          label: i18n.connectionProxyPortLabel,
+          controller: _customProxyPortController,
+          hint: i18n.connectionProxyPortHint,
+          mono: true,
+          number: true,
+          enabled: !_useTor,
+          onChanged: _onProxyPortChange,
+        ),
+        const SizedBox(height: 4),
+        _CheckRow(
+          checked: _useTor,
+          onTap: torMode == TorMode.disabled ? null : () => _setUseTor(!_useTor),
+          label: i18n.lwsSetupUseTorLabel,
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: _routePills()),
+        ),
+        if (_showSyncOptions) ...[
+          _CheckRow(
+            checked: _backgroundSyncEnabled,
+            onTap: () => _setBackgroundSyncEnabled(!_backgroundSyncEnabled),
+            label: i18n.settingsBackgroundSyncLabel,
+            help: i18n.settingsBackgroundSyncDescription,
+          ),
+          _CheckRow(
+            checked: _foregroundSyncEnabled,
+            onTap: () => _setForegroundSyncEnabled(!_foregroundSyncEnabled),
+            label: i18n.settingsForegroundSyncLabel,
+            help: i18n.settingsForegroundSyncDescription,
+          ),
+        ],
+        const SizedBox(height: 16),
+        _buildTestCard(i18n, torMode),
+    ];
+
+    final saveButton = BrandButton(
+      label: widget.saveButtonLabel,
+      onPressed: canSave ? _saveConnection : null,
+    );
+
+    if (widget.pinnedSave) {
+      return Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: content,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+            child: saveButton,
+          ),
+        ],
+      );
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 10,
-      children: [
-        if (_connectionTypeOptions.length > 1)
-          Center(
-            child: SegmentedButton<String>(
-              segments: _connectionTypeOptions
-                  .map(
-                    (type) => ButtonSegment<String>(
-                      value: type,
-                      label: Text(_connectionTypeLabel(i18n, type)),
+      children: [...content, const SizedBox(height: 16), saveButton],
+    );
+  }
+}
+
+/// Segmented control (Light Wallet Server / Monero Node). Tinted track with a
+/// raised card for the selected segment.
+class _SegmentedControl extends StatelessWidget {
+  final List<String> options;
+  final String selected;
+  final String Function(String) labelFor;
+  final ValueChanged<String> onSelect;
+
+  const _SegmentedControl({
+    required this.options,
+    required this.selected,
+    required this.labelFor,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: BrandColors.surfaceTinted,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          for (final type in options)
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onSelect(type),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: type == selected ? BrandColors.paper : Colors.transparent,
+                    borderRadius: BorderRadius.circular(11),
+                    boxShadow: type == selected
+                        ? [BoxShadow(color: BrandColors.ink.withValues(alpha: 0.08), blurRadius: 2, offset: const Offset(0, 1))]
+                        : null,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    labelFor(type),
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1,
+                      fontWeight: type == selected ? FontWeight.w500 : FontWeight.w400,
+                      color: type == selected ? BrandColors.ink : BrandColors.inkMuted,
                     ),
-                  )
-                  .toList(),
-              selected: {_connectionType},
-              showSelectedIcon: false,
-              onSelectionChanged: (selection) => _setConnectionType(selection.first),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Bordered inset field with an optional floating label sitting on the border.
+class _InsetField extends StatelessWidget {
+  final String? label;
+  final TextEditingController controller;
+  final String hint;
+  final bool enabled;
+  final bool mono;
+  final bool number;
+  final TextInputType? keyboardType;
+  final ValueChanged<String>? onChanged;
+  final Widget? trailing;
+
+  const _InsetField({
+    required this.controller,
+    required this.hint,
+    this.label,
+    this.enabled = true,
+    this.mono = false,
+    this.number = false,
+    this.keyboardType,
+    this.onChanged,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = enabled ? BrandColors.ink : BrandColors.inkMuted;
+    final field = TextField(
+      controller: controller,
+      enabled: enabled,
+      onChanged: onChanged,
+      keyboardType: number ? TextInputType.number : keyboardType,
+      textInputAction: TextInputAction.done,
+      inputFormatters: number ? [FilteringTextInputFormatter.digitsOnly] : null,
+      strutStyle: const StrutStyle(forceStrutHeight: true, height: 1.1, fontSize: 13.5),
+      style: TextStyle(
+        fontFamily: mono ? 'Ubuntu Mono' : 'Ubuntu',
+        fontSize: 13.5,
+        height: 1,
+        color: textColor,
+      ),
+      decoration: InputDecoration(
+        isCollapsed: true,
+        border: InputBorder.none,
+        hintText: hint,
+        hintStyle: TextStyle(
+          fontFamily: mono ? 'Ubuntu Mono' : 'Ubuntu',
+          fontSize: 13.5,
+          height: 1,
+          color: BrandColors.inkMuted,
+        ),
+      ),
+    );
+
+    final box = Container(
+      decoration: BoxDecoration(
+        color: BrandColors.card,
+        border: Border.all(color: BrandColors.inputBorder),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      child: Row(
+        children: [
+          Expanded(child: field),
+          if (trailing != null) trailing!,
+        ],
+      ),
+    );
+
+    if (label == null) return box;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(label: label!, padding: const EdgeInsets.only(left: 2, bottom: 9)),
+        box,
+      ],
+    );
+  }
+}
+
+/// Small icon button that sits inside a field's trailing slot (QR scan).
+class _FieldIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _FieldIconButton({required this.icon, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onPressed,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 8),
+        child: Icon(icon, size: 20, color: BrandColors.cinnamonDeep),
+      ),
+    );
+  }
+}
+
+/// A square check + label row (Use Tor, sync toggles), with optional trailing
+/// pills or a "?" help affordance.
+class _CheckRow extends StatelessWidget {
+  final bool checked;
+  final VoidCallback? onTap;
+  final String label;
+  final String? help;
+  final Widget? trailing;
+
+  const _CheckRow({
+    required this.checked,
+    required this.onTap,
+    required this.label,
+    this.help,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onTap != null;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        children: [
+          // Tap target is the check + label; vertical padding here sets the row
+          // height (no extra slop on the box, which was bloating the gaps).
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 7),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: checked ? BrandColors.cinnamon : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                      border: checked ? null : Border.all(color: BrandColors.inputBorder),
+                    ),
+                    child: checked
+                        ? const Icon(Icons.check, size: 15, color: BrandColors.onCinnamon)
+                        : null,
+                  ),
+                  const SizedBox(width: 11),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.3,
+                      color: enabled ? BrandColors.ink : BrandColors.inkFaint,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        TextFormField(
-          controller: _addressController,
-          onChanged: _onAddressChange,
-          decoration: InputDecoration(
-            labelText: addressLabel,
-            hintText: addressHint,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-            suffixIcon: Row(
-              mainAxisSize: MainAxisSize.min,
+          if (help != null) ...[
+            const SizedBox(width: 8),
+            Tooltip(
+              message: help!,
+              triggerMode: TooltipTriggerMode.tap,
+              child: Container(
+                width: 17,
+                height: 17,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: BrandColors.inputBorder, width: 1.4),
+                ),
+                child: const Text(
+                  '?',
+                  style: TextStyle(
+                    fontSize: 10,
+                    height: 1,
+                    fontWeight: FontWeight.w700,
+                    color: BrandColors.inkMuted,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          const Spacer(),
+          if (trailing != null) trailing!,
+        ],
+      ),
+    );
+  }
+}
+
+enum _PillIcon { tor, https, proxy, local }
+
+/// Small route/security pill (TOR · HTTPS · PROXY · LOCAL). Icons are the exact
+/// design line marks, tinted to the pill colour.
+class _RoutePill extends StatelessWidget {
+  final String label;
+  final Color color;
+  final Color bg;
+  final _PillIcon icon;
+
+  const _RoutePill({required this.label, required this.color, required this.bg, required this.icon});
+
+  String _svg() {
+    final hex = '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+    switch (icon) {
+      case _PillIcon.tor:
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="$hex" stroke-width="2">'
+            '<circle cx="12" cy="12" r="8.5"/><ellipse cx="12" cy="12" rx="3.6" ry="8.5"/>'
+            '<path d="M3.5 12h17"/></svg>';
+      case _PillIcon.https:
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="$hex" stroke-width="2.2" stroke-linecap="round">'
+            '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+      case _PillIcon.proxy:
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="$hex" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+            '<path d="M4 12h4M16 12h4"/><circle cx="12" cy="12" r="3.2"/></svg>';
+      case _PillIcon.local:
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="$hex" stroke-width="2.2" stroke-linecap="round">'
+            '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7.5a4 4 0 0 1 7-2.6"/></svg>';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(left: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(7)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SvgPicture.string(_svg(), width: 11, height: 11),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Ubuntu Mono',
+              fontSize: 9.5,
+              height: 1,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.76,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// White card container for the test-result states.
+class _TestCard extends StatelessWidget {
+  final Widget child;
+  const _TestCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: BrandColors.card,
+        border: Border.all(color: BrandColors.border),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.fromLTRB(15, 4, 15, 10),
+      child: child,
+    );
+  }
+}
+
+/// 22px spinner used in the "starting Tor" / "testing" states.
+class _Spinner extends StatelessWidget {
+  const _Spinner();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 22,
+      height: 22,
+      child: CircularProgressIndicator(
+        strokeWidth: 2.4,
+        color: BrandColors.cinnamonDeep,
+        backgroundColor: BrandColors.border,
+      ),
+    );
+  }
+}
+
+/// Untested state: a secondary "Test connection" button.
+class _NotTestedCard extends StatelessWidget {
+  final String label;
+  final VoidCallback onTest;
+
+  const _NotTestedCard({required this.label, required this.onTest});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTest,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: BrandColors.surfaceSunken,
+          border: Border.all(color: BrandColors.borderStrong),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.wifi, size: 17, color: BrandColors.cinnamonDeep),
+            const SizedBox(width: 9),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14.5,
+                height: 1,
+                fontWeight: FontWeight.w500,
+                color: BrandColors.cinnamonDeep,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A leading + title (+ detail / trailing) row card, used for the Tor-starting
+/// and test-running states.
+class _StatusRowCard extends StatelessWidget {
+  final Widget leading;
+  final String title;
+  final String? detail;
+  final Widget? trailing;
+
+  const _StatusRowCard({required this.leading, required this.title, this.detail, this.trailing});
+
+  @override
+  Widget build(BuildContext context) {
+    return _TestCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.only(top: 8, bottom: detail != null ? 10 : 8),
+            decoration: detail != null
+                ? const BoxDecoration(
+                    border: Border(bottom: BorderSide(color: BrandColors.hairline)),
+                  )
+                : null,
+            child: Row(
               children: [
-                if (Platform.isAndroid || Platform.isIOS)
-                  IconButton(onPressed: _scanQrCode, icon: Icon(Icons.qr_code)),
-                if (_hasTested && !_connectionTestIsLoading)
-                  Padding(
-                    padding: EdgeInsets.only(right: 12),
-                    child: Icon(
-                      _connectionSuccess ? Icons.check : Icons.cancel_outlined,
-                      color: _connectionSuccess ? Colors.teal : Colors.red,
+                leading,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.2,
+                      fontWeight: FontWeight.w700,
+                      color: BrandColors.ink,
+                    ),
+                  ),
+                ),
+                if (trailing != null) trailing!,
+              ],
+            ),
+          ),
+          if (detail != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 10, bottom: 4),
+              child: Text(
+                detail!,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  height: 1.45,
+                  color: BrandColors.inkMuted,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Test finished — success (green) or failure (red).
+class _ResultCard extends StatelessWidget {
+  final Widget? icon;
+  final Color? iconBg;
+  final String title;
+  final String? trailing;
+  final String detail;
+  final VoidCallback onTestAgain;
+  final String testAgainLabel;
+  final bool isFailure;
+
+  const _ResultCard({
+    required this.icon,
+    required this.iconBg,
+    required this.title,
+    required this.detail,
+    required this.onTestAgain,
+    required this.testAgainLabel,
+    this.trailing,
+  }) : isFailure = false;
+
+  const _ResultCard.failure({
+    required this.title,
+    required this.detail,
+    required this.onTestAgain,
+    required this.testAgainLabel,
+  }) : icon = null,
+       iconBg = null,
+       trailing = null,
+       isFailure = true;
+
+  static const _errorText = Color(0xFF8E3A22);
+
+  @override
+  Widget build(BuildContext context) {
+    final titleColor = isFailure ? _errorText : BrandColors.ink;
+    return _TestCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.only(top: 8, bottom: isFailure ? 4 : 10),
+            decoration: isFailure
+                ? null
+                : const BoxDecoration(
+                    border: Border(bottom: BorderSide(color: BrandColors.hairline)),
+                  ),
+            child: Row(
+              children: [
+                Container(
+                  width: 22,
+                  height: 22,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isFailure ? BrandColors.errorBg : iconBg,
+                  ),
+                  child: isFailure
+                      ? const Icon(Icons.close, size: 13, color: BrandColors.error)
+                      : icon,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.2,
+                      fontWeight: FontWeight.w700,
+                      color: titleColor,
+                    ),
+                  ),
+                ),
+                if (trailing != null)
+                  Text(
+                    trailing!,
+                    style: const TextStyle(
+                      fontFamily: 'Ubuntu Mono',
+                      fontSize: 11.5,
+                      height: 1,
+                      fontWeight: FontWeight.w500,
+                      color: BrandColors.inkMuted,
                     ),
                   ),
               ],
             ),
           ),
-          keyboardType: TextInputType.url,
-          textInputAction: TextInputAction.done,
-        ),
-        if (_errorMessage != null)
-          Text(_errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-        TextFormField(
-          controller: _customProxyPortController,
-          onChanged: _onProxyPortChange,
-          enabled: !_useTor,
-          decoration: InputDecoration(
-            labelText: i18n.lwsSetupProxyPortLabel,
-            hintText: i18n.lwsSetupProxyPortHint,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-          ),
-          keyboardType: TextInputType.number,
-          textInputAction: TextInputAction.done,
-          inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-        ),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CheckboxListTile(
-              title: Text(i18n.lwsSetupUseTorLabel),
-              value: _useTor,
-              onChanged: torMode == TorMode.disabled ? null : _setUseTor,
-              controlAffinity: ListTileControlAffinity.leading,
-              contentPadding: EdgeInsets.zero,
+          Padding(
+            padding: EdgeInsets.only(top: isFailure ? 2 : 10, bottom: isFailure ? 8 : 4),
+            child: Text(
+              detail,
+              style: TextStyle(
+                fontSize: isFailure ? 12 : 12.5,
+                height: isFailure ? 1.5 : 1.45,
+                color: isFailure ? _errorText : BrandColors.inkMuted,
+              ),
             ),
-            if (_showSyncOptions) ...[
-              _syncCheckbox(
-                label: i18n.settingsBackgroundSyncLabel,
-                description: i18n.settingsBackgroundSyncDescription,
-                value: _backgroundSyncEnabled,
-                onChanged: _setBackgroundSyncEnabled,
+          ),
+          if (isFailure)
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onTestAgain,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: BrandColors.cinnamon,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  testAgainLabel,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    height: 1,
+                    fontWeight: FontWeight.w500,
+                    color: BrandColors.onCinnamon,
+                  ),
+                ),
               ),
-              _syncCheckbox(
-                label: i18n.settingsForegroundSyncLabel,
-                description: i18n.settingsForegroundSyncDescription,
-                value: _foregroundSyncEnabled,
-                onChanged: _setForegroundSyncEnabled,
+            )
+          else
+            Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onTestAgain,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: BrandColors.surfaceSunken,
+                    border: Border.all(color: BrandColors.borderStrong),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    testAgainLabel,
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      height: 1,
+                      fontWeight: FontWeight.w500,
+                      color: BrandColors.cinnamonDeep,
+                    ),
+                  ),
+                ),
               ),
-            ],
-          ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Plain text button used inside a card header (Stop).
+class _CardTextButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+
+  const _CardTextButton({required this.label, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onPressed,
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          height: 1,
+          fontWeight: FontWeight.w500,
+          color: BrandColors.cinnamonDeep,
         ),
-        _buildConnectionIndicators(i18n, torMode),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 10,
-          children: [
-            if (_useTor &&
-                torMode == TorMode.builtIn &&
-                _torStatus != TorConnectionStatus.connected)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                  SizedBox(width: 8),
-                  Text(i18n.lwsSetupStartingTor),
-                ],
-              )
-            else
-              TextButton.icon(
-                label: Text(i18n.lwsSetupTestConnectionButton),
-                onPressed: () => _testConnection(),
-                icon: !_connectionTestIsLoading
-                    ? Icon(Icons.network_check)
-                    : SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-              ),
-            if (_connectionSuccess && _hasTested && !_connectionTestIsLoading)
-              FilledButton.icon(onPressed: _saveConnection, label: Text(widget.saveButtonLabel)),
-          ],
-        ),
-      ],
+      ),
     );
   }
 }

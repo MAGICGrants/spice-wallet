@@ -1,22 +1,22 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/util/logging.dart';
-import 'package:spice_wallet/widgets/loading_button.dart';
 import 'package:spice_wallet/models/contact_model.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/confirm_send.dart';
+import 'package:spice_wallet/util/coin_assets.dart';
+import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
-import 'package:spice_wallet/widgets/coin_amount.dart';
-import 'package:spice_wallet/widgets/fiat_amount.dart';
 
 class SendScreenArgs {
   final String coinSymbol;
@@ -64,6 +64,11 @@ class _SendScreenState extends State<SendScreen> {
 
   String _coinSymbol = 'XMR';
   bool _argsLoaded = false;
+
+  // Anchored "From" asset dropdown.
+  final LayerLink _assetMenuLink = LayerLink();
+  final OverlayPortalController _assetMenuController = OverlayPortalController();
+  bool _assetMenuOpen = false;
 
   CryptoWallet _wallet(BuildContext context) {
     final manager = Provider.of<WalletManager>(context, listen: false);
@@ -316,10 +321,7 @@ class _SendScreenState extends State<SendScreen> {
     return true;
   }
 
-  Future<PendingTransaction?> _createTxForPriority(
-    String destinationAddress,
-    int priority,
-  ) async {
+  Future<PendingTransaction?> _createTxForPriority(String destinationAddress, int priority) async {
     final wallet = _wallet(context);
     final amountUnits = _amountUnits(wallet) ?? BigInt.zero;
     final maxRetries = 10;
@@ -532,81 +534,12 @@ class _SendScreenState extends State<SendScreen> {
     });
   }
 
-  void _showPrioritySelector(CryptoWallet wallet) {
-    final i18n = AppLocalizations.of(context)!;
-    final fiatRate = Provider.of<FiatRateModel>(context, listen: false);
-    final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
-    final coinRate = fiatRate.rateFor(wallet.coinSymbol);
-
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => ValueListenableBuilder<int>(
-        valueListenable: _feeRevision,
-        builder: (context, _, __) => SafeArea(
-          child: Container(
-            padding: EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(i18n.sendTransactionPriority, style: Theme.of(context).textTheme.titleLarge),
-                SizedBox(height: 20),
-                _PriorityOption(
-                  label: i18n.sendPriorityLow,
-                  priority: 0,
-                  fees: _fees,
-                  isLoading: _feesInProgress,
-                  wallet: wallet,
-                  fiatSymbol: fiatSymbol,
-                  fiatRate: coinRate,
-                  isSelected: _selectedPriority == 0,
-                  onTap: () {
-                    setState(() {
-                      _selectedPriority = 0;
-                    });
-                    Navigator.pop(context);
-                  },
-                ),
-                SizedBox(height: 12),
-                _PriorityOption(
-                  label: i18n.sendPriorityNormal,
-                  priority: 1,
-                  fees: _fees,
-                  isLoading: _feesInProgress,
-                  wallet: wallet,
-                  fiatSymbol: fiatSymbol,
-                  fiatRate: coinRate,
-                  isSelected: _selectedPriority == 1,
-                  onTap: () {
-                    setState(() {
-                      _selectedPriority = 1;
-                    });
-                    Navigator.pop(context);
-                  },
-                ),
-                SizedBox(height: 12),
-                _PriorityOption(
-                  label: i18n.sendPriorityHigh,
-                  priority: 2,
-                  fees: _fees,
-                  isLoading: _feesInProgress,
-                  wallet: wallet,
-                  fiatSymbol: fiatSymbol,
-                  fiatRate: coinRate,
-                  isSelected: _selectedPriority == 2,
-                  onTap: () {
-                    setState(() {
-                      _selectedPriority = 2;
-                    });
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+  void _setPriority(int priority) {
+    if (priority == _selectedPriority) return;
+    // Fees for all three priorities are computed together in _calculateFees, so
+    // switching just re-reads the cached one (no recalculation needed).
+    setState(() => _selectedPriority = priority);
+    _feeRevision.value++;
   }
 
   void _onAddressChanged() {
@@ -618,8 +551,7 @@ class _SendScreenState extends State<SendScreen> {
     }
 
     final text = _destinationAddressController.text;
-    final isOpenAliasDomain =
-        domainRegex.hasMatch(text) && _wallet(context).aliasAsset.isNotEmpty;
+    final isOpenAliasDomain = domainRegex.hasMatch(text) && _wallet(context).aliasAsset.isNotEmpty;
 
     // While the user is actively typing a domain, defer the (network) OpenAlias
     // resolution until the field unfocuses. Just clear fees + disable send.
@@ -701,264 +633,708 @@ class _SendScreenState extends State<SendScreen> {
 
     if (wallet == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(i18n.sendTitle)),
-        body: Center(child: Text('Unknown coin: $_coinSymbol')),
+        backgroundColor: BrandColors.paper,
+        body: SafeArea(
+          child: Center(child: Text('Unknown coin: $_coinSymbol', style: BrandText.body)),
+        ),
       );
     }
 
+    final fiatRate = context.watch<FiatRateModel>();
+    final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
+    final coinRate = fiatRate.rateFor(wallet.coinSymbol);
+
     return Scaffold(
-      appBar: AppBar(title: Text(i18n.sendTitle)),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Container(
-            constraints: BoxConstraints(maxWidth: 440),
+      backgroundColor: BrandColors.paper,
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              spacing: 28,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Column(
-                  spacing: 16,
-                  children: [
-                    if (_selectedContact == null)
-                      TextField(
-                        controller: _destinationAddressController,
-                        focusNode: _addressFocusNode,
-                        maxLines: null,
-                        textInputAction: TextInputAction.done,
-                        decoration: InputDecoration(
-                          labelText: i18n.address,
-                          border: OutlineInputBorder(),
-                          errorText: _destinationAddressError != ''
-                              ? _destinationAddressError
-                              : null,
-                          suffixIconColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                          suffixIcon: Container(
-                            margin: EdgeInsets.only(right: 14),
-                            child: Row(
-                              spacing: 16,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (_openAliasResolving > 0)
-                                  SizedBox(
-                                    width: 12,
-                                    height: 12,
-                                    child: CircularProgressIndicator(strokeWidth: 1.8),
-                                  ),
-                                GestureDetector(
-                                  onTap: _pasteAddressFromClipboard,
-                                  child: Icon(Icons.paste),
-                                ),
-                                if (Platform.isAndroid || Platform.isIOS)
-                                  GestureDetector(onTap: _scanQrCode, child: Icon(Icons.qr_code)),
-                              ],
-                            ),
-                          ),
-                        ),
+                _header(i18n),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 26, 16, 16),
+                    children: [
+                      _sectionLabel(i18n.sendFromLabel),
+                      _fromCard(
+                        wallet,
+                        assetsOnChainOf(walletManager, wallet),
+                        fiatRate,
+                        fiatSymbol,
                       ),
-                    if (_selectedContact != null)
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 16,
-                                  backgroundColor: Theme.of(context).colorScheme.primary,
-                                  child: Text(
-                                    _selectedContact!.name.isNotEmpty
-                                        ? _selectedContact!.name[0].toUpperCase()
-                                        : '?',
-                                    style: TextStyle(
-                                      color: Theme.of(context).colorScheme.onPrimary,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _selectedContact!.name,
-                                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-                                      ),
-                                      Text(
-                                        i18n.sendSelectedContact,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: _clearSelectedContact,
-                                  icon: Icon(Icons.close, size: 20),
-                                  tooltip: i18n.sendClearSelectedContact,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    TextField(
-                      controller: _amountController,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
-                      textInputAction: TextInputAction.done,
-                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+(\.\d*)?'))],
-                      decoration: InputDecoration(
-                        labelText: i18n.amount,
-                        border: OutlineInputBorder(),
-                        errorText: _amountError != '' ? _amountError : null,
-                        suffixIcon: TextButton(
-                          onPressed: _setBalanceAsSendAmount,
-                          child: Text('Max'),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => _showPrioritySelector(wallet),
-                      child: Container(
-                        height: 40,
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.speed, size: 18),
-                            SizedBox(width: 8),
-                            Text(
-                              _selectedPriority == 0
-                                  ? i18n.sendPriorityLow
-                                  : _selectedPriority == 1
-                                  ? i18n.sendPriorityNormal
-                                  : i18n.sendPriorityHigh,
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            Text(
-                              ' ${i18n.sendPriorityLabel}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            Spacer(),
-                            if (_isLoadingFees)
-                              SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            else if (_fees != null && _fees!.length > _selectedPriority)
-                              () {
-                                final selectedTx = _fees![_selectedPriority];
-                                if (selectedTx != null) {
-                                  return Row(
-                                    spacing: 8,
-                                    children: [
-                                      Row(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        spacing: 4,
-                                        children: [
-                                          SvgPicture.asset(
-                                            wallet.feeIconAsset,
-                                            width: 14,
-                                            height: 14,
-                                          ),
-                                          CoinAmount(
-                                            amount: displayAmount(
-                                              selectedTx.feeBaseUnits,
-                                              wallet.feeBaseUnitDecimals,
-                                            ),
-                                            decimals: wallet.feeDecimals,
-                                            smallerDigits: wallet.smallerDigits,
-                                            maxFontSize: 14,
-                                          ),
-                                        ],
-                                      ),
-                                      Icon(Icons.arrow_drop_down),
-                                    ],
-                                  );
-                                } else {
-                                  return Row(
-                                    spacing: 8,
-                                    children: [
-                                      Text(
-                                        i18n.sendInsufficientBalanceError,
-                                        style: TextStyle(color: Colors.red, fontSize: 14),
-                                      ),
-                                      Icon(Icons.arrow_drop_down),
-                                    ],
-                                  );
-                                }
-                              }()
-                            else
-                              Icon(Icons.arrow_drop_down),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        if (_selectedContact == null)
-                          TextButton.icon(
-                            onPressed: _showContactPicker,
-                            icon: Icon(Icons.contacts_outlined, size: 18),
-                            label: Text(i18n.sendContactsButton),
-                          ),
-                        Spacer(),
-                        GestureDetector(
-                          onTap: _setBalanceAsSendAmount,
-                          child: Row(
-                            spacing: 6,
-                            children: [
-                              SvgPicture.asset(wallet.iconAsset, width: 18, height: 18),
-                              CoinAmount(
-                                amount: wallet.unlockedBalance ?? 0,
-                                decimals: wallet.decimals,
-                                smallerDigits: wallet.smallerDigits,
-                                maxFontSize: 18,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      const SizedBox(height: 14),
+                      _sectionLabel(i18n.sendToLabel),
+                      _toCard(wallet, i18n),
+                      if (_destinationAddressError.isNotEmpty) _errorText(_destinationAddressError),
+                      const SizedBox(height: 14),
+                      _sectionLabel(i18n.amount),
+                      _amountCard(wallet, i18n, fiatSymbol, coinRate),
+                      if (_amountError.isNotEmpty) _errorText(_amountError),
+                      const SizedBox(height: 14),
+                      _sectionLabel(i18n.sendPriorityHeading),
+                      _prioritySection(wallet, i18n, fiatSymbol, coinRate),
+                    ],
+                  ),
                 ),
-                Row(
-                  spacing: 20,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton(onPressed: () => Navigator.pop(context), child: Text(i18n.cancel)),
-                    LoadingButton(
-                      isLoading: _isLoading,
-                      onPressed: (_formValid && _openAliasResolving == 0) ? _send : null,
-                      label: i18n.sendSendButton,
-                      icon: Icons.arrow_outward_rounded,
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: Row(
+                    children: [
+                      BrandButton.outline(
+                        label: i18n.cancel,
+                        expand: false,
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 9),
+                      Expanded(
+                        child: BrandButton(
+                          label: i18n.sendSendButton,
+                          loading: _isLoading,
+                          onPressed: (_formValid && _openAliasResolving == 0 && !_isLoading)
+                              ? _send
+                              : null,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _header(AppLocalizations i18n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: SizedBox(
+        height: 44,
+        child: Stack(
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: IconCircleButton(icon: Icons.close, onPressed: () => Navigator.pop(context)),
+            ),
+            Center(child: Text(i18n.sendTitle, style: BrandText.appBar.copyWith(fontSize: 16))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionLabel(String text) =>
+      SectionHeader(label: text, padding: const EdgeInsets.only(left: 4, bottom: 8));
+
+  Widget _errorText(String text) => Padding(
+    padding: const EdgeInsets.only(top: 6, left: 4),
+    child: Text(text, style: BrandText.caption.copyWith(color: BrandColors.error)),
+  );
+
+  Widget _card({
+    required Widget child,
+    EdgeInsets padding = const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: BrandColors.card,
+        border: Border.all(color: BrandColors.border),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: padding,
+      child: child,
+    );
+  }
+
+  Widget _fromCard(
+    CryptoWallet wallet,
+    List<CryptoWallet> assets,
+    FiatRateModel fiatRate,
+    String fiatSymbol,
+  ) {
+    final canChoose = assets.length > 1;
+    final card = AnimatedContainer(
+      duration: BrandMotion.transition,
+      decoration: BoxDecoration(
+        color: BrandColors.card,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      // Border drawn over the content (CSS border-box) so thickening it on open
+      // doesn't shift the layout.
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _assetMenuOpen ? BrandColors.cinnamon : BrandColors.border,
+          width: _assetMenuOpen ? 2 : 1,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      child: Row(
+        children: [
+          CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 32),
+          const SizedBox(width: 12),
+          Expanded(child: _assetLabel(wallet)),
+          if (canChoose)
+            AnimatedRotation(
+              turns: _assetMenuOpen ? 0.5 : 0,
+              duration: BrandMotion.transition,
+              child: const Icon(Icons.keyboard_arrow_down, size: 20, color: BrandColors.inkMuted),
+            ),
+        ],
+      ),
+    );
+    if (!canChoose) return card;
+    return CompositedTransformTarget(
+      link: _assetMenuLink,
+      child: OverlayPortal(
+        controller: _assetMenuController,
+        overlayChildBuilder: (ctx) => _assetDropdown(ctx, assets, fiatRate, fiatSymbol),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _toggleAssetMenu,
+          child: card,
+        ),
+      ),
+    );
+  }
+
+  void _toggleAssetMenu() {
+    setState(() => _assetMenuOpen = !_assetMenuOpen);
+    if (_assetMenuOpen) {
+      FocusScope.of(context).unfocus();
+      _assetMenuController.show();
+    } else {
+      _assetMenuController.hide();
+    }
+  }
+
+  void _closeAssetMenu() {
+    if (!_assetMenuOpen) return;
+    setState(() => _assetMenuOpen = false);
+    _assetMenuController.hide();
+  }
+
+  Widget _assetDropdown(
+    BuildContext ctx,
+    List<CryptoWallet> assets,
+    FiatRateModel fiatRate,
+    String fiatSymbol,
+  ) {
+    final width = math.min(MediaQuery.of(ctx).size.width, 480.0) - 32;
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: _closeAssetMenu),
+        ),
+        CompositedTransformFollower(
+          link: _assetMenuLink,
+          showWhenUnlinked: false,
+          targetAnchor: Alignment.bottomLeft,
+          followerAnchor: Alignment.topLeft,
+          offset: const Offset(0, 6),
+          child: SizedBox(
+            width: width,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: BrandColors.card,
+                  border: Border.all(color: BrandColors.border),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x1F2C170C), blurRadius: 24, offset: Offset(0, 12)),
+                  ],
+                ),
+                clipBehavior: Clip.antiAlias,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final asset in assets) _assetDropdownRow(asset, fiatRate, fiatSymbol),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _assetDropdownRow(CryptoWallet asset, FiatRateModel fiatRate, String fiatSymbol) {
+    final i18n = AppLocalizations.of(context)!;
+    final configured = asset.connectionAddress.isNotEmpty;
+    final selected = asset.coinSymbol == _coinSymbol;
+    final balance = asset.unlockedBalance;
+    final rate = fiatRate.rateFor(asset.coinSymbol);
+    final fiat = (rate != null && balance is double && !fiatRate.isDisabled)
+        ? balance * rate
+        : null;
+    final subtitle = !configured
+        ? i18n.homeNoConnection
+        : (balance is double
+              ? '${balance.toStringAsFixed(asset.decimals.clamp(0, 8))} ${asset.coinSymbol}'
+              : '—');
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: Material(
+        color: selected ? BrandColors.surfaceSunken : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            _closeAssetMenu();
+            _selectAsset(asset.coinSymbol);
+          },
+          child: Opacity(
+            opacity: configured ? 1 : 0.5,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 11),
+              child: Row(
+                children: [
+                  CoinMark(coinSymbol: asset.coinSymbol, iconAsset: asset.iconAsset, size: 32),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          asset.coinName,
+                          style: const TextStyle(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w500,
+                            height: 1.25,
+                            color: BrandColors.ink,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          style: const TextStyle(
+                            fontFamily: 'Ubuntu Mono',
+                            fontSize: 11.5,
+                            height: 1.3,
+                            color: BrandColors.inkMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    fiat != null ? '$fiatSymbol${NumberFormat('#,##0').format(fiat)}' : '—',
+                    style: const TextStyle(
+                      fontFamily: 'Ubuntu Mono',
+                      fontSize: 13,
+                      color: BrandColors.inkMuted,
+                    ),
+                  ),
+                  if (selected) ...[
+                    const SizedBox(width: 8),
+                    const Icon(Icons.check, size: 18, color: BrandColors.cinnamon),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _assetLabel(CryptoWallet wallet) {
+    final i18n = AppLocalizations.of(context)!;
+    final balance = wallet.unlockedBalance;
+    final available = balance == null
+        ? '—'
+        : '${balance.toStringAsFixed(wallet.decimals.clamp(0, 8))} ${i18n.sendAvailableSuffix}';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          wallet.coinName,
+          style: const TextStyle(
+            fontSize: 14.5,
+            fontWeight: FontWeight.w500,
+            height: 1.25,
+            color: BrandColors.ink,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          available,
+          style: const TextStyle(
+            fontFamily: 'Ubuntu Mono',
+            fontSize: 11.5,
+            height: 1.3,
+            color: BrandColors.inkMuted,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Switches the send form to a different asset on the same chain. The picker
+  /// only offers same-chain assets (all EVM), which share an address format, so
+  /// the destination is kept; only the amount and fee state (asset-specific) reset.
+  void _selectAsset(String coinSymbol) {
+    if (coinSymbol == _coinSymbol) return;
+    setState(() {
+      _coinSymbol = coinSymbol;
+      _isSweepAll = false;
+      _fees = null;
+      _isLoadingFees = false;
+      _feesInProgress = false;
+      _formValid = false;
+      _amountError = '';
+      _lastFeeFetchKey = '';
+    });
+    _feeCalculationCounter++;
+    _amountController.clear(); // fires _onAmountChanged → revalidates for the new asset
+  }
+
+  Widget _toCard(CryptoWallet wallet, AppLocalizations i18n) {
+    if (_selectedContact != null) {
+      return _card(
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: BrandColors.surfaceSunken,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                _selectedContact!.name.isNotEmpty ? _selectedContact!.name[0].toUpperCase() : '?',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: BrandColors.cinnamonDeep,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_selectedContact!.name, style: BrandText.listTitle),
+                  const SizedBox(height: 2),
+                  Text(i18n.sendSelectedContact, style: BrandText.caption),
+                ],
+              ),
+            ),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _clearSelectedContact,
+              child: const Padding(
+                padding: EdgeInsets.only(left: 8),
+                child: Icon(Icons.close, size: 20, color: BrandColors.inkMuted),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final isMobile = Platform.isAndroid || Platform.isIOS;
+    return _card(
+      padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _destinationAddressController,
+            focusNode: _addressFocusNode,
+            maxLines: null,
+            textInputAction: TextInputAction.done,
+            style: const TextStyle(
+              fontFamily: 'Ubuntu Mono',
+              fontSize: 13.5,
+              height: 1.5,
+              color: BrandColors.ink,
+            ),
+            decoration: InputDecoration(
+              isCollapsed: true,
+              border: InputBorder.none,
+              hintText: i18n.sendAddressHint(wallet.coinName),
+              hintStyle: const TextStyle(
+                fontFamily: 'Ubuntu Mono',
+                fontSize: 13.5,
+                height: 1.5,
+                color: BrandColors.inkMuted,
+              ),
+              suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+              suffixIcon: _openAliasResolving > 0
+                  ? const Padding(
+                      padding: EdgeInsets.only(left: 8),
+                      child: SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.8,
+                          color: BrandColors.cinnamon,
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(height: 1, color: BrandColors.surfaceTinted),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _miniAction(
+                  Icons.content_paste_outlined,
+                  i18n.sendPasteButton,
+                  _pasteAddressFromClipboard,
+                ),
+              ),
+              if (isMobile) ...[
+                const SizedBox(width: 7),
+                Expanded(
+                  child: _miniAction(Icons.qr_code_scanner, i18n.sendScanButton, _scanQrCode),
+                ),
+              ],
+              const SizedBox(width: 7),
+              Expanded(
+                child: _miniAction(
+                  Icons.person_outline,
+                  i18n.sendContactsButton,
+                  _showContactPicker,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _miniAction(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: BrandColors.surfaceSunken,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 14, color: BrandColors.cinnamonDeep),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: BrandColors.cinnamonDeep,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _amountCard(
+    CryptoWallet wallet,
+    AppLocalizations i18n,
+    String fiatSymbol,
+    double? coinRate,
+  ) {
+    final amount = double.tryParse(_amountController.text) ?? 0;
+    final amountFiat = coinRate != null ? amount * coinRate : 0.0;
+    return _card(
+      padding: const EdgeInsets.fromLTRB(14, 15, 14, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _amountController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  textInputAction: TextInputAction.done,
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+(\.\d*)?'))],
+                  style: const TextStyle(
+                    fontFamily: 'Ubuntu Mono',
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    height: 1,
+                    color: BrandColors.ink,
+                  ),
+                  decoration: const InputDecoration(
+                    isCollapsed: true,
+                    border: InputBorder.none,
+                    hintText: '0.000000',
+                    hintStyle: TextStyle(
+                      fontFamily: 'Ubuntu Mono',
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      height: 1,
+                      color: BrandColors.inkFaint,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                wallet.coinSymbol,
+                style: const TextStyle(
+                  fontFamily: 'Ubuntu Mono',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: BrandColors.inkMuted,
+                ),
+              ),
+              const SizedBox(width: 10),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _setBalanceAsSendAmount,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF6E8D2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    i18n.sendMaxButton,
+                    style: const TextStyle(
+                      fontFamily: 'Ubuntu Mono',
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.6,
+                      color: BrandColors.cinnamonDeep,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 11),
+          Container(height: 1, color: BrandColors.surfaceTinted),
+          const SizedBox(height: 11),
+          Text(
+            '≈ $fiatSymbol${amountFiat.toStringAsFixed(2)}',
+            style: const TextStyle(
+              fontFamily: 'Ubuntu Mono',
+              fontSize: 12,
+              color: BrandColors.inkMuted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _prioritySection(
+    CryptoWallet wallet,
+    AppLocalizations i18n,
+    String fiatSymbol,
+    double? coinRate,
+  ) {
+    final labels = [i18n.sendPriorityLow, i18n.sendPriorityNormal, i18n.sendPriorityHigh];
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: BrandColors.surfaceTinted,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            children: [
+              for (var i = 0; i < 3; i++)
+                Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _setPriority(i),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: i == _selectedPriority ? BrandColors.paper : Colors.transparent,
+                        borderRadius: BorderRadius.circular(11),
+                        boxShadow: i == _selectedPriority
+                            ? [
+                                BoxShadow(
+                                  color: BrandColors.ink.withValues(alpha: 0.08),
+                                  blurRadius: 2,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Text(
+                        labels[i],
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1,
+                          fontWeight: i == _selectedPriority ? FontWeight.w500 : FontWeight.w400,
+                          color: i == _selectedPriority ? BrandColors.ink : BrandColors.inkMuted,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 11, 4, 0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                i18n.sendNetworkFee,
+                style: const TextStyle(fontSize: 12, color: BrandColors.inkMuted),
+              ),
+              _feeValue(wallet, fiatSymbol, coinRate),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _feeValue(CryptoWallet wallet, String fiatSymbol, double? coinRate) {
+    final feeTx = (_fees != null && _fees!.length > _selectedPriority)
+        ? _fees![_selectedPriority]
+        : null;
+    if (_isLoadingFees || (_feesInProgress && feeTx == null)) {
+      return const SizedBox(
+        width: 14,
+        height: 14,
+        child: CircularProgressIndicator(strokeWidth: 2, color: BrandColors.cinnamon),
+      );
+    }
+    if (feeTx == null) {
+      return const Text(
+        '—',
+        style: TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 12, color: BrandColors.inkMuted),
+      );
+    }
+    final fee = displayAmount(feeTx.feeBaseUnits, wallet.feeBaseUnitDecimals);
+    final feeStr = '${fee.toStringAsFixed(wallet.feeDecimals.clamp(0, 8))} ${wallet.feeCoinSymbol}';
+    final feeFiat = (coinRate != null && !wallet.feeIsForeign)
+        ? ' · $fiatSymbol${(fee * coinRate).toStringAsFixed(2)}'
+        : '';
+    return Text(
+      '$feeStr$feeFiat',
+      style: const TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 12, color: BrandColors.inkMuted),
     );
   }
 }
@@ -1072,114 +1448,6 @@ class _ContactPickerDialogState extends State<_ContactPickerDialog> {
         ),
       ),
       actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(i18n.cancel))],
-    );
-  }
-}
-
-class _PriorityOption extends StatelessWidget {
-  final String label;
-  final int priority;
-  final List<PendingTransaction?>? fees;
-  final bool isLoading;
-  final CryptoWallet wallet;
-  final String fiatSymbol;
-  final double? fiatRate;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _PriorityOption({
-    required this.label,
-    required this.priority,
-    required this.fees,
-    required this.isLoading,
-    required this.wallet,
-    required this.fiatSymbol,
-    required this.fiatRate,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final i18n = AppLocalizations.of(context)!;
-    final feeTx = fees?[priority];
-    final fee = feeTx == null
-        ? null
-        : displayAmount(feeTx.feeBaseUnits, wallet.feeBaseUnitDecimals);
-    final currentFiatRate = fiatRate;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          color: isSelected
-              ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
-              : null,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            SizedBox(width: 12),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-            Spacer(),
-            if (fee != null)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 4,
-                    children: [
-                      Text(
-                        '${i18n.sendFeeLabel}:',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      SvgPicture.asset(wallet.feeIconAsset, width: 14, height: 14),
-                      CoinAmount(
-                        amount: fee,
-                        decimals: wallet.feeDecimals,
-                        smallerDigits: wallet.smallerDigits,
-                        maxFontSize: 14,
-                      ),
-                    ],
-                  ),
-                  if (currentFiatRate != null && !wallet.feeIsForeign)
-                    FiatAmount(prefix: fiatSymbol, amount: fee * currentFiatRate, maxFontSize: 12),
-                ],
-              )
-            else if (isLoading)
-              SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-            else if (fees != null)
-              Text(
-                i18n.sendInsufficientBalanceError,
-                style: TextStyle(color: Colors.red, fontSize: 14),
-              ),
-          ],
-        ),
-      ),
     );
   }
 }

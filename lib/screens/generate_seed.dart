@@ -211,7 +211,6 @@ class _SeedGrid extends StatelessWidget {
                     child: Text(
                       revealLabel,
                       style: const TextStyle(
-                        fontFamily: 'Ubuntu',
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: BrandColors.onCinnamon,
@@ -262,7 +261,6 @@ class _WordCell extends StatelessWidget {
               word,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontFamily: 'Ubuntu',
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: BrandColors.ink,
