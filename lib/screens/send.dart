@@ -13,8 +13,10 @@ import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/models/contact_model.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
+import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/confirm_send.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
+import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 
@@ -244,12 +246,15 @@ class _SendScreenState extends State<SendScreen> {
 
   void _showContactPicker() {
     // Contacts hold one address per blockchain; a token (DAI) uses its chain's.
+    final manager = Provider.of<WalletManager>(context, listen: false);
     final chainSymbol = chainSymbolOf(_wallet(context));
-    showDialog(
+    final chain = manager.getWallet(chainSymbol) ?? _wallet(context);
+    showBrandSheet<void>(
       context: context,
-      builder: (context) => _ContactPickerDialog(
-        coinSymbol: chainSymbol,
-        onContactSelected: (contact) {
+      isScrollControlled: true,
+      builder: (sheetContext) => _ContactPickerSheet(
+        chain: chain,
+        onSelected: (contact) {
           final address = contact.addressFor(chainSymbol);
           if (address == null) return;
 
@@ -257,7 +262,7 @@ class _SendScreenState extends State<SendScreen> {
             _selectedContact = contact;
             _destinationAddressController.text = address;
           });
-          Navigator.of(context).pop();
+          Navigator.of(sheetContext).pop();
         },
       ),
     );
@@ -485,10 +490,9 @@ class _SendScreenState extends State<SendScreen> {
       });
 
       if (mounted) {
-        Navigator.pushNamed(
+        final committed = await showConfirmSendSheet(
           context,
-          '/confirm_send',
-          arguments: ConfirmSendScreenArgs(
+          ConfirmSendScreenArgs(
             coinSymbol: _coinSymbol,
             tx: tx,
             destinationAddress: destinationAddress,
@@ -496,6 +500,15 @@ class _SendScreenState extends State<SendScreen> {
             destinationContactName: _selectedContact?.name,
           ),
         );
+        if (committed == true && mounted) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/coin_home',
+            // remove until the coin home screen is reached
+            (route) => route.settings.name == '/wallet_home',
+            arguments: CoinHomeScreenArgs(coinSymbol: _coinSymbol, showTxSuccessToast: true),
+          );
+        }
       }
     } catch (error) {
       if (error.toString().contains('Insufficient gas funds')) {
@@ -687,6 +700,8 @@ class _SendScreenState extends State<SendScreen> {
                     children: [
                       BrandButton.outline(
                         label: i18n.cancel,
+                        color: BrandColors.inkMuted,
+                        borderColor: BrandColors.borderStrong,
                         expand: false,
                         onPressed: () => Navigator.pop(context),
                       ),
@@ -714,17 +729,9 @@ class _SendScreenState extends State<SendScreen> {
   Widget _header(AppLocalizations i18n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: SizedBox(
-        height: 44,
-        child: Stack(
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconCircleButton(icon: Icons.close, onPressed: () => Navigator.pop(context)),
-            ),
-            Center(child: Text(i18n.sendTitle, style: BrandText.appBar.copyWith(fontSize: 16))),
-          ],
-        ),
+      child: BrandScreenHeader(
+        onBack: () => Navigator.pop(context),
+        center: Text(i18n.sendTitle, style: BrandText.appBar.copyWith(fontSize: 16)),
       ),
     );
   }
@@ -741,15 +748,7 @@ class _SendScreenState extends State<SendScreen> {
     required Widget child,
     EdgeInsets padding = const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: BrandColors.card,
-        border: Border.all(color: BrandColors.border),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: padding,
-      child: child,
-    );
+    return BrandCard(padding: padding, child: child);
   }
 
   Widget _fromCard(
@@ -761,10 +760,7 @@ class _SendScreenState extends State<SendScreen> {
     final canChoose = assets.length > 1;
     final card = AnimatedContainer(
       duration: BrandMotion.transition,
-      decoration: BoxDecoration(
-        color: BrandColors.card,
-        borderRadius: BorderRadius.circular(16),
-      ),
+      decoration: BoxDecoration(color: BrandColors.card, borderRadius: BorderRadius.circular(16)),
       // Border drawn over the content (CSS border-box) so thickening it on open
       // doesn't shift the layout.
       foregroundDecoration: BoxDecoration(
@@ -842,16 +838,12 @@ class _SendScreenState extends State<SendScreen> {
             width: width,
             child: Material(
               color: Colors.transparent,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: BrandColors.card,
-                  border: Border.all(color: BrandColors.border),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
-                    BoxShadow(color: Color(0x1F2C170C), blurRadius: 24, offset: Offset(0, 12)),
-                  ],
-                ),
+              child: BrandCard(
+                radius: 20,
                 clipBehavior: Clip.antiAlias,
+                shadow: const [
+                  BoxShadow(color: Color(0x1F2C170C), blurRadius: 24, offset: Offset(0, 12)),
+                ],
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -879,7 +871,7 @@ class _SendScreenState extends State<SendScreen> {
     final subtitle = !configured
         ? i18n.homeNoConnection
         : (balance is double
-              ? '${balance.toStringAsFixed(asset.decimals.clamp(0, 8))} ${asset.coinSymbol}'
+              ? formatAmount(balance, asset.decimals, symbol: asset.coinSymbol)
               : '—');
 
     return Padding(
@@ -954,7 +946,7 @@ class _SendScreenState extends State<SendScreen> {
     final balance = wallet.unlockedBalance;
     final available = balance == null
         ? '—'
-        : '${balance.toStringAsFixed(wallet.decimals.clamp(0, 8))} ${i18n.sendAvailableSuffix}';
+        : '${formatAmount(balance, wallet.decimals)} ${i18n.sendAvailableSuffix}';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1003,6 +995,7 @@ class _SendScreenState extends State<SendScreen> {
   Widget _toCard(CryptoWallet wallet, AppLocalizations i18n) {
     if (_selectedContact != null) {
       return _card(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
         child: Row(
           children: [
             Container(
@@ -1010,34 +1003,56 @@ class _SendScreenState extends State<SendScreen> {
               height: 34,
               alignment: Alignment.center,
               decoration: const BoxDecoration(
-                color: BrandColors.surfaceSunken,
+                color: BrandColors.cinnamonDeep,
                 shape: BoxShape.circle,
               ),
               child: Text(
                 _selectedContact!.name.isNotEmpty ? _selectedContact!.name[0].toUpperCase() : '?',
                 style: const TextStyle(
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: BrandColors.cinnamonDeep,
+                  color: BrandColors.onCinnamon,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 11),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_selectedContact!.name, style: BrandText.listTitle),
-                  const SizedBox(height: 2),
-                  Text(i18n.sendSelectedContact, style: BrandText.caption),
+                  Text(
+                    _selectedContact!.name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: BrandColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    shortenMiddle(_destinationAddressController.text, head: 8, tail: 10),
+                    style: const TextStyle(
+                      fontFamily: 'Ubuntu Mono',
+                      fontSize: 11,
+                      color: BrandColors.inkMuted,
+                    ),
+                  ),
                 ],
               ),
             ),
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: _clearSelectedContact,
-              child: const Padding(
-                padding: EdgeInsets.only(left: 8),
-                child: Icon(Icons.close, size: 20, color: BrandColors.inkMuted),
+              child: Container(
+                width: 34,
+                height: 34,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: BrandColors.surfaceSunken,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: BrandColors.border),
+                ),
+                child: const Icon(Icons.close, size: 15, color: BrandColors.ink),
               ),
             ),
           ],
@@ -1094,58 +1109,33 @@ class _SendScreenState extends State<SendScreen> {
           Row(
             children: [
               Expanded(
-                child: _miniAction(
-                  Icons.content_paste_outlined,
-                  i18n.sendPasteButton,
-                  _pasteAddressFromClipboard,
+                child: MiniActionButton(
+                  icon: Icons.content_paste_outlined,
+                  label: i18n.sendPasteButton,
+                  onTap: _pasteAddressFromClipboard,
                 ),
               ),
               if (isMobile) ...[
                 const SizedBox(width: 7),
                 Expanded(
-                  child: _miniAction(Icons.qr_code_scanner, i18n.sendScanButton, _scanQrCode),
+                  child: MiniActionButton(
+                    icon: Icons.qr_code_scanner,
+                    label: i18n.sendScanButton,
+                    onTap: _scanQrCode,
+                  ),
                 ),
               ],
               const SizedBox(width: 7),
               Expanded(
-                child: _miniAction(
-                  Icons.person_outline,
-                  i18n.sendContactsButton,
-                  _showContactPicker,
+                child: MiniActionButton(
+                  icon: Icons.person_outline,
+                  label: i18n.sendContactsButton,
+                  onTap: _showContactPicker,
                 ),
               ),
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _miniAction(IconData icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: BrandColors.surfaceSunken,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 14, color: BrandColors.cinnamonDeep),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: BrandColors.cinnamonDeep,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1230,7 +1220,7 @@ class _SendScreenState extends State<SendScreen> {
           Container(height: 1, color: BrandColors.surfaceTinted),
           const SizedBox(height: 11),
           Text(
-            '≈ $fiatSymbol${amountFiat.toStringAsFixed(2)}',
+            '≈ ${formatFiat(amountFiat, fiatSymbol)}',
             style: const TextStyle(
               fontFamily: 'Ubuntu Mono',
               fontSize: 12,
@@ -1248,52 +1238,12 @@ class _SendScreenState extends State<SendScreen> {
     String fiatSymbol,
     double? coinRate,
   ) {
-    final labels = [i18n.sendPriorityLow, i18n.sendPriorityNormal, i18n.sendPriorityHigh];
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            color: BrandColors.surfaceTinted,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Row(
-            children: [
-              for (var i = 0; i < 3; i++)
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => _setPriority(i),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: i == _selectedPriority ? BrandColors.paper : Colors.transparent,
-                        borderRadius: BorderRadius.circular(11),
-                        boxShadow: i == _selectedPriority
-                            ? [
-                                BoxShadow(
-                                  color: BrandColors.ink.withValues(alpha: 0.08),
-                                  blurRadius: 2,
-                                  offset: const Offset(0, 1),
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: Text(
-                        labels[i],
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1,
-                          fontWeight: i == _selectedPriority ? FontWeight.w500 : FontWeight.w400,
-                          color: i == _selectedPriority ? BrandColors.ink : BrandColors.inkMuted,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+        BrandSegmented(
+          labels: [i18n.sendPriorityLow, i18n.sendPriorityNormal, i18n.sendPriorityHigh],
+          selectedIndex: _selectedPriority,
+          onSelect: _setPriority,
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 11, 4, 0),
@@ -1330,9 +1280,9 @@ class _SendScreenState extends State<SendScreen> {
       );
     }
     final fee = displayAmount(feeTx.feeBaseUnits, wallet.feeBaseUnitDecimals);
-    final feeStr = '${fee.toStringAsFixed(wallet.feeDecimals.clamp(0, 8))} ${wallet.feeCoinSymbol}';
+    final feeStr = formatAmount(fee, wallet.feeDecimals, symbol: wallet.feeCoinSymbol);
     final feeFiat = (coinRate != null && !wallet.feeIsForeign)
-        ? ' · $fiatSymbol${(fee * coinRate).toStringAsFixed(2)}'
+        ? ' · ${formatFiat(fee * coinRate, fiatSymbol)}'
         : '';
     return Text(
       '$feeStr$feeFiat',
@@ -1341,19 +1291,22 @@ class _SendScreenState extends State<SendScreen> {
   }
 }
 
-class _ContactPickerDialog extends StatefulWidget {
-  final String coinSymbol;
-  final Function(Contact) onContactSelected;
+/// Bottom sheet for picking a contact to send to. Send already knows the chain,
+/// so each contact shows its address on that chain; contacts without one are
+/// greyed out and unselectable rather than offering a send that cannot complete.
+class _ContactPickerSheet extends StatefulWidget {
+  final CryptoWallet chain;
+  final ValueChanged<Contact> onSelected;
 
-  const _ContactPickerDialog({required this.coinSymbol, required this.onContactSelected});
+  const _ContactPickerSheet({required this.chain, required this.onSelected});
 
   @override
-  State<_ContactPickerDialog> createState() => _ContactPickerDialogState();
+  State<_ContactPickerSheet> createState() => _ContactPickerSheetState();
 }
 
-class _ContactPickerDialogState extends State<_ContactPickerDialog> {
+class _ContactPickerSheetState extends State<_ContactPickerSheet> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
+  String _query = '';
 
   @override
   void dispose() {
@@ -1361,95 +1314,225 @@ class _ContactPickerDialogState extends State<_ContactPickerDialog> {
     super.dispose();
   }
 
-  void _onSearchChanged(String query) {
-    setState(() {
-      _searchQuery = query;
-    });
+  @override
+  Widget build(BuildContext context) {
+    final i18n = AppLocalizations.of(context)!;
+    final chainSymbol = widget.chain.coinSymbol;
+
+    return SafeArea(
+      top: false,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.82),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SheetHandle(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CoinMark(
+                          coinSymbol: chainSymbol,
+                          iconAsset: widget.chain.iconAsset,
+                          size: 34,
+                        ),
+                        const SizedBox(width: 11),
+                        Expanded(
+                          child: Text(i18n.sendPickContactTitle, style: BrandText.sheetTitle),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      i18n.sendPickContactSubtitle(widget.chain.coinName),
+                      style: BrandText.bodyMuted.copyWith(fontSize: 13, height: 1.5),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 14),
+                child: BrandCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search, size: 18, color: BrandColors.inkFaint),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (q) => setState(() => _query = q),
+                          textInputAction: TextInputAction.search,
+                          style: const TextStyle(fontSize: 13.5, color: BrandColors.ink),
+                          decoration: InputDecoration(
+                            isCollapsed: true,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                            border: InputBorder.none,
+                            hintText: i18n.addressBookSearchHint,
+                            hintStyle: const TextStyle(fontSize: 13.5, color: BrandColors.inkFaint),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Flexible(
+                child: Consumer<ContactModel>(
+                  builder: (context, contactModel, child) {
+                    final results = contactModel.searchContacts(_query);
+                    if (results.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
+                        child: Text(
+                          _query.isEmpty
+                              ? i18n.addressBookNoContactsForCoin(chainSymbol)
+                              : i18n.addressBookNoSearchResults,
+                          style: BrandText.bodyMuted.copyWith(fontSize: 13),
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }
+                    // Selectable contacts (with an address on this chain) first.
+                    bool has(Contact c) => c.addressFor(chainSymbol) != null;
+                    final ordered = [...results.where(has), ...results.where((c) => !has(c))];
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 22),
+                      itemCount: ordered.length,
+                      itemBuilder: (context, index) => _ContactPickRow(
+                        contact: ordered[index],
+                        chain: widget.chain,
+                        onTap: () => widget.onSelected(ordered[index]),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 16, 22, 8),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => Navigator.pop(context),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Center(
+                      child: Text(
+                        i18n.cancel,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: BrandColors.inkMuted,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
+}
+
+/// One contact in the send picker. Selectable when it has an address on the
+/// send's chain; otherwise greyed out, showing why (which chain it does have).
+class _ContactPickRow extends StatelessWidget {
+  final Contact contact;
+  final CryptoWallet chain;
+  final VoidCallback onTap;
+
+  const _ContactPickRow({required this.contact, required this.chain, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
+    final address = contact.addressFor(chain.coinSymbol);
+    final enabled = address != null;
+    final initial = contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?';
+    // Enabled: this chain's badge + address. Disabled: the first chain the
+    // contact does have, so the "No X address" reason reads honestly.
+    final badgeSymbol = enabled
+        ? chain.coinSymbol
+        : (contact.addresses.keys.isNotEmpty ? contact.addresses.keys.first : chain.coinSymbol);
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    final dialogWidth = screenWidth.clamp(0.0, 500.0);
-
-    return AlertDialog(
-      constraints: BoxConstraints.tightFor(width: dialogWidth),
-      insetPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-      content: SizedBox(
-        width: double.maxFinite,
-        height: 400,
-        child: Column(
-          children: [
-            TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              textInputAction: TextInputAction.done,
-              decoration: InputDecoration(
-                hintText: i18n.addressBookSearchHint,
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-              ),
-            ),
-            SizedBox(height: 16),
-            Expanded(
-              child: Consumer<ContactModel>(
-                builder: (context, contactModel, child) {
-                  final filteredContacts = contactModel.searchContacts(
-                    _searchQuery,
-                    coinSymbol: widget.coinSymbol,
-                  );
-
-                  if (filteredContacts.isEmpty) {
-                    return Center(
-                      child: Text(
-                        _searchQuery.isEmpty
-                            ? i18n.addressBookNoContactsForCoin(widget.coinSymbol)
-                            : i18n.addressBookNoSearchResults,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    );
-                  }
-
-                  return ListView.builder(
-                    itemCount: filteredContacts.length,
-                    itemBuilder: (context, index) {
-                      final contact = filteredContacts[index];
-                      final address = contact.addressFor(widget.coinSymbol)!;
-
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          child: Text(
-                            contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onPrimary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        title: Text(contact.name, style: TextStyle(fontWeight: FontWeight.w500)),
-                        subtitle: Text(
-                          address,
-                          style: TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 12),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        onTap: () => widget.onContactSelected(contact),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+    final row = Container(
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: BrandColors.surfaceTinted)),
       ),
-      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(i18n.cancel))],
+      padding: const EdgeInsets.symmetric(vertical: 13),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: enabled ? BrandColors.cinnamonDeep : BrandColors.inkDisabled,
+            ),
+            child: Text(
+              initial,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: BrandColors.onCinnamon,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  contact.name,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w500,
+                    color: BrandColors.ink,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  children: [
+                    CoinMark(coinSymbol: badgeSymbol, iconAsset: '', size: 18),
+                    const SizedBox(width: 7),
+                    Flexible(
+                      child: Text(
+                        enabled
+                            ? shortenMiddle(address, head: 8, tail: 10)
+                            : i18n.sendContactNoAddress(chain.coinName),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: enabled ? 'Ubuntu Mono' : null,
+                          fontSize: 11,
+                          color: BrandColors.inkMuted,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          if (enabled) ...[
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right, size: 20, color: BrandColors.inkDisabled),
+          ],
+        ],
+      ),
     );
+
+    if (!enabled) return Opacity(opacity: 0.45, child: row);
+    return GestureDetector(behavior: HitTestBehavior.opaque, onTap: onTap, child: row);
   }
 }

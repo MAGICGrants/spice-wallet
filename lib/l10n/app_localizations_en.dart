@@ -48,9 +48,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldEmptyError => 'This field cannot be empty.';
 
   @override
-  String get welcomeTitle => 'Welcome!';
-
-  @override
   String get welcomeDescription =>
       'A self-custody wallet for Monero, Bitcoin, Ethereum and DAI. Your keys never leave this device.';
 
@@ -98,12 +95,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get torChoiceRecommended => 'Recommended';
 
   @override
-  String get lwsSetupTitle => 'LWS Setup';
-
-  @override
-  String get lwsSetupDescription => 'Enter the address of your Monero light-wallet server (LWS).';
-
-  @override
   String get connectionSetupTitle => 'Connection Setup';
 
   @override
@@ -121,16 +112,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lwsSetupAddressHint => 'e.g. 192.168.1.1:18090 or example.com:18090';
 
   @override
-  String get lwsSetupProxyPortLabel => 'HTTP Proxy Port (optional)';
-
-  @override
-  String get lwsSetupProxyPortHint => 'e.g. 4444 for I2P';
-
-  @override
   String get lwsSetupUseTorLabel => 'Use Tor';
-
-  @override
-  String get lwsSetupUseSslLabel => 'Use SSL';
 
   @override
   String get lwsSetupTestConnectionButton => 'Test Connection';
@@ -152,9 +134,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get connectionResultWorksTitle => 'Connection works';
-
-  @override
-  String get connectionResultWorksDetail => 'The server responded successfully.';
 
   @override
   String get connectionReachedOverTor => 'Reached over Tor';
@@ -265,20 +244,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get generateSeedContinueButton => 'Continue';
 
   @override
-  String get lwsDetailsTitle => 'Wallet Details';
-
-  @override
   String get lwsDetailsDescription =>
       'You can use these details to whitelist this wallet on the light wallet server if needed.';
-
-  @override
-  String get lwsDetailsPrimaryAddressLabel => 'Primary Address';
-
-  @override
-  String get lwsDetailsSecretViewKeyLabel => 'Secret View Key';
-
-  @override
-  String get lwsDetailsRestoreHeightLabel => 'Restore Height';
 
   @override
   String get restoreWalletTitle => 'Restore wallet';
@@ -339,26 +306,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'This isn\'t a valid seed phrase — check the words and their order.';
 
   @override
-  String get restoreWalletDescription =>
-      'Enter your 15-word seed phrase to restore every coin in this wallet.';
-
-  @override
-  String get restoreWalletSeedLabel => 'Seed';
-
-  @override
-  String get restoreWalletRestoreHeightLabel => 'Restore Height (optional)';
-
-  @override
-  String get restoreWalletRestoreDateLabel => 'Restore from date';
-
-  @override
   String get restoreWalletRestoreButton => 'Restore';
-
-  @override
-  String get restoreWalletInvalidMnemonic => 'Invalid seed.';
-
-  @override
-  String get navigationBarWallet => 'Wallet';
 
   @override
   String get navigationBarHome => 'Home';
@@ -376,9 +324,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unlockUnableToAuthError => 'Unable to authenticate.';
 
   @override
-  String get unlockTitle => 'Unlock Wallet';
-
-  @override
   String get unlockLockedTitle => 'Spice Wallet is locked';
 
   @override
@@ -388,9 +333,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unlockWithTouchId => 'Unlock with Touch ID';
 
   @override
-  String get unlockDescription => 'Enter your wallet password to unlock';
-
-  @override
   String get unlockPasswordLabel => 'Password';
 
   @override
@@ -398,9 +340,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unlockIncorrectPasswordError => 'Incorrect password. Please try again.';
-
-  @override
-  String get homeConnecting => 'Connecting';
 
   @override
   String get homeSyncing => 'Syncing';
@@ -441,12 +380,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coinHomeSent => 'Sent';
 
   @override
-  String get coinHomeServerConnection => 'Server connection';
-
-  @override
-  String get coinHomeViewKeys => 'View keys';
-
-  @override
   String get coinHomeRouteTor => 'Tor';
 
   @override
@@ -465,28 +398,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeFiatSource => 'Kraken over Tor';
 
   @override
-  String get homeHeight => 'Height';
-
-  @override
   String get homeReceive => 'Receive';
 
   @override
   String get homeSend => 'Send';
-
-  @override
-  String get homeBalanceLocked => 'locked';
-
-  @override
-  String get homeTransactionsTitle => 'Transactions';
-
-  @override
-  String get homeOutgoingTxSemanticLabel => 'Outgoing Transaction';
-
-  @override
-  String get homeIncomingTxSemanticLabel => 'Incoming Transaction';
-
-  @override
-  String get homeTransactionConfirmed => 'Confirmed';
 
   @override
   String get homeNoTransactions => 'No transactions';
@@ -498,19 +413,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTotalBalanceLabel => 'Total Balance';
 
   @override
-  String get homeYourCoinsTitle => 'Your Coins';
-
-  @override
   String get homeCoinNotConfigured => 'Not configured';
-
-  @override
-  String get homeCoinSetUp => 'Set up';
-
-  @override
-  String get homeConnectionErrorTooltip => 'Couldn\'t connect to the server';
-
-  @override
-  String get coinHomeServerConnectionButton => 'Server connection';
 
   @override
   String get receiveTitle => 'Receive';
@@ -518,15 +421,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get receivePrimaryAddressWarn =>
       'Warning: Unless you know what you\'re doing, please consider using subaddresses for better privacy.';
-
-  @override
-  String get receiveShareButton => 'Share';
-
-  @override
-  String get receiveShowSubaddressButton => 'Show Subaddress';
-
-  @override
-  String get receiveShowPrimaryAddressButton => 'Show Primary Address';
 
   @override
   String get receiveServerNoSubaddressesWarn =>
@@ -637,9 +531,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Periodically sync your wallets in the background so they\'re up to date when you open the app.';
 
   @override
-  String get settingsBackgroundSyncIntervalLabel => 'Sync Interval';
-
-  @override
   String get settingsForegroundSyncLabel => 'Continuous Sync';
 
   @override
@@ -699,33 +590,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguageLabel => 'Language';
 
   @override
-  String get settingsFiatApiSettingsLabel => 'Fiat API Settings';
-
-  @override
-  String get settingsLwsViewKeysLabel => 'LWS View Keys';
-
-  @override
   String get settingsLwsViewKeysButton => 'View';
-
-  @override
-  String get settingsSecretKeysLabel => 'Secret Restore Keys';
-
-  @override
-  String get settingsSecretKeysButton => 'View';
-
-  @override
-  String get settingsViewLwsKeysDialogText =>
-      'Only share this information with your light-wallet server. These keys allow the holder to permanently see all transactions related to your wallets. Sharing these with an untrusted person will significantly harm your privacy.';
-
-  @override
-  String get settingsViewLwsKeysDialogRevealButton => 'Reveal';
-
-  @override
-  String get settingsViewSecretKeysDialogText =>
-      'Do not share these keys with anyone, including anyone claiming to be support. If you receive a request to provide these, you are being scammed. If you provide this information to another person, you will lose your money and it cannot be recovered.';
-
-  @override
-  String get settingsViewSecretKeysDialogRevealButton => 'Reveal';
 
   @override
   String get settingsDeleteWalletButton => 'Delete Wallet';
@@ -777,21 +642,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lwsKeysSecretViewKey => 'Secret View Key';
 
   @override
-  String get secretKeysTitle => 'Secret Restore Keys';
-
-  @override
-  String get secretKeysMnemonic => 'Seed';
-
-  @override
-  String get secretKeysPublicSpendKey => 'Public Spend Key';
-
-  @override
-  String get secretKeysSecretSpendKey => 'Secret Spend Key';
-
-  @override
-  String get secretKeysPublicViewKey => 'Public View Key';
-
-  @override
   String get scanQrTitle => 'Scan QR Code';
 
   @override
@@ -839,9 +689,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addressBookNoSearchResults => 'No contacts found';
 
   @override
-  String get addressBookCopyAddress => 'Copy Address';
-
-  @override
   String get addressBookEdit => 'Edit';
 
   @override
@@ -878,12 +725,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sendSelectedContact => 'Selected contact';
-
-  @override
-  String get sendClearSelectedContact => 'Clear selected contact';
-
-  @override
   String get sendPriorityLow => 'Low';
 
   @override
@@ -891,15 +732,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sendPriorityHigh => 'High';
-
-  @override
-  String get sendPriorityLabel => 'priority';
-
-  @override
-  String get sendTransactionPriority => 'Transaction Priority';
-
-  @override
-  String get sendFeeLabel => 'Fee';
 
   @override
   String get sendFromLabel => 'From';
@@ -931,7 +763,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sendBalanceLabel => 'Balance';
+  String get sendPickContactTitle => 'Send to a contact';
+
+  @override
+  String sendPickContactSubtitle(String coin) {
+    return 'Pick a contact with a $coin address.';
+  }
+
+  @override
+  String sendContactNoAddress(String coin) {
+    return 'No $coin address';
+  }
 
   @override
   String get sendFailedToGetFeesError => 'Failed to get fees.';
@@ -997,38 +839,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Connections to remote IP addresses aren\'t allowed. Use a domain name or a local IP address.';
 
   @override
-  String get connectionIndicatorTorInternal => 'Internal Tor';
-
-  @override
-  String connectionIndicatorTorExternal(String port) {
-    return 'Using Port $port';
-  }
-
-  @override
-  String get connectionIndicatorHttps => 'HTTPS';
-
-  @override
-  String get connectionIndicatorLocal => 'Local';
-
-  @override
   String get connectionProtocolHttps => 'Removing protocol. Using HTTPS for domains.';
 
   @override
   String get connectionProtocolHttp => 'Removing protocol. Using HTTP for local addresses.';
 
   @override
-  String get settingsLwsSettingsLabel => 'LWS Settings';
-
-  @override
   String get settingsTorSettingsLabel => 'Tor Settings';
-
-  @override
-  String get lwsSetupUsingInternalTor => 'Using internal Tor';
-
-  @override
-  String lwsSetupUsingExternalTor(String address) {
-    return 'Using external Tor proxy at $address';
-  }
 
   @override
   String get lwsSetupTorDisabledError => 'Tor is disabled. Please go back and enable it.';
@@ -1050,16 +867,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get explorerAddressLabel => 'Explorer Address';
 
   @override
-  String get explorerRemoveButton => 'Remove Explorer';
-
-  @override
   String get explorerRemovedMessage => 'Explorer removed.';
-
-  @override
-  String get explorerSetupButton => 'Set Up Explorer';
-
-  @override
-  String get explorerSetupHint => 'Set up a block explorer to see your full transaction history.';
 
   @override
   String get legacyTitle => 'Unsupported Wallet';

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/util/amount_units.dart';
+import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart' show CryptoWallet, TxDetails, TxRecipient;
 import 'package:wallet_infra/wallet_infra.dart' show SecureClipboard;
@@ -13,15 +14,10 @@ import 'package:wallet_infra/wallet_infra.dart' show SecureClipboard;
 /// sensitive). Amounts/fee format per the [CryptoWallet]'s own decimals/symbols.
 class TxDetailsDialog {
   static void show(BuildContext context, CryptoWallet wallet, TxDetails tx) {
-    showModalBottomSheet<void>(
+    showBrandSheet<void>(
       context: context,
-      backgroundColor: BrandColors.paper,
       isScrollControlled: true,
       showDragHandle: true,
-      constraints: const BoxConstraints(maxWidth: 520),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(BrandRadii.sheet)),
-      ),
       builder: (context) => _TxDetailsSheet(wallet: wallet, tx: tx),
     );
   }
@@ -33,9 +29,21 @@ class _TxDetailsSheet extends StatelessWidget {
 
   const _TxDetailsSheet({required this.wallet, required this.tx});
 
-  static const _labelStyle = TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: BrandColors.ink);
-  static const _valueStyle = TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 13, color: BrandColors.ink);
-  static const _mutedMono = TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 12.5, color: BrandColors.inkMuted);
+  static const _labelStyle = TextStyle(
+    fontSize: 13.5,
+    fontWeight: FontWeight.w700,
+    color: BrandColors.ink,
+  );
+  static const _valueStyle = TextStyle(
+    fontFamily: 'Ubuntu Mono',
+    fontSize: 13,
+    color: BrandColors.ink,
+  );
+  static const _mutedMono = TextStyle(
+    fontFamily: 'Ubuntu Mono',
+    fontSize: 12.5,
+    color: BrandColors.inkMuted,
+  );
 
   void _copy(BuildContext context, String text) {
     SecureClipboard.copy(text);
@@ -43,22 +51,26 @@ class _TxDetailsSheet extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(i18n.copiedToClipboard)));
   }
 
-  static String _short(String s, [int head = 6, int tail = 6]) =>
-      s.length <= head + tail + 1 ? s : '${s.substring(0, head)}…${s.substring(s.length - tail)}';
-
-  String _fmtAmount(BigInt units) =>
-      '${displayAmount(units, wallet.baseUnitDecimals).toStringAsFixed(wallet.decimals)} ${wallet.coinSymbol}';
+  String _fmtAmount(BigInt units) => formatAmount(
+    displayAmount(units, wallet.baseUnitDecimals),
+    wallet.decimals,
+    symbol: wallet.coinSymbol,
+  );
 
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
     final incoming = tx.direction == consts.txDirectionIncoming;
     final date = DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
-    final feeText =
-        '${displayAmount(tx.feeBaseUnits, wallet.feeBaseUnitDecimals).toStringAsFixed(wallet.feeDecimals)} ${wallet.feeCoinSymbol}';
+    final feeText = formatAmount(
+      displayAmount(tx.feeBaseUnits, wallet.feeBaseUnitDecimals),
+      wallet.feeDecimals,
+      symbol: wallet.feeCoinSymbol,
+    );
     final heightText = NumberFormat('#,##0').format(tx.height == -1 ? 0 : tx.height);
     // Default (en) date symbols: initializeDateFormatting isn't wired.
-    final dateText = '${DateFormat('HH:mm').format(date)} · ${DateFormat('d MMM yyyy').format(date)}';
+    final dateText =
+        '${DateFormat('HH:mm').format(date)} · ${DateFormat('d MMM yyyy').format(date)}';
 
     final recipients = tx.recipients.where((r) => !r.isChange).toList();
     final change = tx.recipients.where((r) => r.isChange).toList();
@@ -81,46 +93,35 @@ class _TxDetailsSheet extends StatelessWidget {
                     _row(context, i18n.amount, _fmtAmount(tx.amountBaseUnits), bold: true),
                     // The fee is only paid by the sender; received txs don't show it.
                     if (!incoming) _row(context, i18n.networkFee, feeText),
-                    _row(context, i18n.txDetailsHashLabel, _short(tx.hash), copyText: tx.hash),
+                    _row(
+                      context,
+                      i18n.txDetailsHashLabel,
+                      shortenMiddle(tx.hash),
+                      copyText: tx.hash,
+                    ),
                     _row(context, i18n.txDetailsTimeAndDateLabel, dateText, mono: false),
                     _row(context, i18n.txDetailsConfirmationHeightLabel, heightText),
                     _row(context, i18n.txDetailsConfirmationsLabel, '${tx.confirmations}'),
                     if (tx.key.isNotEmpty)
-                      _row(context, i18n.txDetailsViewKeyLabel, _short(tx.key, 6, 4), copyText: tx.key),
+                      _row(
+                        context,
+                        i18n.txDetailsViewKeyLabel,
+                        shortenMiddle(tx.key, head: 6, tail: 4),
+                        copyText: tx.key,
+                      ),
                     if (recipients.isNotEmpty) _recipients(context, i18n, recipients),
                     for (final c in change)
                       _row(
                         context,
                         i18n.txDetailsChangeRecipientLabel,
-                        _short(c.address, 6, 4),
+                        shortenMiddle(c.address, head: 6, tail: 4),
                         copyText: c.address,
                       ),
                   ]),
                 ),
               ),
               const SizedBox(height: 14),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: BrandColors.surfaceSunken,
-                    border: Border.all(color: BrandColors.borderStrong),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Text(
-                    i18n.close,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: BrandColors.cinnamonDeep,
-                    ),
-                  ),
-                ),
-              ),
+              BrandButton.secondary(label: i18n.close, onPressed: () => Navigator.pop(context)),
             ],
           ),
         ),
@@ -180,12 +181,7 @@ class _TxDetailsSheet extends StatelessWidget {
   }
 
   Widget _card(BuildContext context, List<Widget> rows) {
-    return Container(
-      decoration: BoxDecoration(
-        color: BrandColors.card,
-        border: Border.all(color: BrandColors.border),
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return BrandCard(
       padding: const EdgeInsets.symmetric(horizontal: 15),
       child: Column(
         children: [
@@ -256,7 +252,9 @@ class _TxDetailsSheet extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 10),
                 child: Row(
                   children: [
-                    Expanded(child: Text(_short(r.address, 6, 4), style: _mutedMono)),
+                    Expanded(
+                      child: Text(shortenMiddle(r.address, head: 6, tail: 4), style: _mutedMono),
+                    ),
                     const SizedBox(width: 10),
                     Text(_fmtAmount(r.amountBaseUnits), style: _valueStyle),
                     const SizedBox(width: 10),

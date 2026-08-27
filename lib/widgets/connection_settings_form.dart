@@ -88,10 +88,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
   /// one heavy background job. LWS syncs server-side, so the toggles are hidden
   /// there (nothing to keep advancing in the background). Android-only.
   bool get _showSyncOptions =>
-      Platform.isAndroid &&
-      widget.coinSymbol == 'XMR' &&
-      !_isExplorer &&
-      _connectionType == 'node';
+      Platform.isAndroid && widget.coinSymbol == 'XMR' && !_isExplorer && _connectionType == 'node';
 
   @override
   void initState() {
@@ -580,15 +577,13 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
   Widget _buildTestCard(AppLocalizations i18n, TorMode torMode) {
     // Built-in Tor still bootstrapping takes over the test action.
     if (_useTor && torMode == TorMode.builtIn && _torStatus != TorConnectionStatus.connected) {
-      return _StatusRowCard(
-        leading: const _Spinner(),
-        title: i18n.lwsSetupStartingTor,
-      );
+      return _StatusRowCard(leading: const _Spinner(), title: i18n.lwsSetupStartingTor);
     }
     if (!_hasTested) {
-      return _NotTestedCard(
+      return BrandButton.secondary(
         label: i18n.lwsSetupTestConnectionButton,
-        onTest: _testConnection,
+        icon: Icons.wifi,
+        onPressed: _testConnection,
       );
     }
     if (_connectionTestIsLoading) {
@@ -596,7 +591,12 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
         leading: const _Spinner(),
         title: i18n.connectionTestingTitle,
         detail: i18n.connectionTestingDetail,
-        trailing: _CardTextButton(label: i18n.connectionTestStop, onPressed: _stopTest),
+        trailing: BrandButton.ghost(
+          label: i18n.connectionTestStop,
+          dense: true,
+          expand: false,
+          onPressed: _stopTest,
+        ),
       );
     }
     if (_connectionSuccess) {
@@ -632,67 +632,65 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     final canSave = _hasTested && _connectionSuccess && !_connectionTestIsLoading;
 
     final content = <Widget>[
-        if (_connectionTypeOptions.length > 1) ...[
-          _SegmentedControl(
-            options: _connectionTypeOptions,
-            selected: _connectionType,
-            labelFor: (type) => _connectionTypeLabel(i18n, type),
-            onSelect: _setConnectionType,
-          ),
-          const SizedBox(height: 20),
-        ],
-        _InsetField(
-          label: addressLabel,
-          controller: _addressController,
-          hint: addressHint,
-          mono: true,
-          keyboardType: TextInputType.url,
-          onChanged: _onAddressChange,
-          trailing: (Platform.isAndroid || Platform.isIOS)
-              ? _FieldIconButton(icon: Icons.qr_code_2, onPressed: _scanQrCode)
-              : null,
+      if (_connectionTypeOptions.length > 1) ...[
+        BrandSegmented(
+          labels: [for (final t in _connectionTypeOptions) _connectionTypeLabel(i18n, t)],
+          selectedIndex: _connectionTypeOptions
+              .indexOf(_connectionType)
+              .clamp(0, _connectionTypeOptions.length - 1),
+          onSelect: (i) => _setConnectionType(_connectionTypeOptions[i]),
         ),
-        if (_errorMessage != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 6, left: 4),
-            child: Text(
-              _errorMessage!,
-              style: BrandText.caption.copyWith(color: BrandColors.error),
-            ),
-          ),
-        const SizedBox(height: 16),
-        _InsetField(
-          label: i18n.connectionProxyPortLabel,
-          controller: _customProxyPortController,
-          hint: i18n.connectionProxyPortHint,
-          mono: true,
-          number: true,
-          enabled: !_useTor,
-          onChanged: _onProxyPortChange,
+        const SizedBox(height: 20),
+      ],
+      _InsetField(
+        label: addressLabel,
+        controller: _addressController,
+        hint: addressHint,
+        mono: true,
+        keyboardType: TextInputType.url,
+        onChanged: _onAddressChange,
+        trailing: (Platform.isAndroid || Platform.isIOS)
+            ? _FieldIconButton(icon: Icons.qr_code_2, onPressed: _scanQrCode)
+            : null,
+      ),
+      if (_errorMessage != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 6, left: 4),
+          child: Text(_errorMessage!, style: BrandText.caption.copyWith(color: BrandColors.error)),
         ),
-        const SizedBox(height: 4),
+      const SizedBox(height: 16),
+      _InsetField(
+        label: i18n.connectionProxyPortLabel,
+        controller: _customProxyPortController,
+        hint: i18n.connectionProxyPortHint,
+        mono: true,
+        number: true,
+        enabled: !_useTor,
+        onChanged: _onProxyPortChange,
+      ),
+      const SizedBox(height: 4),
+      _CheckRow(
+        checked: _useTor,
+        onTap: torMode == TorMode.disabled ? null : () => _setUseTor(!_useTor),
+        label: i18n.lwsSetupUseTorLabel,
+        trailing: Row(mainAxisSize: MainAxisSize.min, children: _routePills()),
+      ),
+      if (_showSyncOptions) ...[
         _CheckRow(
-          checked: _useTor,
-          onTap: torMode == TorMode.disabled ? null : () => _setUseTor(!_useTor),
-          label: i18n.lwsSetupUseTorLabel,
-          trailing: Row(mainAxisSize: MainAxisSize.min, children: _routePills()),
+          checked: _backgroundSyncEnabled,
+          onTap: () => _setBackgroundSyncEnabled(!_backgroundSyncEnabled),
+          label: i18n.settingsBackgroundSyncLabel,
+          help: i18n.settingsBackgroundSyncDescription,
         ),
-        if (_showSyncOptions) ...[
-          _CheckRow(
-            checked: _backgroundSyncEnabled,
-            onTap: () => _setBackgroundSyncEnabled(!_backgroundSyncEnabled),
-            label: i18n.settingsBackgroundSyncLabel,
-            help: i18n.settingsBackgroundSyncDescription,
-          ),
-          _CheckRow(
-            checked: _foregroundSyncEnabled,
-            onTap: () => _setForegroundSyncEnabled(!_foregroundSyncEnabled),
-            label: i18n.settingsForegroundSyncLabel,
-            help: i18n.settingsForegroundSyncDescription,
-          ),
-        ],
-        const SizedBox(height: 16),
-        _buildTestCard(i18n, torMode),
+        _CheckRow(
+          checked: _foregroundSyncEnabled,
+          onTap: () => _setForegroundSyncEnabled(!_foregroundSyncEnabled),
+          label: i18n.settingsForegroundSyncLabel,
+          help: i18n.settingsForegroundSyncDescription,
+        ),
+      ],
+      const SizedBox(height: 16),
+      _buildTestCard(i18n, torMode),
     ];
 
     final saveButton = BrandButton(
@@ -713,10 +711,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-            child: saveButton,
-          ),
+          Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 8), child: saveButton),
         ],
       );
     }
@@ -725,64 +720,6 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [...content, const SizedBox(height: 16), saveButton],
-    );
-  }
-}
-
-/// Segmented control (Light Wallet Server / Monero Node). Tinted track with a
-/// raised card for the selected segment.
-class _SegmentedControl extends StatelessWidget {
-  final List<String> options;
-  final String selected;
-  final String Function(String) labelFor;
-  final ValueChanged<String> onSelect;
-
-  const _SegmentedControl({
-    required this.options,
-    required this.selected,
-    required this.labelFor,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: BrandColors.surfaceTinted,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          for (final type in options)
-            Expanded(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => onSelect(type),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    color: type == selected ? BrandColors.paper : Colors.transparent,
-                    borderRadius: BorderRadius.circular(11),
-                    boxShadow: type == selected
-                        ? [BoxShadow(color: BrandColors.ink.withValues(alpha: 0.08), blurRadius: 2, offset: const Offset(0, 1))]
-                        : null,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    labelFor(type),
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1,
-                      fontWeight: type == selected ? FontWeight.w500 : FontWeight.w400,
-                      color: type == selected ? BrandColors.ink : BrandColors.inkMuted,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }
@@ -841,12 +778,9 @@ class _InsetField extends StatelessWidget {
       ),
     );
 
-    final box = Container(
-      decoration: BoxDecoration(
-        color: BrandColors.card,
-        border: Border.all(color: BrandColors.inputBorder),
-        borderRadius: BorderRadius.circular(14),
-      ),
+    final box = BrandCard(
+      radius: 14,
+      borderColor: BrandColors.inputBorder,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       child: Row(
         children: [
@@ -989,7 +923,12 @@ class _RoutePill extends StatelessWidget {
   final Color bg;
   final _PillIcon icon;
 
-  const _RoutePill({required this.label, required this.color, required this.bg, required this.icon});
+  const _RoutePill({
+    required this.label,
+    required this.color,
+    required this.bg,
+    required this.icon,
+  });
 
   String _svg() {
     final hex = '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
@@ -1045,13 +984,8 @@ class _TestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return BrandCard(
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: BrandColors.card,
-        border: Border.all(color: BrandColors.border),
-        borderRadius: BorderRadius.circular(16),
-      ),
       padding: const EdgeInsets.fromLTRB(15, 4, 15, 10),
       child: child,
     );
@@ -1071,47 +1005,6 @@ class _Spinner extends StatelessWidget {
         strokeWidth: 2.4,
         color: BrandColors.cinnamonDeep,
         backgroundColor: BrandColors.border,
-      ),
-    );
-  }
-}
-
-/// Untested state: a secondary "Test connection" button.
-class _NotTestedCard extends StatelessWidget {
-  final String label;
-  final VoidCallback onTest;
-
-  const _NotTestedCard({required this.label, required this.onTest});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTest,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: BrandColors.surfaceSunken,
-          border: Border.all(color: BrandColors.borderStrong),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.wifi, size: 17, color: BrandColors.cinnamonDeep),
-            const SizedBox(width: 9),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14.5,
-                height: 1,
-                fontWeight: FontWeight.w500,
-                color: BrandColors.cinnamonDeep,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1164,11 +1057,7 @@ class _StatusRowCard extends StatelessWidget {
               padding: const EdgeInsets.only(top: 10, bottom: 4),
               child: Text(
                 detail!,
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  height: 1.45,
-                  color: BrandColors.inkMuted,
-                ),
+                style: const TextStyle(fontSize: 12.5, height: 1.45, color: BrandColors.inkMuted),
               ),
             ),
         ],
@@ -1276,79 +1165,18 @@ class _ResultCard extends StatelessWidget {
             ),
           ),
           if (isFailure)
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onTestAgain,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: BrandColors.cinnamon,
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  testAgainLabel,
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    height: 1,
-                    fontWeight: FontWeight.w500,
-                    color: BrandColors.onCinnamon,
-                  ),
-                ),
-              ),
-            )
+            BrandButton(label: testAgainLabel, dense: true, onPressed: onTestAgain)
           else
             Align(
               alignment: Alignment.centerRight,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: onTestAgain,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: BrandColors.surfaceSunken,
-                    border: Border.all(color: BrandColors.borderStrong),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    testAgainLabel,
-                    style: const TextStyle(
-                      fontSize: 11.5,
-                      height: 1,
-                      fontWeight: FontWeight.w500,
-                      color: BrandColors.cinnamonDeep,
-                    ),
-                  ),
-                ),
+              child: BrandButton.secondary(
+                label: testAgainLabel,
+                dense: true,
+                expand: false,
+                onPressed: onTestAgain,
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-/// Plain text button used inside a card header (Stop).
-class _CardTextButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onPressed;
-
-  const _CardTextButton({required this.label, required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onPressed,
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 12,
-          height: 1,
-          fontWeight: FontWeight.w500,
-          color: BrandColors.cinnamonDeep,
-        ),
       ),
     );
   }

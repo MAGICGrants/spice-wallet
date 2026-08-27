@@ -10,7 +10,17 @@ class BrandScreenHeader extends StatelessWidget {
   final Widget? center;
   final Widget? action;
 
-  const BrandScreenHeader({super.key, this.onBack, this.center, this.action});
+  /// Leading affordance — a back chevron by default. Override only when a
+  /// screen genuinely dismisses rather than navigates back.
+  final IconData leadingIcon;
+
+  const BrandScreenHeader({
+    super.key,
+    this.onBack,
+    this.center,
+    this.action,
+    this.leadingIcon = Icons.chevron_left,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +34,7 @@ class BrandScreenHeader extends StatelessWidget {
           if (onBack != null)
             Align(
               alignment: Alignment.centerLeft,
-              child: IconCircleButton(icon: Icons.arrow_back, onPressed: onBack),
+              child: IconCircleButton(icon: leadingIcon, onPressed: onBack),
             ),
           if (action != null) Align(alignment: Alignment.centerRight, child: action),
         ],

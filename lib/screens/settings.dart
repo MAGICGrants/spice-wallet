@@ -211,34 +211,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 16),
               Text(i18n.settingsDeleteWalletDialogText, style: BrandText.bodyMuted),
               const SizedBox(height: 22),
-              BrandButton(
-                label: i18n.cancel,
-                onPressed: () => Navigator.pop(dialogContext),
-              ),
-              const SizedBox(height: 10),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
+              BrandButton(label: i18n.cancel, onPressed: () => Navigator.pop(dialogContext)),
+              const SizedBox(height: 4),
+              BrandButton.ghost(
+                label: i18n.settingsDeleteWalletDialogDeleteButton,
+                color: BrandColors.error,
+                onPressed: () {
                   Navigator.pop(dialogContext);
                   _deleteWallet();
                 },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: BrandColors.borderStrong),
-                    borderRadius: BorderRadius.circular(BrandRadii.button),
-                  ),
-                  child: Text(
-                    i18n.settingsDeleteWalletDialogDeleteButton,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: BrandColors.error,
-                    ),
-                  ),
-                ),
               ),
             ],
           ),

@@ -18,6 +18,8 @@ class _FakeWallet implements CryptoWallet {
   @override
   String get coinSymbol => 'XMR';
   @override
+  String get iconAsset => '';
+  @override
   String get feeCoinSymbol => 'XMR';
   @override
   int get baseUnitDecimals => 12;

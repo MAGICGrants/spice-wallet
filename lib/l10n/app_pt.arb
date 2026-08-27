@@ -13,7 +13,6 @@
   "addressCopied": "Endereço copiado para a área de transferência",
   "copiedToClipboard": "Copiado para a área de transferência",
   "fieldEmptyError": "Este campo não pode ficar vazio.",
-  "welcomeTitle": "Bem-vindo!",
   "welcomeDescription": "Uma carteira de autocustódia para Monero, Bitcoin, Ethereum e DAI. Suas chaves nunca saem deste dispositivo.",
   "welcomeGetStarted": "Começar",
   "welcomeAgreePrefix": "Ao continuar, você concorda com os ",
@@ -29,8 +28,6 @@
   "torChoiceTestFailed": "Falha no teste",
   "torChoiceConnected": "Conectado ao Tor",
   "torChoiceRecommended": "Recomendado",
-  "lwsSetupTitle": "Configuração do LWS",
-  "lwsSetupDescription": "Informe o endereço do seu servidor light-wallet Monero (LWS).",
   "connectionSetupTitle": "Configuração da Conexão",
   "connectionSetupDescription": "Informe o endereço do seu {type}.",
   "@connectionSetupDescription": {
@@ -43,10 +40,7 @@
   "connectionTypeLws": "Servidor Light Wallet",
   "connectionTypeNode": "Nó Monero",
   "lwsSetupAddressHint": "ex: 192.168.1.1:18090 ou exemplo.com:18090",
-  "lwsSetupProxyPortLabel": "Porta do Proxy HTTP (opcional)",
-  "lwsSetupProxyPortHint": "ex: 4444 para I2P",
   "lwsSetupUseTorLabel": "Usar Tor",
-  "lwsSetupUseSslLabel": "Usar SSL",
   "lwsSetupTestConnectionButton": "Testar Conexão",
   "connectionProxyPortLabel": "Porta do Proxy HTTP",
   "connectionProxyPortHint": "Opcional",
@@ -54,7 +48,6 @@
   "connectionTestingDetail": "Verificando se o servidor responde.",
   "connectionTestStop": "Parar",
   "connectionResultWorksTitle": "A conexão funciona",
-  "connectionResultWorksDetail": "O servidor respondeu com sucesso.",
   "connectionReachedOverTor": "Acessado via Tor",
   "connectionReachedViaProxy": "Acessado pelo seu proxy",
   "connectionReachedDirect": "Acessado diretamente",
@@ -89,11 +82,7 @@
   "generateSeedBirthdayReason": "Onde uma futura restauração começa a escanear",
   "generateSeedConfirm": "Anotei todas as 15 palavras e as guardei em um lugar que só eu posso acessar.",
   "generateSeedContinueButton": "Continuar",
-  "lwsDetailsTitle": "Detalhes da Carteira",
   "lwsDetailsDescription": "Você pode usar esses detalhes para permitir essa carteira no seu servidor de light wallet caso necessário.",
-  "lwsDetailsPrimaryAddressLabel": "Endereço Primário",
-  "lwsDetailsSecretViewKeyLabel": "Chave Privada de Visualização",
-  "lwsDetailsRestoreHeightLabel": "Bloco de Restauração",
   "restoreWalletTitle": "Restaurar carteira",
   "restoreWalletSubtitle": "Qualquer frase BIP39, da Spice Wallet ou de outra carteira.",
   "restoreWalletSeedLength": "Tamanho da seed",
@@ -110,40 +99,43 @@
   "restoreScanDone": "Concluir",
   "restoreWalletBadWord": "A palavra {position} não é uma palavra BIP39.",
   "@restoreWalletBadWord": {
-    "placeholders": { "position": { "type": "int" } }
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
   },
   "restoreWalletDidYouMean": "Você quis dizer {word}?",
   "@restoreWalletDidYouMean": {
-    "placeholders": { "word": { "type": "String" } }
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
   },
   "restoreWalletChecksumError": "Esta não é uma frase seed válida — verifique as palavras e a ordem.",
-  "restoreWalletDescription": "Insira sua seed de 15 palavras para restaurar todas as moedas desta carteira.",
-  "restoreWalletSeedLabel": "Seed",
-  "restoreWalletRestoreHeightLabel": "Bloco de Restauração (opcional)",
-  "restoreWalletRestoreDateLabel": "Restaurar a partir da data",
   "restoreWalletRestoreButton": "Restaurar",
-  "restoreWalletInvalidMnemonic": "Seed inválida.",
-  "navigationBarWallet": "Carteira",
   "navigationBarHome": "Início",
   "navigationBarSettings": "Configurações",
   "unlockButton": "Desbloquear",
   "unlockReason": "Desbloquear carteira",
   "unlockUnableToAuthError": "Não foi possível autenticar.",
-  "unlockTitle": "Desbloquear Carteira",
   "unlockLockedTitle": "A Spice Wallet está bloqueada",
   "unlockWithFaceId": "Desbloquear com Face ID",
   "unlockWithTouchId": "Desbloquear com Touch ID",
-  "unlockDescription": "Digite a senha da sua carteira para desbloquear",
   "unlockPasswordLabel": "Senha",
   "unlockPasswordHint": "Digite sua senha",
   "unlockIncorrectPasswordError": "Senha incorreta. Tente novamente.",
-  "homeConnecting": "Conectando",
   "homeSyncing": "Sincronizando",
   "homeSynced": "Sincronizado",
   "homeNoConnection": "Sem conexão",
   "homeAssetsCount": "{count, plural, =1{1 ativo} other{{count} ativos}}",
   "@homeAssetsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "coinHomeAssetsTitle": "Ativos",
   "coinHomeActivityTitle": "Atividade",
@@ -151,35 +143,20 @@
   "coinHomeSwapComingSoon": "A troca chegará em breve.",
   "coinHomeReceived": "Recebido",
   "coinHomeSent": "Enviado",
-  "coinHomeServerConnection": "Conexão do servidor",
-  "coinHomeViewKeys": "Ver chaves",
   "coinHomeRouteTor": "Tor",
   "coinHomeRouteProxy": "Proxy",
   "coinHomeRouteDirect": "Direto",
   "coinHomeAddExplorerTitle": "Adicione um explorador para ver o histórico",
   "coinHomeAddExplorerButton": "Adicionar explorador",
   "homeFiatSource": "Kraken via Tor",
-  "homeHeight": "Bloco",
   "homeReceive": "Receber",
   "homeSend": "Enviar",
-  "homeBalanceLocked": "travado",
-  "homeTransactionsTitle": "Transações",
-  "homeOutgoingTxSemanticLabel": "Transação de Saída",
-  "homeIncomingTxSemanticLabel": "Transação de Entrada",
-  "homeTransactionConfirmed": "Confirmado",
   "homeNoTransactions": "Sem transações",
   "homeFiatApiError": "Erro ao conectar à API de cotação",
   "homeTotalBalanceLabel": "Saldo Total",
-  "homeYourCoinsTitle": "Suas Moedas",
   "homeCoinNotConfigured": "Não configurado",
-  "homeCoinSetUp": "Configurar",
-  "homeConnectionErrorTooltip": "Não foi possível conectar ao servidor",
-  "coinHomeServerConnectionButton": "Conexão com o servidor",
   "receiveTitle": "Receber",
   "receivePrimaryAddressWarn": "Aviso: A menos que saiba o que está fazendo, por favor considere usar subendereços para melhor privacidade.",
-  "receiveShareButton": "Compartilhar",
-  "receiveShowSubaddressButton": "Mostrar Subendereço",
-  "receiveShowPrimaryAddressButton": "Mostrar Endereço Primário",
   "receiveServerNoSubaddressesWarn": "Aviso: Este servidor não suporta subendereços. Para melhor privacidade, considere usar um servidor que os suporte. Você está recebendo no seu endereço primário.",
   "receiveMaxSubaddressesReachedWarn": "Você atingiu o número máximo de subendereços suportados por este servidor. Este é um endereço já usado.",
   "receiveSubaddressTab": "Subendereço",
@@ -187,11 +164,19 @@
   "receiveCopyAddress": "Copiar endereço",
   "receiveAddressHeading": "Seu endereço {coin}",
   "@receiveAddressHeading": {
-    "placeholders": { "coin": { "type": "String" } }
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
   },
   "receiveBlockchainSubtitle": "Blockchain {coin}",
   "@receiveBlockchainSubtitle": {
-    "placeholders": { "coin": { "type": "String" } }
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
   },
   "sendTitle": "Enviar",
   "sendSendButton": "Enviar",
@@ -225,7 +210,6 @@
   "settingsNotifyNewTxsDescriptionIos": "Mostra uma notificação quando você recebe uma transação.",
   "settingsBackgroundSyncLabel": "Sincronização em Segundo Plano",
   "settingsBackgroundSyncDescription": "Sincroniza suas carteiras periodicamente em segundo plano para que estejam atualizadas ao abrir o app.",
-  "settingsBackgroundSyncIntervalLabel": "Intervalo de Sincronização",
   "settingsForegroundSyncLabel": "Sincronização Contínua",
   "settingsForegroundSyncDescription": "Mantém suas carteiras sincronizando continuamente enquanto o app roda em segundo plano, com uma notificação persistente. Usa mais bateria.",
   "settingsAppLockLabel": "Desbloqueio com PIN/Biometria",
@@ -244,15 +228,7 @@
   "settingsThemeLight": "Claro",
   "settingsThemeDark": "Escuro",
   "settingsLanguageLabel": "Idioma",
-  "settingsFiatApiSettingsLabel": "Configs. da API de Moeda Local",
-  "settingsLwsViewKeysLabel": "Chaves de Visualização do LWS",
   "settingsLwsViewKeysButton": "Ver",
-  "settingsSecretKeysLabel": "Chaves Privadas de Restauração",
-  "settingsSecretKeysButton": "Ver",
-  "settingsViewLwsKeysDialogText": "Somente compartilhe estas informações com o seu servidor light-wallet. Essas chaves permitem que o portador veja permanentemente todas as transações relacionadas às suas carteiras. Compartilhá-las com uma pessoa não confiável prejudicará significativamente sua privacidade.",
-  "settingsViewLwsKeysDialogRevealButton": "Revelar",
-  "settingsViewSecretKeysDialogText": "Não compartilhe essas chaves com ninguém, incluindo pessoas que aleguem ser suporte. Se você receber um pedido para fornecê-las, está sendo vítima de um golpe. Se você fornecer essas informações a outra pessoa, perderá seu dinheiro e ele não poderá ser recuperado.",
-  "settingsViewSecretKeysDialogRevealButton": "Revelar",
   "settingsDeleteWalletButton": "Excluir Carteira",
   "settingsDeleteWalletDialogText": "Tem certeza que deseja excluir sua carteira? Você perderá acesso à seus fundos, a menos que tenha anotado sua seed.",
   "settingsDeleteWalletDialogDeleteButton": "Excluir",
@@ -269,11 +245,6 @@
   "lwsKeysPrimaryAddress": "Endereço Primário",
   "lwsKeysRestoreHeight": "Bloco de Restauração",
   "lwsKeysSecretViewKey": "Chave Privada de Visualização",
-  "secretKeysTitle": "Chaves Privadas de Restauração",
-  "secretKeysMnemonic": "Seed",
-  "secretKeysPublicSpendKey": "Chave Pública de Gasto",
-  "secretKeysSecretSpendKey": "Chave Privada de Gasto",
-  "secretKeysPublicViewKey": "Chave Pública de Visualização",
   "scanQrTitle": "Escanear QR Code",
   "confirmSendTitle": "Confirmar Envio",
   "confirmSendDescription": "As transações são irreversíveis, então verifique se estes detalhes correspondem exatamente.",
@@ -302,7 +273,6 @@
   "addressBookNoContacts": "Nenhum contato ainda",
   "addressBookNoContactsDescription": "Adicione seu primeiro contato tocando no botão +",
   "addressBookNoSearchResults": "Nenhum contato encontrado",
-  "addressBookCopyAddress": "Copiar Endereço",
   "addressBookEdit": "Editar",
   "addressBookContactName": "Nome do Contato",
   "addressBookNameHint": "Nome",
@@ -321,14 +291,9 @@
       }
     }
   },
-  "sendSelectedContact": "Contato selecionado",
-  "sendClearSelectedContact": "Limpar contato selecionado",
   "sendPriorityLow": "Baixa",
   "sendPriorityNormal": "Normal",
   "sendPriorityHigh": "Alta",
-  "sendPriorityLabel": "prioridade",
-  "sendTransactionPriority": "Prioridade da Transação",
-  "sendFeeLabel": "Taxa",
   "sendFromLabel": "De",
   "sendToLabel": "Para",
   "sendPriorityHeading": "Prioridade",
@@ -339,9 +304,29 @@
   "sendScanButton": "Escanear",
   "sendAddressHint": "Endereço {coin}",
   "@sendAddressHint": {
-    "placeholders": { "coin": { "type": "String" } }
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
   },
-  "sendBalanceLabel": "Saldo",
+  "sendPickContactTitle": "Enviar para um contato",
+  "sendPickContactSubtitle": "Escolha um contato com endereço {coin}.",
+  "@sendPickContactSubtitle": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
+  "sendContactNoAddress": "Sem endereço {coin}",
+  "@sendContactNoAddress": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
   "sendFailedToGetFeesError": "Não foi possível carregar taxas.",
   "torInfoTitle": "Tor Integrado",
   "torInfoDescription": "A Carteira Spice usa automaticamente Tor integrado para proteger suas conexões de internet.",
@@ -362,40 +347,16 @@
   "torDisabledWalletsWarningBody": "Algumas carteiras estão configuradas para conectar via Tor. Desativar o Tor irá desconectá-las, e elas permanecerão desconectadas até que você reconfigure a conexão delas.",
   "torDisabledWalletsWarningConfirm": "Desativar o Tor",
   "connectionRemoteIpNotAllowed": "Conexões com endereços IP remotos não são permitidas. Use um nome de domínio ou um endereço IP local.",
-  "connectionIndicatorTorInternal": "Tor Interno",
-  "connectionIndicatorTorExternal": "Usando Porta {port}",
-  "@connectionIndicatorTorExternal": {
-    "placeholders": {
-      "port": {
-        "type": "String"
-      }
-    }
-  },
-  "connectionIndicatorHttps": "HTTPS",
-  "connectionIndicatorLocal": "Local",
   "connectionProtocolHttps": "Removendo protocolo. Usando HTTPS para domínios.",
   "connectionProtocolHttp": "Removendo protocolo. Usando HTTP para endereços locais.",
-  "settingsLwsSettingsLabel": "Configurações do LWS",
   "settingsTorSettingsLabel": "Configurações do Tor",
-  "lwsSetupUsingInternalTor": "Usando Tor interno",
-  "lwsSetupUsingExternalTor": "Usando proxy Tor externo em {address}",
-  "@lwsSetupUsingExternalTor": {
-    "placeholders": {
-      "address": {
-        "type": "String"
-      }
-    }
-  },
   "lwsSetupTorDisabledError": "O Tor está desativado. Por favor, volte e ative-o.",
   "lwsSetupInvalidQrCode": "Endereço de conexão inválido.",
   "save": "Salvar",
   "explorerSetupTitle": "Configuração do Explorador de Blocos",
   "explorerSetupDescription": "Opcionalmente, defina uma instância Blockscout para carregar o histórico completo de transações. Deixe em branco para desativar — as transações enviadas futuras continuam aparecendo sem ele.",
   "explorerAddressLabel": "Endereço do Explorador",
-  "explorerRemoveButton": "Remover Explorador",
   "explorerRemovedMessage": "Explorador removido.",
-  "explorerSetupButton": "Configurar Explorador",
-  "explorerSetupHint": "Configure um explorador de blocos para ver seu histórico completo de transações.",
   "legacyTitle": "Carteira Não Suportada",
   "legacyDescription": "A Spice Wallet está descontinuando o suporte a frases seed legacy e polyseed em favor do BIP39. Por favor, anote a frase seed abaixo, exclua esta carteira e crie uma nova carteira com seed BIP39. Você pode restaurar esta seed em outra carteira Monero e mover os fundos para sua nova carteira BIP39.",
   "legacyShowSeedButton": "Mostrar seed",

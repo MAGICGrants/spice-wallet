@@ -91,7 +91,7 @@ class _ConnectionSetupScreenState extends State<ConnectionSetupScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   child: BrandScreenHeader(
                     onBack: () => Navigator.pop(context),
-                    center: _CoinBadge(wallet: wallet, fallback: coinSymbol),
+                    center: CoinBadge(wallet: wallet, fallback: coinSymbol),
                   ),
                 ),
                 Padding(
@@ -125,30 +125,6 @@ class _ConnectionSetupScreenState extends State<ConnectionSetupScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Chain tile + coin name, centred in the header.
-class _CoinBadge extends StatelessWidget {
-  final CryptoWallet? wallet;
-  final String fallback;
-
-  const _CoinBadge({required this.wallet, required this.fallback});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (wallet != null)
-          CoinMark(coinSymbol: wallet!.coinSymbol, iconAsset: wallet!.iconAsset, size: 22),
-        const SizedBox(width: 8),
-        Text(
-          wallet?.coinName ?? fallback,
-          style: BrandText.appBar.copyWith(fontSize: 16),
-        ),
-      ],
     );
   }
 }

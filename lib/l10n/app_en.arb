@@ -13,7 +13,6 @@
   "addressCopied": "Address copied to clipboard",
   "copiedToClipboard": "Copied to clipboard",
   "fieldEmptyError": "This field cannot be empty.",
-  "welcomeTitle": "Welcome!",
   "welcomeDescription": "A self-custody wallet for Monero, Bitcoin, Ethereum and DAI. Your keys never leave this device.",
   "welcomeGetStarted": "Get Started",
   "welcomeAgreePrefix": "By continuing you agree to the ",
@@ -29,8 +28,6 @@
   "torChoiceTestFailed": "Test failed",
   "torChoiceConnected": "Connected to Tor",
   "torChoiceRecommended": "Recommended",
-  "lwsSetupTitle": "LWS Setup",
-  "lwsSetupDescription": "Enter the address of your Monero light-wallet server (LWS).",
   "connectionSetupTitle": "Connection Setup",
   "connectionSetupDescription": "Enter the address of your {type}.",
   "@connectionSetupDescription": {
@@ -43,10 +40,7 @@
   "connectionTypeLws": "Light Wallet Server",
   "connectionTypeNode": "Monero Node",
   "lwsSetupAddressHint": "e.g. 192.168.1.1:18090 or example.com:18090",
-  "lwsSetupProxyPortLabel": "HTTP Proxy Port (optional)",
-  "lwsSetupProxyPortHint": "e.g. 4444 for I2P",
   "lwsSetupUseTorLabel": "Use Tor",
-  "lwsSetupUseSslLabel": "Use SSL",
   "lwsSetupTestConnectionButton": "Test Connection",
   "connectionProxyPortLabel": "HTTP Proxy Port",
   "connectionProxyPortHint": "Optional",
@@ -54,7 +48,6 @@
   "connectionTestingDetail": "Checking whether the server answers.",
   "connectionTestStop": "Stop",
   "connectionResultWorksTitle": "Connection works",
-  "connectionResultWorksDetail": "The server responded successfully.",
   "connectionReachedOverTor": "Reached over Tor",
   "connectionReachedViaProxy": "Reached through your proxy",
   "connectionReachedDirect": "Reached directly",
@@ -89,11 +82,7 @@
   "generateSeedBirthdayReason": "Where a future restore starts scanning",
   "generateSeedConfirm": "I have written down all 15 words and stored them somewhere only I can reach.",
   "generateSeedContinueButton": "Continue",
-  "lwsDetailsTitle": "Wallet Details",
   "lwsDetailsDescription": "You can use these details to whitelist this wallet on the light wallet server if needed.",
-  "lwsDetailsPrimaryAddressLabel": "Primary Address",
-  "lwsDetailsSecretViewKeyLabel": "Secret View Key",
-  "lwsDetailsRestoreHeightLabel": "Restore Height",
   "restoreWalletTitle": "Restore wallet",
   "restoreWalletSubtitle": "Any BIP39 phrase, from Spice Wallet or another wallet.",
   "restoreWalletSeedLength": "Seed length",
@@ -110,40 +99,43 @@
   "restoreScanDone": "Done",
   "restoreWalletBadWord": "Word {position} isn't a BIP39 word.",
   "@restoreWalletBadWord": {
-    "placeholders": { "position": { "type": "int" } }
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
   },
   "restoreWalletDidYouMean": "Did you mean {word}?",
   "@restoreWalletDidYouMean": {
-    "placeholders": { "word": { "type": "String" } }
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
   },
   "restoreWalletChecksumError": "This isn't a valid seed phrase — check the words and their order.",
-  "restoreWalletDescription": "Enter your 15-word seed phrase to restore every coin in this wallet.",
-  "restoreWalletSeedLabel": "Seed",
-  "restoreWalletRestoreHeightLabel": "Restore Height (optional)",
-  "restoreWalletRestoreDateLabel": "Restore from date",
   "restoreWalletRestoreButton": "Restore",
-  "restoreWalletInvalidMnemonic": "Invalid seed.",
-  "navigationBarWallet": "Wallet",
   "navigationBarHome": "Home",
   "navigationBarSettings": "Settings",
   "unlockButton": "Unlock",
   "unlockReason": "Unlock wallet",
   "unlockUnableToAuthError": "Unable to authenticate.",
-  "unlockTitle": "Unlock Wallet",
   "unlockLockedTitle": "Spice Wallet is locked",
   "unlockWithFaceId": "Unlock with Face ID",
   "unlockWithTouchId": "Unlock with Touch ID",
-  "unlockDescription": "Enter your wallet password to unlock",
   "unlockPasswordLabel": "Password",
   "unlockPasswordHint": "Enter your password",
   "unlockIncorrectPasswordError": "Incorrect password. Please try again.",
-  "homeConnecting": "Connecting",
   "homeSyncing": "Syncing",
   "homeSynced": "Synced",
   "homeNoConnection": "No connection",
   "homeAssetsCount": "{count, plural, =1{1 asset} other{{count} assets}}",
   "@homeAssetsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "coinHomeAssetsTitle": "Assets",
   "coinHomeActivityTitle": "Activity",
@@ -151,35 +143,20 @@
   "coinHomeSwapComingSoon": "Swap is coming soon.",
   "coinHomeReceived": "Received",
   "coinHomeSent": "Sent",
-  "coinHomeServerConnection": "Server connection",
-  "coinHomeViewKeys": "View keys",
   "coinHomeRouteTor": "Tor",
   "coinHomeRouteProxy": "Proxy",
   "coinHomeRouteDirect": "Direct",
   "coinHomeAddExplorerTitle": "Add an explorer to see history",
   "coinHomeAddExplorerButton": "Add explorer",
   "homeFiatSource": "Kraken over Tor",
-  "homeHeight": "Height",
   "homeReceive": "Receive",
   "homeSend": "Send",
-  "homeBalanceLocked": "locked",
-  "homeTransactionsTitle": "Transactions",
-  "homeOutgoingTxSemanticLabel": "Outgoing Transaction",
-  "homeIncomingTxSemanticLabel": "Incoming Transaction",
-  "homeTransactionConfirmed": "Confirmed",
   "homeNoTransactions": "No transactions",
   "homeFiatApiError": "Error connecting to fiat API",
   "homeTotalBalanceLabel": "Total Balance",
-  "homeYourCoinsTitle": "Your Coins",
   "homeCoinNotConfigured": "Not configured",
-  "homeCoinSetUp": "Set up",
-  "homeConnectionErrorTooltip": "Couldn't connect to the server",
-  "coinHomeServerConnectionButton": "Server connection",
   "receiveTitle": "Receive",
   "receivePrimaryAddressWarn": "Warning: Unless you know what you're doing, please consider using subaddresses for better privacy.",
-  "receiveShareButton": "Share",
-  "receiveShowSubaddressButton": "Show Subaddress",
-  "receiveShowPrimaryAddressButton": "Show Primary Address",
   "receiveServerNoSubaddressesWarn": "Warning: This server does not support subaddresses. For better privacy, consider using a server that supports them. You are receiving to your primary address.",
   "receiveMaxSubaddressesReachedWarn": "You have reached the maximum number of subaddresses supported by this server. This is a used address.",
   "receiveSubaddressTab": "Subaddress",
@@ -187,11 +164,19 @@
   "receiveCopyAddress": "Copy address",
   "receiveAddressHeading": "Your {coin} address",
   "@receiveAddressHeading": {
-    "placeholders": { "coin": { "type": "String" } }
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
   },
   "receiveBlockchainSubtitle": "{coin} blockchain",
   "@receiveBlockchainSubtitle": {
-    "placeholders": { "coin": { "type": "String" } }
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
   },
   "sendTitle": "Send",
   "sendSendButton": "Send",
@@ -225,7 +210,6 @@
   "settingsNotifyNewTxsDescriptionIos": "Shows a notification when you receive a transaction.",
   "settingsBackgroundSyncLabel": "Background Sync",
   "settingsBackgroundSyncDescription": "Periodically sync your wallets in the background so they're up to date when you open the app.",
-  "settingsBackgroundSyncIntervalLabel": "Sync Interval",
   "settingsForegroundSyncLabel": "Continuous Sync",
   "settingsForegroundSyncDescription": "Keep your wallets syncing continuously while the app runs in the background, with a persistent notification. Uses more battery.",
   "settingsAppLockLabel": "App Lock",
@@ -244,15 +228,7 @@
   "settingsThemeLight": "Light",
   "settingsThemeDark": "Dark",
   "settingsLanguageLabel": "Language",
-  "settingsFiatApiSettingsLabel": "Fiat API Settings",
-  "settingsLwsViewKeysLabel": "LWS View Keys",
   "settingsLwsViewKeysButton": "View",
-  "settingsSecretKeysLabel": "Secret Restore Keys",
-  "settingsSecretKeysButton": "View",
-  "settingsViewLwsKeysDialogText": "Only share this information with your light-wallet server. These keys allow the holder to permanently see all transactions related to your wallets. Sharing these with an untrusted person will significantly harm your privacy.",
-  "settingsViewLwsKeysDialogRevealButton": "Reveal",
-  "settingsViewSecretKeysDialogText": "Do not share these keys with anyone, including anyone claiming to be support. If you receive a request to provide these, you are being scammed. If you provide this information to another person, you will lose your money and it cannot be recovered.",
-  "settingsViewSecretKeysDialogRevealButton": "Reveal",
   "settingsDeleteWalletButton": "Delete Wallet",
   "settingsDeleteWalletDialogText": "Are you sure you want to delete your wallet? You will lose access to your funds unless you have backed up your seed phrase.",
   "settingsDeleteWalletDialogDeleteButton": "Delete",
@@ -269,11 +245,6 @@
   "lwsKeysPrimaryAddress": "Primary Address",
   "lwsKeysRestoreHeight": "Restore Height",
   "lwsKeysSecretViewKey": "Secret View Key",
-  "secretKeysTitle": "Secret Restore Keys",
-  "secretKeysMnemonic": "Seed",
-  "secretKeysPublicSpendKey": "Public Spend Key",
-  "secretKeysSecretSpendKey": "Secret Spend Key",
-  "secretKeysPublicViewKey": "Public View Key",
   "scanQrTitle": "Scan QR Code",
   "confirmSendTitle": "Confirm Send",
   "confirmSendDescription": "Transactions are irreversible, so make sure that these details match exactly.",
@@ -302,7 +273,6 @@
   "addressBookNoContacts": "No contacts yet",
   "addressBookNoContactsDescription": "Add your first contact by tapping the + button",
   "addressBookNoSearchResults": "No contacts found",
-  "addressBookCopyAddress": "Copy Address",
   "addressBookEdit": "Edit",
   "addressBookContactName": "Contact Name",
   "addressBookNameHint": "Name",
@@ -321,14 +291,9 @@
       }
     }
   },
-  "sendSelectedContact": "Selected contact",
-  "sendClearSelectedContact": "Clear selected contact",
   "sendPriorityLow": "Low",
   "sendPriorityNormal": "Normal",
   "sendPriorityHigh": "High",
-  "sendPriorityLabel": "priority",
-  "sendTransactionPriority": "Transaction Priority",
-  "sendFeeLabel": "Fee",
   "sendFromLabel": "From",
   "sendToLabel": "To",
   "sendPriorityHeading": "Priority",
@@ -339,9 +304,29 @@
   "sendScanButton": "Scan",
   "sendAddressHint": "{coin} address",
   "@sendAddressHint": {
-    "placeholders": { "coin": { "type": "String" } }
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
   },
-  "sendBalanceLabel": "Balance",
+  "sendPickContactTitle": "Send to a contact",
+  "sendPickContactSubtitle": "Pick a contact with a {coin} address.",
+  "@sendPickContactSubtitle": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
+  "sendContactNoAddress": "No {coin} address",
+  "@sendContactNoAddress": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
   "sendFailedToGetFeesError": "Failed to get fees.",
   "torInfoTitle": "Tor Built-in",
   "torInfoDescription": "Spice Wallet automatically uses built-in Tor to protect your internet connections.",
@@ -362,40 +347,16 @@
   "torDisabledWalletsWarningBody": "Some wallets are set to connect over Tor. Disabling Tor will disconnect them, and they will stay disconnected until you reconfigure their connection.",
   "torDisabledWalletsWarningConfirm": "Disable Tor",
   "connectionRemoteIpNotAllowed": "Connections to remote IP addresses aren't allowed. Use a domain name or a local IP address.",
-  "connectionIndicatorTorInternal": "Internal Tor",
-  "connectionIndicatorTorExternal": "Using Port {port}",
-  "@connectionIndicatorTorExternal": {
-    "placeholders": {
-      "port": {
-        "type": "String"
-      }
-    }
-  },
-  "connectionIndicatorHttps": "HTTPS",
-  "connectionIndicatorLocal": "Local",
   "connectionProtocolHttps": "Removing protocol. Using HTTPS for domains.",
   "connectionProtocolHttp": "Removing protocol. Using HTTP for local addresses.",
-  "settingsLwsSettingsLabel": "LWS Settings",
   "settingsTorSettingsLabel": "Tor Settings",
-  "lwsSetupUsingInternalTor": "Using internal Tor",
-  "lwsSetupUsingExternalTor": "Using external Tor proxy at {address}",
-  "@lwsSetupUsingExternalTor": {
-    "placeholders": {
-      "address": {
-        "type": "String"
-      }
-    }
-  },
   "lwsSetupTorDisabledError": "Tor is disabled. Please go back and enable it.",
   "lwsSetupInvalidQrCode": "Invalid connection address.",
   "save": "Save",
   "explorerSetupTitle": "Block Explorer Setup",
   "explorerSetupDescription": "Optionally set a Blockscout instance to load full transaction history. Leave empty to disable — future sent transactions still appear without it.",
   "explorerAddressLabel": "Explorer Address",
-  "explorerRemoveButton": "Remove Explorer",
   "explorerRemovedMessage": "Explorer removed.",
-  "explorerSetupButton": "Set Up Explorer",
-  "explorerSetupHint": "Set up a block explorer to see your full transaction history.",
   "legacyTitle": "Unsupported Wallet",
   "legacyDescription": "Spice Wallet is dropping support for legacy and polyseed seed phrases in favor of BIP39. Please write down the seed phrase below, delete this wallet and create a new wallet. You can restore the seed below on another Monero wallet and move the funds to your new BIP39 seed wallet.",
   "legacyShowSeedButton": "Show seed",

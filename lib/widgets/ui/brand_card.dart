@@ -2,46 +2,46 @@ import 'package:flutter/material.dart';
 
 import 'package:spice_wallet/theme/brand.dart';
 
-/// Rounded warm surface. The base container for most content blocks.
+/// A plain brand card: solid [color] fill, hairline [borderColor] outline, and
+/// rounded corners. Wraps the `Container(decoration: BoxDecoration(...))` that
+/// otherwise repeats across every screen.
 class BrandCard extends StatelessWidget {
   final Widget child;
-  final EdgeInsetsGeometry padding;
-  final Color? color;
-  final bool border;
-  final List<BoxShadow> shadow;
-  final BorderRadius radius;
-  final VoidCallback? onTap;
+  final EdgeInsetsGeometry? padding;
+  final double? width;
+  final double radius;
+  final Color color;
+  final Color borderColor;
+  final double borderWidth;
+  final Clip clipBehavior;
+  final List<BoxShadow>? shadow;
 
   const BrandCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(BrandSpacing.lg),
-    this.color,
-    this.border = false,
-    this.shadow = BrandShadows.soft,
-    this.radius = BrandRadii.rCard,
-    this.onTap,
+    this.padding,
+    this.width,
+    this.radius = 16,
+    this.color = BrandColors.card,
+    this.borderColor = BrandColors.border,
+    this.borderWidth = 1,
+    this.clipBehavior = Clip.none,
+    this.shadow,
   });
 
   @override
   Widget build(BuildContext context) {
-    final decoration = BoxDecoration(
-      color: color ?? BrandColors.paper,
-      borderRadius: radius,
-      boxShadow: shadow,
-      border: border ? Border.all(color: BrandColors.border) : null,
-    );
-    final content = Padding(padding: padding, child: child);
-    if (onTap == null) return DecoratedBox(decoration: decoration, child: content);
-    return DecoratedBox(
-      decoration: decoration,
-      child: ClipRRect(
-        borderRadius: radius,
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(onTap: onTap, child: content),
-        ),
+    return Container(
+      width: width,
+      padding: padding,
+      clipBehavior: clipBehavior,
+      decoration: BoxDecoration(
+        color: color,
+        border: Border.all(color: borderColor, width: borderWidth),
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: shadow,
       ),
+      child: child,
     );
   }
 }

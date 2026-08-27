@@ -108,35 +108,17 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  child: SizedBox(
-                    height: 44,
-                    child: Stack(
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: IconCircleButton(
-                            icon: Icons.close,
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ),
-                        Center(
-                          child: Text(
-                            i18n.receiveTitle,
-                            style: BrandText.appBar.copyWith(fontSize: 16),
-                          ),
-                        ),
-                        if (_isMobile)
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: IconCircleButton(
-                              icon: Icons.ios_share,
-                              onPressed: ready
-                                  ? () => SharePlus.instance.share(ShareParams(text: address!))
-                                  : null,
-                            ),
-                          ),
-                      ],
-                    ),
+                  child: BrandScreenHeader(
+                    onBack: () => Navigator.pop(context),
+                    center: Text(i18n.receiveTitle, style: BrandText.appBar.copyWith(fontSize: 16)),
+                    action: _isMobile
+                        ? IconCircleButton(
+                            icon: Icons.ios_share,
+                            onPressed: ready
+                                ? () => SharePlus.instance.share(ShareParams(text: address!))
+                                : null,
+                          )
+                        : null,
                   ),
                 ),
                 Expanded(
@@ -148,9 +130,11 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                             _CoinCard(wallet: wallet),
                             if (canToggle) ...[
                               const SizedBox(height: 14),
-                              _AddressTypeToggle(
-                                showSubaddress: _showSubaddress,
-                                onChanged: (v) => setState(() => _showSubaddress = v),
+                              BrandSegmented(
+                                dense: true,
+                                labels: [i18n.receiveSubaddressTab, i18n.receivePrimaryTab],
+                                selectedIndex: _showSubaddress ? 0 : 1,
+                                onSelect: (i) => setState(() => _showSubaddress = i == 0),
                               ),
                             ],
                             const SizedBox(height: 14),
@@ -223,12 +207,7 @@ class _CoinCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    return Container(
-      decoration: BoxDecoration(
-        color: BrandColors.card,
-        border: Border.all(color: BrandColors.border),
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return BrandCard(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
@@ -261,58 +240,6 @@ class _CoinCard extends StatelessWidget {
   }
 }
 
-class _AddressTypeToggle extends StatelessWidget {
-  final bool showSubaddress;
-  final ValueChanged<bool> onChanged;
-
-  const _AddressTypeToggle({required this.showSubaddress, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    final i18n = AppLocalizations.of(context)!;
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: BrandColors.surfaceTinted,
-        border: Border.all(color: BrandColors.border),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        children: [
-          Expanded(child: _seg(i18n.receiveSubaddressTab, showSubaddress, () => onChanged(true))),
-          const SizedBox(width: 4),
-          Expanded(child: _seg(i18n.receivePrimaryTab, !showSubaddress, () => onChanged(false))),
-        ],
-      ),
-    );
-  }
-
-  Widget _seg(String label, bool selected, VoidCallback onTap) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 9),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected ? BrandColors.card : Colors.transparent,
-          border: Border.all(color: selected ? BrandColors.borderStrong : Colors.transparent),
-          borderRadius: BorderRadius.circular(11),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13.5,
-            height: 1,
-            fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
-            color: selected ? BrandColors.ink : BrandColors.inkMuted,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _QrCard extends StatelessWidget {
   final String address;
   final String heading;
@@ -322,12 +249,8 @@ class _QrCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: BrandColors.card,
-        border: Border.all(color: BrandColors.border),
-        borderRadius: BorderRadius.circular(22),
-      ),
+    return BrandCard(
+      radius: 22,
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
-import 'package:spice_wallet/widgets/loading_button.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
-import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/util/amount_units.dart';
+import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/util/formatting.dart';
 import 'package:spice_wallet/util/logging.dart';
+import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 
 class ConfirmSendScreenArgs {
@@ -26,119 +26,48 @@ class ConfirmSendScreenArgs {
   });
 }
 
-class ConfirmSendScreen extends StatefulWidget {
-  const ConfirmSendScreen({super.key});
-
-  @override
-  State<ConfirmSendScreen> createState() => _ConfirmSendScreenState();
+/// Presents the "Confirm Send" review as a brand bottom sheet. Resolves to
+/// `true` once the transaction is committed (the caller then routes home), or
+/// null if the user dismisses/cancels.
+Future<bool?> showConfirmSendSheet(BuildContext context, ConfirmSendScreenArgs args) {
+  return showBrandSheet<bool>(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) => _ConfirmSendSheet(args: args),
+  );
 }
 
-class _ConfirmSendScreenState extends State<ConfirmSendScreen> {
-  bool _isLoading = false;
-  PendingTransaction? _tx;
-  double _amount = 0.0;
-  double _fee = 0.0;
-  String? _destinationOpenAlias;
-  String _destinationAddress = '';
-  String? _destinationContactName;
-  String _coinSymbol = 'XMR';
-  bool _argsLoaded = false;
+class _ConfirmSendSheet extends StatefulWidget {
+  final ConfirmSendScreenArgs args;
+
+  const _ConfirmSendSheet({required this.args});
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_argsLoaded) return;
-    _argsLoaded = true;
-    _loadTxDetails();
-  }
+  State<_ConfirmSendSheet> createState() => _ConfirmSendSheetState();
+}
 
-  void _loadTxDetails() {
-    final args = ModalRoute.of(context)!.settings.arguments as ConfirmSendScreenArgs?;
+class _ConfirmSendSheetState extends State<_ConfirmSendSheet> {
+  static const _highFeeThreshold = 0.10;
 
-    if (args == null) {
-      throw Exception('Args missing');
-    }
-
-    final wallet = Provider.of<WalletManager>(context, listen: false).getWallet(args.coinSymbol);
-
-    setState(() {
-      _coinSymbol = args.coinSymbol;
-      _tx = args.tx;
-      _amount = wallet == null
-          ? 0
-          : displayAmount(args.tx.amountBaseUnits, wallet.baseUnitDecimals);
-      _fee = wallet == null
-          ? 0
-          : displayAmount(args.tx.feeBaseUnits, wallet.feeBaseUnitDecimals);
-      _destinationOpenAlias = args.destinationOpenAlias;
-      _destinationAddress = args.destinationAddress;
-      _destinationContactName = args.destinationContactName;
-    });
-  }
-
-  Widget _buildVerifiableAddress(String address) {
-    final parts = addressDisplayParts(address);
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: 200),
-      child: Text.rich(
-        TextSpan(
-          style: TextStyle(fontFamily: 'monospace', fontSize: 14),
-          children: [
-            TextSpan(
-              text: parts.prefix,
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-            if (parts.middle.isNotEmpty)
-              TextSpan(
-                text: parts.middle,
-                style: TextStyle(fontWeight: FontWeight.w300),
-              ),
-            TextSpan(
-              text: parts.suffix,
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ],
-        ),
-        textAlign: TextAlign.end,
-      ),
-    );
-  }
+  bool _isLoading = false;
 
   Future<void> _confirmSend() async {
     final i18n = AppLocalizations.of(context)!;
     final manager = Provider.of<WalletManager>(context, listen: false);
-    final wallet = manager.getWallet(_coinSymbol);
+    final wallet = manager.getWallet(widget.args.coinSymbol);
+    if (wallet == null) return;
 
-    if (_tx == null || wallet == null) return;
-
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      await wallet.commitTx(_tx!, _destinationAddress);
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/coin_home',
-          // remove until the coin home screen is reached
-          (route) => route.settings.name == '/wallet_home',
-          arguments: CoinHomeScreenArgs(coinSymbol: _coinSymbol, showTxSuccessToast: true),
-        );
-      }
+      await wallet.commitTx(widget.args.tx, widget.args.destinationAddress);
+      if (mounted) Navigator.of(context).pop(true);
+      return;
     } on FormatException catch (error) {
       var errorMsg = error.toString().replaceFirst('FormatException: ', '');
-
       if (error.toString().contains('HTTP error code 500')) {
         errorMsg = 'Failed to send transaction. You might have insufficient unlocked balance.';
       }
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMsg)));
       }
@@ -149,14 +78,8 @@ class _ConfirmSendScreenState extends State<ConfirmSendScreen> {
       }
     }
 
-    setState(() {
-      _isLoading = false;
-    });
+    if (mounted) setState(() => _isLoading = false);
   }
-
-  static const _highFeeThreshold = 0.10;
-
-  String _formatPercent(double ratio) => '${(ratio * 100).round()}%';
 
   /// Fee as a fraction of the amount, or null when it can't be determined
   /// (token send with no fiat rate). Same-currency fees compare directly;
@@ -164,178 +87,345 @@ class _ConfirmSendScreenState extends State<ConfirmSendScreen> {
   double? _feeToAmountRatio(
     FiatRateModel fiatRate,
     CryptoWallet? wallet,
+    double amount,
+    double fee,
     bool feeIsForeign,
     String feeSymbol,
   ) {
-    if (_amount <= 0) return null;
+    if (amount <= 0) return null;
+    if (!feeIsForeign) return fee / amount;
 
-    if (!feeIsForeign) {
-      return _fee / _amount;
-    }
-
-    final amountRate = fiatRate.rateFor(wallet?.coinSymbol ?? _coinSymbol);
+    final amountRate = fiatRate.rateFor(wallet?.coinSymbol ?? widget.args.coinSymbol);
     final feeRate = fiatRate.rateFor(feeSymbol);
     if (amountRate == null || feeRate == null) return null;
 
-    final amountFiat = _amount * amountRate;
+    final amountFiat = amount * amountRate;
     if (amountFiat <= 0) return null;
-    return (_fee * feeRate) / amountFiat;
+    return (fee * feeRate) / amountFiat;
   }
 
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
+    final args = widget.args;
     final fiatRate = context.watch<FiatRateModel>();
     final fiatSymbol = fiatRate.fiatCode == 'EUR' ? '€' : '\$';
-    final wallet = context.watch<WalletManager>().getWallet(_coinSymbol);
+    final wallet = context.watch<WalletManager>().getWallet(args.coinSymbol);
+
     final decimals = wallet?.decimals ?? 12;
-    final coinSymbol = wallet?.coinSymbol ?? _coinSymbol;
+    final coinSymbol = wallet?.coinSymbol ?? args.coinSymbol;
     final feeDecimals = wallet?.feeDecimals ?? decimals;
     final feeSymbol = wallet?.feeCoinSymbol ?? coinSymbol;
     final feeIsForeign = wallet?.feeIsForeign ?? false;
-    final coinRate = fiatRate.rateFor(coinSymbol);
-    final amountFiat = coinRate != null ? _amount * coinRate : null;
-    // The fee is in ETH for tokens; its fiat can't use the token's rate, so omit it.
-    final networkFeeFiat = coinRate != null && !feeIsForeign ? _fee * coinRate : null;
 
-    // Warn when the fee is a large fraction of the amount. Same-currency fees
-    // compare directly; foreign (token) fees need fiat for both sides, and the
-    // check is skipped if a rate is unavailable.
-    final feeRatio = _feeToAmountRatio(fiatRate, wallet, feeIsForeign, feeSymbol);
+    final amount = wallet == null
+        ? 0.0
+        : displayAmount(args.tx.amountBaseUnits, wallet.baseUnitDecimals);
+    final fee = wallet == null
+        ? 0.0
+        : displayAmount(args.tx.feeBaseUnits, wallet.feeBaseUnitDecimals);
+
+    final coinRate = fiatRate.rateFor(coinSymbol);
+    final amountFiat = coinRate != null ? amount * coinRate : null;
+    // The fee is in ETH for tokens; its fiat can't use the token's rate, so omit it.
+    final networkFeeFiat = coinRate != null && !feeIsForeign ? fee * coinRate : null;
+
+    final feeRatio = _feeToAmountRatio(fiatRate, wallet, amount, fee, feeIsForeign, feeSymbol);
     final showHighFeeWarning = feeRatio != null && feeRatio > _highFeeThreshold;
 
-    return Scaffold(
-      appBar: AppBar(),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Center(
-          child: Container(
-            constraints: BoxConstraints(maxWidth: 440),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              spacing: 20,
+    final rows = <Widget>[
+      _detailRow(
+        i18n.amount,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                CoinMark(coinSymbol: coinSymbol, iconAsset: wallet?.iconAsset ?? '', size: 22),
+                const SizedBox(width: 9),
+                Flexible(
                   child: Text(
-                    i18n.confirmSendTitle,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                ),
-                Text(
-                  i18n.confirmSendDescription,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(i18n.amount, style: TextStyle(fontWeight: FontWeight.bold)),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '${_amount.toStringAsFixed(decimals)} $coinSymbol',
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        if (amountFiat is double)
-                          Text('$fiatSymbol${amountFiat.toStringAsFixed(2)}'),
-                      ],
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(i18n.networkFee, style: TextStyle(fontWeight: FontWeight.bold)),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '${_fee.toStringAsFixed(feeDecimals)} $feeSymbol',
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        if (networkFeeFiat is double)
-                          Text('$fiatSymbol${networkFeeFiat.toStringAsFixed(2)}'),
-                      ],
-                    ),
-                  ],
-                ),
-                if (showHighFeeWarning)
-                  Container(
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 10,
-                      children: [
-                        Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 20),
-                        Expanded(
-                          child: Builder(
-                            builder: (context) {
-                              // Split the localized string on the placeholder so
-                              // the percentage can be bolded regardless of locale.
-                              final parts = i18n.confirmSendHighFeeWarning(' ').split(' ');
-                              return Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(text: parts.first),
-                                    TextSpan(
-                                      text: _formatPercent(feeRatio),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                    if (parts.length > 1) TextSpan(text: parts.last),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                    '${amount.toStringAsFixed(decimals)} $coinSymbol',
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(
+                      fontFamily: 'Ubuntu Mono',
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                      color: BrandColors.ink,
                     ),
                   ),
-                if (_destinationOpenAlias is String)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ),
+              ],
+            ),
+            if (amountFiat != null) ...[
+              const SizedBox(height: 4),
+              _fiatText(formatFiat(amountFiat, fiatSymbol)),
+            ],
+          ],
+        ),
+      ),
+      _detailRow(
+        i18n.networkFee,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              '${fee.toStringAsFixed(feeDecimals)} $feeSymbol',
+              textAlign: TextAlign.end,
+              style: const TextStyle(
+                fontFamily: 'Ubuntu Mono',
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: BrandColors.ink,
+              ),
+            ),
+            if (networkFeeFiat != null) ...[
+              const SizedBox(height: 4),
+              _fiatText(formatFiat(networkFeeFiat, fiatSymbol)),
+            ],
+          ],
+        ),
+      ),
+      if (args.destinationOpenAlias != null)
+        _detailRow(
+          'OpenAlias',
+          Text(
+            args.destinationOpenAlias!,
+            textAlign: TextAlign.end,
+            style: const TextStyle(fontSize: 12.5, color: BrandColors.ink),
+          ),
+        ),
+      _detailRow(
+        i18n.address,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _verifiableAddress(args.destinationAddress),
+            if (args.destinationContactName != null) ...[
+              const SizedBox(height: 4),
+              _fiatText('(${args.destinationContactName})', mono: false),
+            ],
+          ],
+        ),
+      ),
+    ];
+
+    return PopScope(
+      // Block drag/back dismissal while the commit is in flight.
+      canPop: !_isLoading,
+      child: SafeArea(
+        top: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.86),
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SheetHandle(),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(22, 0, 22, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('OpenAlias', style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text(_destinationOpenAlias!),
-                    ],
-                  ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(i18n.address, style: TextStyle(fontWeight: FontWeight.bold)),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                      Row(
                         children: [
-                          Container(
-                            margin: EdgeInsets.only(left: 40),
-                            child: _buildVerifiableAddress(_destinationAddress),
+                          const SheetIcon(
+                            icon: Icons.north_east,
+                            bg: Color(0xFFF6E9D6),
+                            color: BrandColors.cinnamonDeep,
                           ),
-                          if (_destinationContactName is String) Text('($_destinationContactName)'),
+                          const SizedBox(width: 11),
+                          Expanded(child: Text(i18n.confirmSendTitle, style: BrandText.sheetTitle)),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 7),
+                      Text(
+                        i18n.confirmSendDescription,
+                        style: BrandText.bodyMuted.copyWith(fontSize: 13, height: 1.5),
+                      ),
+                    ],
+                  ),
                 ),
-                LoadingButton(
-                  isLoading: _isLoading,
-                  onPressed: _confirmSend,
-                  label: i18n.sendSendButton,
-                  icon: Icons.arrow_outward_rounded,
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 22),
+                          child: BrandCard(
+                            radius: 18,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            child: Column(
+                              children: [
+                                for (var i = 0; i < rows.length; i++) ...[
+                                  if (i != 0) Container(height: 1, color: BrandColors.hairline),
+                                  rows[i],
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (showHighFeeWarning)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(22, 12, 22, 0),
+                            child: _highFeeWarning(i18n, feeRatio),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(22, 18, 22, 8),
+                  child: Column(
+                    children: [
+                      BrandButton(
+                        label: i18n.sendSendButton,
+                        icon: Icons.north_east,
+                        iconTrailing: true,
+                        loading: _isLoading,
+                        onPressed: _confirmSend,
+                      ),
+                      const SizedBox(height: 2),
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _isLoading ? null : () => Navigator.of(context).pop(),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Center(
+                              child: Text(
+                                i18n.cancel,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: BrandColors.inkMuted,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, Widget value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              height: 1.35,
+              color: BrandColors.ink,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Align(alignment: Alignment.centerRight, child: value),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _fiatText(String text, {bool mono = true}) {
+    return Text(
+      text,
+      textAlign: TextAlign.end,
+      style: TextStyle(
+        fontFamily: mono ? 'Ubuntu Mono' : null,
+        fontSize: 11.5,
+        color: BrandColors.inkMuted,
+      ),
+    );
+  }
+
+  /// Address with its first/last chunks bold and the middle de-emphasised, so
+  /// the parts users actually verify stand out.
+  Widget _verifiableAddress(String address) {
+    final parts = addressDisplayParts(address);
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 210),
+      child: Text.rich(
+        TextSpan(
+          style: const TextStyle(
+            fontFamily: 'Ubuntu Mono',
+            fontSize: 12.5,
+            height: 1.5,
+            color: BrandColors.ink,
+          ),
+          children: [
+            TextSpan(
+              text: parts.prefix,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            if (parts.middle.isNotEmpty)
+              TextSpan(
+                text: parts.middle,
+                style: const TextStyle(fontWeight: FontWeight.w300, color: BrandColors.inkMuted),
+              ),
+            TextSpan(
+              text: parts.suffix,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+        textAlign: TextAlign.end,
+      ),
+    );
+  }
+
+  Widget _highFeeWarning(AppLocalizations i18n, double feeRatio) {
+    // Split the localized string on the {percent} placeholder so the percentage
+    // can be bolded regardless of locale. Use a sentinel (not a space) as the
+    // placeholder value, since the sentence itself contains spaces.
+    const token = '\u0000';
+    final parts = i18n.confirmSendHighFeeWarning(token).split(token);
+    return Container(
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: BrandColors.warningBg,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.warning_amber_rounded, color: BrandColors.warning, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                style: const TextStyle(fontSize: 12.5, height: 1.4, color: BrandColors.ink),
+                children: [
+                  TextSpan(text: parts.first),
+                  TextSpan(
+                    text: '${(feeRatio * 100).round()}%',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  if (parts.length > 1) TextSpan(text: parts.last),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

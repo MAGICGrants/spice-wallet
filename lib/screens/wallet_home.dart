@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -12,12 +11,11 @@ import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
+import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
 import 'package:wallet_domain/wallet_domain.dart';
-
-final _fiatFormat = NumberFormat('#,##0.00');
 
 class WalletHomeScreen extends StatefulWidget {
   const WalletHomeScreen({super.key});
@@ -186,7 +184,7 @@ class _TotalBalanceHeader extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
-                    child: BalanceText.split('$fiatSymbol${_fiatFormat.format(totalFiat)}'),
+                    child: BalanceText.split(formatFiat(totalFiat, fiatSymbol)),
                   ),
                 )
               else
@@ -366,10 +364,7 @@ class _CoinCard extends StatelessWidget {
     if (balanceFiat != null && !fiatRate.isDisabled) {
       return Padding(
         padding: const EdgeInsets.only(right: 7),
-        child: BalanceText.split(
-          '$fiatSymbol${_fiatFormat.format(balanceFiat)}',
-          style: _cardBalanceStyle,
-        ),
+        child: BalanceText.split(formatFiat(balanceFiat, fiatSymbol), style: _cardBalanceStyle),
       );
     }
     if (balance == null) {
@@ -381,7 +376,9 @@ class _CoinCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 7),
       child: Text(
-        (balance is double ? balance : 0.0).toStringAsFixed(wallet.decimals > 6 ? 6 : wallet.decimals),
+        (balance is double ? balance : 0.0).toStringAsFixed(
+          wallet.decimals > 6 ? 6 : wallet.decimals,
+        ),
         style: _cardBalanceStyle,
       ),
     );

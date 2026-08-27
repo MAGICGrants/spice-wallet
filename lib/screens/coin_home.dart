@@ -12,6 +12,7 @@ import 'package:spice_wallet/screens/receive.dart';
 import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
+import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -25,7 +26,6 @@ class CoinHomeScreenArgs {
   CoinHomeScreenArgs({required this.coinSymbol, this.showTxSuccessToast = false});
 }
 
-final _fiatFormat = NumberFormat('#,##0.00');
 const _balanceStyle = TextStyle(
   fontFamily: 'Ubuntu Mono',
   fontSize: 33,
@@ -98,7 +98,9 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
     if (entered == null) {
       return Scaffold(
         backgroundColor: BrandColors.paper,
-        body: SafeArea(child: Center(child: Text('Unknown coin: $coinSymbol', style: BrandText.body))),
+        body: SafeArea(
+          child: Center(child: Text('Unknown coin: $coinSymbol', style: BrandText.body)),
+        ),
       );
     }
 
@@ -202,8 +204,7 @@ double? _ownFiat(CryptoWallet wallet, FiatRateModel fiatRate) {
 /// Compact coin amount ("412.09041"), capped so long-decimal coins stay legible.
 String _amountText(CryptoWallet wallet) {
   final b = wallet.unlockedBalance;
-  if (b is! double) return '—';
-  return b.toStringAsFixed(wallet.decimals.clamp(0, 8));
+  return b is double ? formatAmount(b, wallet.decimals) : '—';
 }
 
 class _Header extends StatelessWidget {
@@ -216,30 +217,10 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: SizedBox(
-        height: 44,
-        child: Stack(
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconCircleButton(icon: Icons.close, onPressed: () => Navigator.pop(context)),
-            ),
-            Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 22),
-                  const SizedBox(width: 8),
-                  Text(wallet.coinName, style: BrandText.appBar.copyWith(fontSize: 16)),
-                ],
-              ),
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconCircleButton(icon: Icons.tune, onPressed: onSettings),
-            ),
-          ],
-        ),
+      child: BrandScreenHeader(
+        onBack: () => Navigator.pop(context),
+        center: CoinBadge(wallet: wallet),
+        action: IconCircleButton(icon: Icons.tune, onPressed: onSettings),
       ),
     );
   }
@@ -273,7 +254,7 @@ class _BalanceHero extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (showFiat)
-            BalanceText.split('$fiatSymbol${_fiatFormat.format(totalFiat)}', style: _balanceStyle)
+            BalanceText.split(formatFiat(totalFiat!, fiatSymbol), style: _balanceStyle)
           else if (wallet.unlockedBalance == null)
             Skeletonizer(child: Text('0.0000', style: _balanceStyle))
           else
@@ -283,11 +264,7 @@ class _BalanceHero extends StatelessWidget {
           if (hasTokens)
             Text(
               i18n.homeAssetsCount(assetCount),
-              style: const TextStyle(
-                fontSize: 13.5,
-                height: 1,
-                color: BrandColors.inkMuted,
-              ),
+              style: const TextStyle(fontSize: 13.5, height: 1, color: BrandColors.inkMuted),
             )
           else if (showFiat)
             Text(
@@ -350,11 +327,7 @@ class _RouteLine extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               parts.join(' · '),
-              style: const TextStyle(
-                fontSize: 11.5,
-                height: 1,
-                color: BrandColors.inkMuted,
-              ),
+              style: const TextStyle(fontSize: 11.5, height: 1, color: BrandColors.inkMuted),
             ),
           ],
         ),
@@ -421,11 +394,7 @@ class _ActionRow extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: ActionButton(
-            icon: Icons.swap_horiz,
-            label: i18n.coinHomeSwap,
-            onPressed: onSwap,
-          ),
+          child: ActionButton(icon: Icons.swap_horiz, label: i18n.coinHomeSwap, onPressed: onSwap),
         ),
       ],
     );
@@ -437,11 +406,7 @@ class _AssetsSection extends StatelessWidget {
   final FiatRateModel fiatRate;
   final String fiatSymbol;
 
-  const _AssetsSection({
-    required this.assets,
-    required this.fiatRate,
-    required this.fiatSymbol,
-  });
+  const _AssetsSection({required this.assets, required this.fiatRate, required this.fiatSymbol});
 
   @override
   Widget build(BuildContext context) {
@@ -498,12 +463,7 @@ class _AssetRow extends StatelessWidget {
     // fetches `balanceOf`; show a skeleton, not an em-dash, while it's loading.
     final loading = wallet.unlockedBalance == null;
     final fiat = _ownFiat(wallet, fiatRate);
-    return Container(
-      decoration: BoxDecoration(
-        color: BrandColors.card,
-        border: Border.all(color: BrandColors.border),
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return BrandCard(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
       child: Row(
         children: [
@@ -536,7 +496,7 @@ class _AssetRow extends StatelessWidget {
           if (loading)
             Skeletonizer(enabled: true, child: Text('\$0.00', style: _fiatStyle))
           else if (fiat != null && !fiatRate.isDisabled)
-            BalanceText.split('$fiatSymbol${_fiatFormat.format(fiat)}', style: _fiatStyle),
+            BalanceText.split(formatFiat(fiat, fiatSymbol), style: _fiatStyle),
         ],
       ),
     );
@@ -718,7 +678,7 @@ class _TxRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${incoming ? '+' : '−'}${amount.toStringAsFixed(asset.decimals.clamp(0, 8))} ${asset.coinSymbol}',
+                  '${incoming ? '+' : '−'}${formatAmount(amount, asset.decimals, symbol: asset.coinSymbol)}',
                   style: TextStyle(
                     fontFamily: 'Ubuntu Mono',
                     fontSize: 13.5,
@@ -731,7 +691,7 @@ class _TxRow extends StatelessWidget {
                 if (amountFiat != null && !fiatRate.isDisabled) ...[
                   const SizedBox(height: 2),
                   Text(
-                    '$fiatSymbol${_fiatFormat.format(amountFiat)}',
+                    formatFiat(amountFiat, fiatSymbol),
                     style: const TextStyle(
                       fontFamily: 'Ubuntu Mono',
                       fontSize: 11,
@@ -858,4 +818,3 @@ class _AddExplorerNudge extends StatelessWidget {
     );
   }
 }
-

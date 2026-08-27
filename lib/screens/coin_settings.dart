@@ -55,16 +55,9 @@ class CoinSettingsScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   child: BrandScreenHeader(
                     onBack: () => Navigator.pop(context),
-                    center: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 22),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${wallet.coinName} ${i18n.settingsTitle}',
-                          style: BrandText.appBar.copyWith(fontSize: 16),
-                        ),
-                      ],
+                    center: CoinBadge(
+                      wallet: wallet,
+                      label: '${wallet.coinName} ${i18n.settingsTitle}',
                     ),
                   ),
                 ),

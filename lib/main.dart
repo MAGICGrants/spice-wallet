@@ -12,7 +12,6 @@ import 'package:spice_wallet/models/contact_model.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/coin_settings.dart';
-import 'package:spice_wallet/screens/confirm_send.dart';
 import 'package:spice_wallet/screens/scan_qr.dart';
 import 'package:spice_wallet/services/tor_service.dart';
 import 'package:spice_wallet/models/language_model.dart';
@@ -282,7 +281,6 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     '/coin_settings': (context) => const CoinSettingsScreen(),
     '/settings': (context) => SettingsScreen(),
     '/send': (context) => SendScreen(),
-    '/confirm_send': (context) => ConfirmSendScreen(),
     '/scan_qr': (context) => ScanQrScreen(),
     '/receive': (context) => ReceiveScreen(),
     '/address_book': (context) => AddressBookScreen(),

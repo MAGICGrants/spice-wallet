@@ -242,13 +242,9 @@ class _WordCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return BrandCard(
+      radius: 11,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: BrandColors.card,
-        borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: BrandColors.border),
-      ),
       child: Row(
         children: [
           Text(
