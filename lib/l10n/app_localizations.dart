@@ -1665,6 +1665,36 @@ abstract class AppLocalizations {
   /// **'Contact Name'**
   String get addressBookContactName;
 
+  /// No description provided for @addressBookNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get addressBookNameHint;
+
+  /// No description provided for @addressBookAddDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A name, and at least one address to pay them on.'**
+  String get addressBookAddDescription;
+
+  /// No description provided for @addressBookEditDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Addresses get pasted or scanned, not typed. At least one is required.'**
+  String get addressBookEditDescription;
+
+  /// No description provided for @addressBookAddressesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Addresses'**
+  String get addressBookAddressesLabel;
+
+  /// No description provided for @addressBookAddressesNoneYet.
+  ///
+  /// In en, this message translates to:
+  /// **'none yet'**
+  String get addressBookAddressesNoneYet;
+
   /// No description provided for @addressBookUpdate.
   ///
   /// In en, this message translates to:

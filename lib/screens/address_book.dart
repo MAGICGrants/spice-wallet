@@ -1,10 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/contact_model.dart';
-import 'package:wallet_domain/wallet_domain.dart';
+import 'package:spice_wallet/screens/send.dart';
+import 'package:spice_wallet/util/coin_assets.dart';
+import 'package:wallet_infra/wallet_infra.dart' show SecureClipboard;
+import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 
 class AddressBookScreen extends StatefulWidget {
   const AddressBookScreen({super.key});
@@ -16,6 +23,7 @@ class AddressBookScreen extends StatefulWidget {
 class _AddressBookScreenState extends State<AddressBookScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String? _expandedId;
 
   @override
   void dispose() {
@@ -23,49 +31,84 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
     super.dispose();
   }
 
-  void _onSearchChanged(String query) {
-    setState(() {
-      _searchQuery = query;
-    });
-  }
+  void _showAddContactDialog() => _showContactSheet(null);
 
-  void _showAddContactDialog() {
-    showDialog(context: context, builder: (context) => _ContactDialog());
-  }
+  void _showEditContactDialog(Contact contact) => _showContactSheet(contact);
 
-  void _showEditContactDialog(Contact contact) {
-    showDialog(
+  void _showContactSheet(Contact? contact) {
+    showModalBottomSheet<void>(
       context: context,
-      builder: (context) => _ContactDialog(contact: contact),
+      isScrollControlled: true,
+      backgroundColor: BrandColors.paper,
+      constraints: const BoxConstraints(maxWidth: 520),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetContext) => _ContactSheet(contact: contact),
     );
   }
 
   void _showDeleteContactDialog(Contact contact) {
     final i18n = AppLocalizations.of(context)!;
-
-    showDialog(
+    showModalBottomSheet<void>(
       context: context,
-      builder: (context) {
-        final screenWidth = MediaQuery.of(context).size.width;
-        final dialogWidth = screenWidth.clamp(0.0, 400.0);
-
-        return AlertDialog(
-          constraints: BoxConstraints.tightFor(width: dialogWidth),
-          insetPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-          title: Text(i18n.addressBookDeleteContact),
-          content: Text(i18n.addressBookDeleteContactConfirmation(contact.name)),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(i18n.cancel)),
-            FilledButton(
-              onPressed: () {
-                Provider.of<ContactModel>(context, listen: false).deleteContact(contact.id);
-                Navigator.of(context).pop();
-              },
-              child: Text(i18n.addressBookDelete),
-            ),
-          ],
-        );
-      },
+      backgroundColor: BrandColors.paper,
+      constraints: const BoxConstraints(maxWidth: 520),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 8, 22, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _SheetHandle(),
+              Row(
+                children: [
+                  const _SheetTitleIcon(
+                    icon: Icons.delete_outline,
+                    bg: BrandColors.errorBg,
+                    color: BrandColors.error,
+                  ),
+                  const SizedBox(width: 11),
+                  Text(i18n.addressBookDeleteContact, style: BrandText.sheetTitle),
+                ],
+              ),
+              const SizedBox(height: 7),
+              Text(
+                i18n.addressBookDeleteContactConfirmation(contact.name),
+                style: BrandText.bodyMuted.copyWith(fontSize: 13, height: 1.5),
+              ),
+              const SizedBox(height: 18),
+              BrandButton(label: i18n.cancel, onPressed: () => Navigator.pop(sheetContext)),
+              const SizedBox(height: 4),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  Provider.of<ContactModel>(context, listen: false).deleteContact(contact.id);
+                  Navigator.pop(sheetContext);
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  alignment: Alignment.center,
+                  child: Text(
+                    i18n.addressBookDelete,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: BrandColors.error,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -74,82 +117,134 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
     final i18n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(i18n.addressBookTitle)),
-      bottomNavigationBar: WalletNavigationBar(selectedIndex: 1),
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Row(
+      backgroundColor: BrandColors.paper,
+      bottomNavigationBar: const WalletNavigationBar(selectedIndex: 1),
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: _onSearchChanged,
-                    textInputAction: TextInputAction.done,
-                    decoration: InputDecoration(
-                      hintText: i18n.addressBookSearchHint,
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  child: SizedBox(
+                    height: 44,
+                    child: Stack(
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: IconCircleButton(
+                            icon: Icons.close,
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                        Center(
+                          child: Text(
+                            i18n.addressBookTitle,
+                            style: BrandText.appBar.copyWith(fontSize: 16),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                SizedBox(width: 8),
-                IconButton(onPressed: _showAddContactDialog, icon: Icon(Icons.add)),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _SearchField(
+                          controller: _searchController,
+                          onChanged: (q) => setState(() => _searchQuery = q),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _showAddContactDialog,
+                        child: Container(
+                          width: 52,
+                          height: 52,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: BrandColors.cinnamonDeep,
+                            borderRadius: BorderRadius.circular(BrandRadii.field),
+                          ),
+                          child: const Icon(Icons.add, size: 24, color: BrandColors.onCinnamon),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Consumer<ContactModel>(
+                    builder: (context, contactModel, child) {
+                      final contacts = contactModel.searchContacts(_searchQuery);
+                      if (contacts.isEmpty) return _EmptyState(searching: _searchQuery.isNotEmpty);
+                      return ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
+                        itemCount: contacts.length,
+                        itemBuilder: (context, index) {
+                          final contact = contacts[index];
+                          final expanded = contact.id == _expandedId;
+                          return _ContactTile(
+                            contact: contact,
+                            expanded: expanded,
+                            onToggle: () =>
+                                setState(() => _expandedId = expanded ? null : contact.id),
+                            onEdit: () => _showEditContactDialog(contact),
+                            onDelete: () => _showDeleteContactDialog(contact),
+                            isLast: index == contacts.length - 1,
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchField extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+
+  const _SearchField({required this.controller, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final i18n = AppLocalizations.of(context)!;
+    return Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: BrandColors.card,
+        border: Border.all(color: BrandColors.border),
+        borderRadius: BorderRadius.circular(BrandRadii.field),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.search, size: 20, color: BrandColors.inkFaint),
+          const SizedBox(width: 10),
           Expanded(
-            child: Consumer<ContactModel>(
-              builder: (context, contactModel, child) {
-                final filteredContacts = contactModel.searchContacts(_searchQuery);
-
-                if (filteredContacts.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.contacts_outlined,
-                          size: 64,
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          _searchQuery.isEmpty
-                              ? i18n.addressBookNoContacts
-                              : i18n.addressBookNoSearchResults,
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                        ),
-                        if (_searchQuery.isEmpty) ...[
-                          SizedBox(height: 8),
-                          Text(
-                            i18n.addressBookNoContactsDescription,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  itemCount: filteredContacts.length,
-                  itemBuilder: (context, index) {
-                    final contact = filteredContacts[index];
-                    return _ContactListItem(
-                      contact: contact,
-                      onEdit: () => _showEditContactDialog(contact),
-                      onDelete: () => _showDeleteContactDialog(contact),
-                    );
-                  },
-                );
-              },
+            child: TextField(
+              controller: controller,
+              onChanged: onChanged,
+              textInputAction: TextInputAction.search,
+              style: const TextStyle(fontSize: 14, color: BrandColors.ink),
+              decoration: InputDecoration(
+                isCollapsed: true,
+                border: InputBorder.none,
+                hintText: i18n.addressBookSearchHint,
+                hintStyle: const TextStyle(fontSize: 14, color: BrandColors.inkFaint),
+              ),
             ),
           ),
         ],
@@ -158,225 +253,510 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
   }
 }
 
-class _ContactListItem extends StatelessWidget {
+class _EmptyState extends StatelessWidget {
+  final bool searching;
+  const _EmptyState({required this.searching});
+
+  @override
+  Widget build(BuildContext context) {
+    final i18n = AppLocalizations.of(context)!;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.people_outline, size: 56, color: BrandColors.inkDisabled),
+            const SizedBox(height: 16),
+            Text(
+              searching ? i18n.addressBookNoSearchResults : i18n.addressBookNoContacts,
+              textAlign: TextAlign.center,
+              style: BrandText.body,
+            ),
+            if (!searching) ...[
+              const SizedBox(height: 6),
+              Text(
+                i18n.addressBookNoContactsDescription,
+                textAlign: TextAlign.center,
+                style: BrandText.bodyMuted,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A round monogram avatar (contact's first initial).
+class _Avatar extends StatelessWidget {
+  final String name;
+  const _Avatar({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 44,
+      height: 44,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(color: BrandColors.cinnamonDeep, shape: BoxShape.circle),
+      child: Text(
+        name.isNotEmpty ? name[0].toUpperCase() : '?',
+        style: const TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.w700,
+          color: BrandColors.onCinnamon,
+        ),
+      ),
+    );
+  }
+}
+
+class _ContactTile extends StatelessWidget {
   final Contact contact;
+  final bool expanded;
+  final VoidCallback onToggle;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final bool isLast;
 
-  const _ContactListItem({required this.contact, required this.onEdit, required this.onDelete});
+  const _ContactTile({
+    required this.contact,
+    required this.expanded,
+    required this.onToggle,
+    required this.onEdit,
+    required this.onDelete,
+    required this.isLast,
+  });
 
-  void _copyAddressesToClipboard(BuildContext context) {
+  List<MapEntry<String, String>> get _sorted =>
+      contact.addresses.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+
+  @override
+  Widget build(BuildContext context) {
+    final manager = context.read<WalletManager>();
+
+    if (!expanded) {
+      return Column(
+        children: [
+          InkWell(
+            onTap: onToggle,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Row(
+                children: [
+                  _Avatar(name: contact.name),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          contact.name,
+                          style: const TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w700,
+                            color: BrandColors.ink,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _sorted.map((e) => manager.wallets[e.key]?.coinName ?? e.key).join(' · '),
+                          style: BrandText.caption.copyWith(fontSize: 11.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.keyboard_arrow_down, size: 22, color: BrandColors.inkMuted),
+                ],
+              ),
+            ),
+          ),
+          if (!isLast) const Divider(height: 1, thickness: 1, color: BrandColors.surfaceTinted),
+        ],
+      );
+    }
+
+    final coinNames = _sorted.map((e) => manager.wallets[e.key]?.coinName ?? e.key).join(' · ');
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Container(
+        decoration: BoxDecoration(
+          color: BrandColors.card,
+          border: Border.all(color: BrandColors.border),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            InkWell(
+              onTap: onToggle,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(15, 15, 15, 13),
+                child: Row(
+                  children: [
+                    _Avatar(name: contact.name),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            contact.name,
+                            style: const TextStyle(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.w700,
+                              color: BrandColors.ink,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(coinNames, style: BrandText.caption.copyWith(fontSize: 11.5)),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.keyboard_arrow_up, size: 22, color: BrandColors.inkMuted),
+                  ],
+                ),
+              ),
+            ),
+            for (final e in _sorted)
+              _AddressRow(coinSymbol: e.key, address: e.value, wallet: manager.wallets[e.key]),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(15, 6, 15, 15),
+              child: Row(
+                children: [
+                  Expanded(child: _EditButton(onTap: onEdit)),
+                  const SizedBox(width: 10),
+                  Expanded(child: _DeleteButton(onTap: onDelete)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AddressRow extends StatelessWidget {
+  final String coinSymbol;
+  final String address;
+  final CryptoWallet? wallet;
+
+  const _AddressRow({required this.coinSymbol, required this.address, required this.wallet});
+
+  static String _short(String s) =>
+      s.length <= 16 ? s : '${s.substring(0, 8)}…${s.substring(s.length - 8)}';
+
+  void _copy(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-
-    Clipboard.setData(ClipboardData(text: contact.addressesForClipboard()));
-
+    // Treat as sensitive (auto-cleared) like other address/key copies (D10).
+    SecureClipboard.copy(address);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(i18n.addressCopied)));
   }
 
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final sortedEntries = contact.addresses.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
-
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          child: Text(
-            contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
-              fontWeight: FontWeight.bold,
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: BrandColors.surfaceTinted)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+      child: Row(
+        children: [
+          CoinMark(coinSymbol: coinSymbol, iconAsset: wallet?.iconAsset ?? '', size: 34),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  wallet?.coinName ?? coinSymbol,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w500,
+                    color: BrandColors.ink,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _short(address),
+                  style: const TextStyle(
+                    fontFamily: 'Ubuntu Mono',
+                    fontSize: 11.5,
+                    color: BrandColors.inkMuted,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        title: Text(contact.name, style: TextStyle(fontWeight: FontWeight.w500)),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final entry in sortedEntries)
-              Padding(
-                padding: EdgeInsets.only(top: 2),
-                child: Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '${entry.key}: ',
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-                      ),
-                      TextSpan(
-                        text: entry.value,
-                        style: TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-          ],
-        ),
-        isThreeLine: sortedEntries.length > 1,
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) {
-            switch (value) {
-              case 'copy':
-                _copyAddressesToClipboard(context);
-                break;
-              case 'edit':
-                onEdit();
-                break;
-              case 'delete':
-                onDelete();
-                break;
-            }
-          },
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'copy',
-              child: Row(
-                children: [Icon(Icons.copy), SizedBox(width: 8), Text(i18n.addressBookCopyAddress)],
-              ),
+          const SizedBox(width: 10),
+          _IconSquare(icon: Icons.copy_outlined, onTap: () => _copy(context)),
+          const SizedBox(width: 8),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.pushNamed(
+              context,
+              '/send',
+              arguments: SendScreenArgs(coinSymbol: coinSymbol, destinationAddress: address),
             ),
-            PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [Icon(Icons.edit), SizedBox(width: 8), Text(i18n.addressBookEdit)],
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: BrandColors.cinnamonDeep,
+                borderRadius: BorderRadius.circular(12),
               ),
-            ),
-            PopupMenuItem(
-              value: 'delete',
               child: Row(
                 children: [
-                  Icon(Icons.delete, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text(i18n.addressBookDelete, style: TextStyle(color: Colors.red)),
+                  const Icon(Icons.north_east, size: 15, color: BrandColors.onCinnamon),
+                  const SizedBox(width: 6),
+                  Text(
+                    i18n.homeSend,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: BrandColors.onCinnamon,
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
-        onTap: () => _copyAddressesToClipboard(context),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _ContactDialog extends StatefulWidget {
-  final Contact? contact;
-
-  const _ContactDialog({this.contact});
+class _IconSquare extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _IconSquare({required this.icon, required this.onTap});
 
   @override
-  State<_ContactDialog> createState() => _ContactDialogState();
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        width: 44,
+        height: 44,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: BrandColors.surfaceSunken,
+          border: Border.all(color: BrandColors.border),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, size: 18, color: BrandColors.cinnamonDeep),
+      ),
+    );
+  }
 }
 
-class _ContactDialogState extends State<_ContactDialog> {
-  final _formKey = GlobalKey<FormState>();
+class _EditButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _EditButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final i18n = AppLocalizations.of(context)!;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: BrandColors.surfaceSunken,
+          border: Border.all(color: BrandColors.borderStrong),
+          borderRadius: BorderRadius.circular(BrandRadii.button),
+        ),
+        child: Text(
+          i18n.addressBookEdit,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: BrandColors.cinnamonDeep,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DeleteButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _DeleteButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final i18n = AppLocalizations.of(context)!;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        alignment: Alignment.center,
+        child: Text(
+          i18n.addressBookDelete,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: BrandColors.error,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetHandle extends StatelessWidget {
+  const _SheetHandle();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 38,
+        height: 5,
+        margin: const EdgeInsets.only(bottom: 14),
+        decoration: BoxDecoration(
+          color: BrandColors.borderStrong,
+          borderRadius: BorderRadius.circular(3),
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetTitleIcon extends StatelessWidget {
+  final IconData icon;
+  final Color bg;
+  final Color color;
+
+  const _SheetTitleIcon({required this.icon, required this.bg, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 34,
+      height: 34,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(11)),
+      child: Icon(icon, size: 18, color: color),
+    );
+  }
+}
+
+/// Add / edit a contact — a name and one address per coin, set by paste or scan
+/// (never typed), matching the design.
+class _ContactSheet extends StatefulWidget {
+  final Contact? contact;
+
+  const _ContactSheet({required this.contact});
+
+  @override
+  State<_ContactSheet> createState() => _ContactSheetState();
+}
+
+class _ContactSheetState extends State<_ContactSheet> {
   final _nameController = TextEditingController();
-  final Map<String, TextEditingController> _addressControllers = {};
-  bool _isLoading = false;
-  bool _controllersReady = false;
-  String? _addressesError;
+  final Map<String, String> _addresses = {};
+  List<CryptoWallet> _wallets = const [];
+  bool _ready = false;
+  bool _saving = false;
+  String? _error;
+
+  bool get _isEditing => widget.contact != null;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_controllersReady) return;
-    _controllersReady = true;
-
+    if (_ready) return;
+    _ready = true;
+    final manager = context.read<WalletManager>();
+    // One address per blockchain — tokens (DAI) share their chain's address.
+    _wallets = manager.allWallets.where((w) => !isTokenWallet(w)).toList();
     if (widget.contact != null) {
       _nameController.text = widget.contact!.name;
-    }
-
-    final wallets = context.read<WalletManager>().allWallets;
-    for (final wallet in wallets) {
-      _addressControllers[wallet.coinSymbol] = TextEditingController(
-        text: widget.contact?.addressFor(wallet.coinSymbol) ?? '',
-      );
+      // Migrate any legacy per-token entries onto their chain.
+      for (final e in widget.contact!.addresses.entries) {
+        final w = manager.wallets[e.key];
+        final chain = w != null ? chainSymbolOf(w) : e.key;
+        _addresses.putIfAbsent(chain, () => e.value);
+      }
     }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    for (final controller in _addressControllers.values) {
-      controller.dispose();
-    }
     super.dispose();
   }
 
-  String? _validateName(String? value) {
-    final i18n = AppLocalizations.of(context)!;
-    if (value == null || value.trim().isEmpty) {
-      return i18n.fieldEmptyError;
+  String? _extractAddress(String raw, CryptoWallet wallet) {
+    final value = raw.trim();
+    final uri = Uri.tryParse(value);
+    if (uri != null &&
+        uri.scheme.toLowerCase() == wallet.coinSymbol.toLowerCase() &&
+        wallet.isAddressValid(uri.path)) {
+      return uri.path;
     }
-    return null;
+    return wallet.isAddressValid(value) ? value : null;
   }
 
-  String? _validateAddress(String? value, CryptoWallet wallet) {
+  void _setAddress(CryptoWallet wallet, String? raw) {
     final i18n = AppLocalizations.of(context)!;
-    final trimmed = value?.trim() ?? '';
-    if (trimmed.isEmpty) return null;
-
-    if (!wallet.isAddressValid(trimmed)) {
-      return i18n.sendInvalidAddressError;
+    final address = raw == null ? null : _extractAddress(raw, wallet);
+    if (address == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(i18n.sendInvalidAddressError)));
+      return;
     }
-    return null;
+    setState(() {
+      _addresses[wallet.coinSymbol] = address;
+      _error = null;
+    });
   }
 
-  Map<String, String> _collectAddresses() {
-    return {
-      for (final entry in _addressControllers.entries)
-        if (entry.value.text.trim().isNotEmpty) entry.key: entry.value.text.trim(),
-    };
+  Future<void> _paste(CryptoWallet wallet) async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (mounted) _setAddress(wallet, data?.text);
   }
 
-  Future<void> _saveContact() async {
+  Future<void> _scan(CryptoWallet wallet) async {
+    final result = await Navigator.pushNamed(context, '/scan_qr');
+    if (mounted && result is String) _setAddress(wallet, result);
+  }
+
+  Future<void> _save() async {
     final i18n = AppLocalizations.of(context)!;
-    setState(() => _addressesError = null);
-
-    if (!_formKey.currentState!.validate()) return;
-
-    final addresses = _collectAddresses();
-    if (addresses.isEmpty) {
-      setState(() => _addressesError = i18n.addressBookAtLeastOneAddressError);
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      setState(() => _error = i18n.fieldEmptyError);
+      return;
+    }
+    if (_addresses.isEmpty) {
+      setState(() => _error = i18n.addressBookAtLeastOneAddressError);
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _saving = true);
     try {
-      final contactModel = Provider.of<ContactModel>(context, listen: false);
-
+      final model = Provider.of<ContactModel>(context, listen: false);
       if (widget.contact == null) {
-        await contactModel.addContact(_nameController.text.trim(), addresses);
+        await model.addContact(name, Map.of(_addresses));
       } else {
-        await contactModel.updateContact(
-          widget.contact!.id,
-          _nameController.text.trim(),
-          addresses,
-        );
+        await model.updateContact(widget.contact!.id, name, Map.of(_addresses));
       }
-
+      if (mounted) Navigator.pop(context);
+    } catch (_) {
       if (mounted) {
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(i18n.unknownError), backgroundColor: Colors.red));
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(i18n.unknownError)));
+        setState(() => _saving = false);
       }
     }
   }
@@ -384,78 +764,302 @@ class _ContactDialogState extends State<_ContactDialog> {
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final isEditing = widget.contact != null;
-    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
-    final wallets = context.watch<WalletManager>().allWallets;
+    final name = _nameController.text.trim();
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    final dialogWidth = screenWidth.clamp(0.0, 400.0);
-
-    return AlertDialog(
-      constraints: BoxConstraints.tightFor(width: dialogWidth),
-      insetPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-      title: Text(isEditing ? i18n.addressBookEditContact : i18n.addressBookAddContact),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: SafeArea(
+        top: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.88),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: i18n.addressBookContactName,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+              const Padding(padding: EdgeInsets.only(top: 8), child: _SheetHandle()),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        _SheetTitleIcon(
+                          icon: _isEditing ? Icons.edit_outlined : Icons.add,
+                          bg: const Color(0xFFF6E9D6),
+                          color: BrandColors.cinnamonDeep,
+                        ),
+                        const SizedBox(width: 11),
+                        Text(
+                          _isEditing ? i18n.addressBookEditContact : i18n.addressBookAddContact,
+                          style: BrandText.sheetTitle,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      _isEditing ? i18n.addressBookEditDescription : i18n.addressBookAddDescription,
+                      style: BrandText.bodyMuted.copyWith(fontSize: 13, height: 1.5),
+                    ),
+                  ],
                 ),
-                validator: _validateName,
-                textCapitalization: TextCapitalization.words,
-                textInputAction: TextInputAction.next,
               ),
-              SizedBox(height: 16),
-              for (final wallet in wallets) ...[
-                TextFormField(
-                  controller: _addressControllers[wallet.coinSymbol],
-                  decoration: InputDecoration(
-                    labelText: '${wallet.coinName} (${wallet.coinSymbol})',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(22, 0, 22, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SectionHeader(
+                        label: i18n.addressBookContactName,
+                        padding: const EdgeInsets.only(left: 4, bottom: 8),
+                      ),
+                      _nameField(name),
+                      const SizedBox(height: 16),
+                      SectionHeader(
+                        label:
+                            '${i18n.addressBookAddressesLabel} · ${_addresses.isEmpty ? i18n.addressBookAddressesNoneYet : '${_addresses.length}/${_wallets.length}'}',
+                        padding: const EdgeInsets.only(left: 4, bottom: 8),
+                      ),
+                      for (var i = 0; i < _wallets.length; i++) ...[
+                        if (i != 0) const SizedBox(height: 8),
+                        _addressEntry(_wallets[i]),
+                      ],
+                      if (_error != null) ...[
+                        const SizedBox(height: 10),
+                        Text(_error!, style: BrandText.caption.copyWith(color: BrandColors.error)),
+                      ],
+                    ],
                   ),
-                  validator: (value) => _validateAddress(value, wallet),
-                  maxLines: 2,
-                  textInputAction: TextInputAction.done,
                 ),
-                SizedBox(height: 12),
-              ],
-              if (_addressesError != null)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    _addressesError!,
-                    style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
-                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 18, 22, 8),
+                child: Column(
+                  children: [
+                    BrandButton(
+                      label: _isEditing ? i18n.addressBookUpdate : i18n.addressBookSave,
+                      loading: _saving,
+                      onPressed: (_saving || name.isEmpty || _addresses.isEmpty) ? null : _save,
+                    ),
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        alignment: Alignment.center,
+                        child: Text(
+                          i18n.cancel,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: BrandColors.inkMuted,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+              ),
             ],
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: Text(i18n.cancel),
+    );
+  }
+
+  Widget _nameField(String name) {
+    final i18n = AppLocalizations.of(context)!;
+    final filled = name.isNotEmpty;
+    return Container(
+      decoration: BoxDecoration(
+        color: BrandColors.card,
+        border: Border.all(color: filled ? BrandColors.border : BrandColors.inputBorder),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: filled ? BrandColors.cinnamonDeep : BrandColors.surfaceTinted,
+              shape: BoxShape.circle,
+            ),
+            child: filled
+                ? Text(
+                    name[0].toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: BrandColors.onCinnamon,
+                    ),
+                  )
+                : const Icon(Icons.person_outline, size: 17, color: BrandColors.inkDisabled),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              controller: _nameController,
+              onChanged: (_) => setState(() {}),
+              textCapitalization: TextCapitalization.words,
+              style: const TextStyle(fontSize: 14.5, height: 1.3, color: BrandColors.ink),
+              decoration: InputDecoration(
+                isCollapsed: true,
+                border: InputBorder.none,
+                hintText: i18n.addressBookNameHint,
+                hintStyle: const TextStyle(fontSize: 14.5, color: BrandColors.inkFaint),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _addressEntry(CryptoWallet wallet) {
+    final address = _addresses[wallet.coinSymbol];
+    final tile = CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 30);
+
+    if (address != null) {
+      return Container(
+        decoration: BoxDecoration(
+          color: BrandColors.card,
+          border: Border.all(color: BrandColors.border),
+          borderRadius: BorderRadius.circular(14),
         ),
-        FilledButton(
-          onPressed: _isLoading ? null : _saveContact,
-          child: _isLoading
-              ? SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: isDarkTheme ? Theme.of(context).colorScheme.onPrimary : Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+        child: Row(
+          children: [
+            tile,
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    wallet.coinName,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                      color: BrandColors.ink,
+                    ),
                   ),
-                )
-              : Text(isEditing ? i18n.addressBookUpdate : i18n.addressBookSave),
+                  const SizedBox(height: 3),
+                  Text(
+                    _short(address),
+                    style: const TextStyle(
+                      fontFamily: 'Ubuntu Mono',
+                      fontSize: 11,
+                      color: BrandColors.inkMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(() => _addresses.remove(wallet.coinSymbol)),
+              child: Container(
+                width: 26,
+                height: 26,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: BrandColors.surfaceTinted,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, size: 13, color: BrandColors.inkMuted),
+              ),
+            ),
+          ],
         ),
-      ],
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: BrandColors.surfaceSunken,
+        border: Border.all(color: const Color(0xFFE0CDB2)),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      child: Row(
+        children: [
+          tile,
+          const SizedBox(width: 11),
+          Expanded(
+            child: Text(
+              wallet.coinName,
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+                color: BrandColors.inkFaint,
+              ),
+            ),
+          ),
+          _PasteScanButton(
+            icon: Icons.content_paste_outlined,
+            label: AppLocalizations.of(context)!.sendPasteButton,
+            onTap: () => _paste(wallet),
+          ),
+          if (Platform.isAndroid || Platform.isIOS) ...[
+            const SizedBox(width: 7),
+            _PasteScanButton(
+              icon: Icons.qr_code_scanner,
+              label: AppLocalizations.of(context)!.sendScanButton,
+              onTap: () => _scan(wallet),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  static String _short(String s) =>
+      s.length <= 18 ? s : '${s.substring(0, 9)}…${s.substring(s.length - 9)}';
+}
+
+class _PasteScanButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _PasteScanButton({required this.icon, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: BrandColors.surfaceSunken,
+          border: Border.all(color: BrandColors.border),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: BrandColors.cinnamonDeep),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: BrandColors.cinnamonDeep,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

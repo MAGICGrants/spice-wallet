@@ -849,6 +849,22 @@ class AppLocalizationsPt extends AppLocalizations {
   String get addressBookContactName => 'Nome do Contato';
 
   @override
+  String get addressBookNameHint => 'Nome';
+
+  @override
+  String get addressBookAddDescription => 'Um nome e ao menos um endereço para pagá-lo.';
+
+  @override
+  String get addressBookEditDescription =>
+      'Os endereços são colados ou escaneados, não digitados. Ao menos um é obrigatório.';
+
+  @override
+  String get addressBookAddressesLabel => 'Endereços';
+
+  @override
+  String get addressBookAddressesNoneYet => 'nenhum ainda';
+
+  @override
   String get addressBookUpdate => 'Atualizar';
 
   @override

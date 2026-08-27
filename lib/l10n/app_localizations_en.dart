@@ -848,6 +848,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addressBookContactName => 'Contact Name';
 
   @override
+  String get addressBookNameHint => 'Name';
+
+  @override
+  String get addressBookAddDescription => 'A name, and at least one address to pay them on.';
+
+  @override
+  String get addressBookEditDescription =>
+      'Addresses get pasted or scanned, not typed. At least one is required.';
+
+  @override
+  String get addressBookAddressesLabel => 'Addresses';
+
+  @override
+  String get addressBookAddressesNoneYet => 'none yet';
+
+  @override
   String get addressBookUpdate => 'Update';
 
   @override

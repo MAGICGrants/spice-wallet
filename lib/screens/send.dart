@@ -243,12 +243,14 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   void _showContactPicker() {
+    // Contacts hold one address per blockchain; a token (DAI) uses its chain's.
+    final chainSymbol = chainSymbolOf(_wallet(context));
     showDialog(
       context: context,
       builder: (context) => _ContactPickerDialog(
-        coinSymbol: _coinSymbol,
+        coinSymbol: chainSymbol,
         onContactSelected: (contact) {
-          final address = contact.addressFor(_coinSymbol);
+          final address = contact.addressFor(chainSymbol);
           if (address == null) return;
 
           setState(() {
