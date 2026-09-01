@@ -365,11 +365,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               animate: _animateToggles,
                             ),
                           SettingsLinkTile(
-                            title: i18n.settingsSeedPhraseLabel,
-                            linkLabel: i18n.settingsLwsViewKeysButton,
-                            onTap: _revealSeed,
-                          ),
-                          SettingsLinkTile(
                             title: i18n.settingsTorSettingsLabel,
                             subtitle: _torModeLabel(i18n),
                             linkLabel: i18n.settingsLwsViewKeysButton,
@@ -440,6 +435,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       SettingsGroup(
                         label: i18n.settingsSectionWallet,
                         tiles: [
+                          SettingsLinkTile(
+                            title: i18n.settingsSeedPhraseLabel,
+                            linkLabel: i18n.settingsLwsViewKeysButton,
+                            onTap: _revealSeed,
+                          ),
                           SettingsLinkTile(
                             title: i18n.settingsDeleteWalletButton,
                             titleColor: BrandColors.error,
