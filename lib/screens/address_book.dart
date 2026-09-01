@@ -109,7 +109,6 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   child: BrandScreenHeader(
-                    onBack: () => Navigator.pop(context),
                     center: Text(
                       i18n.addressBookTitle,
                       style: BrandText.appBar.copyWith(fontSize: 16),

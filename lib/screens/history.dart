@@ -112,12 +112,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
-                  child: Text(
-                    i18n.historyTitle,
-                    style: BrandText.title.copyWith(fontSize: 27, letterSpacing: -0.27),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  child: BrandScreenHeader(
+                    center: Text(i18n.historyTitle, style: BrandText.appBar.copyWith(fontSize: 16)),
                   ),
                 ),
+                const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                   child: Row(

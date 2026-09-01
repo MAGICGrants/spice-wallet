@@ -126,7 +126,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 12, top: 6, bottom: 2),
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 6, bottom: 2),
       child: Row(
         children: [
           SvgPicture.asset('assets/spice-icon.svg', width: 30, height: 30),
@@ -139,12 +139,6 @@ class _Header extends StatelessWidget {
               height: 1,
               color: BrandColors.cinnamonDeep,
             ),
-          ),
-          const Spacer(),
-          IconCircleButton(
-            icon: Icons.tune,
-            color: BrandColors.card,
-            onPressed: () => Navigator.pushNamed(context, '/settings'),
           ),
         ],
       ),
