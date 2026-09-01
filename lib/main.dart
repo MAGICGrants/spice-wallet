@@ -27,6 +27,7 @@ import 'package:spice_wallet/screens/receive.dart';
 import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/screens/create_wallet.dart';
 import 'package:spice_wallet/screens/create_wallet_password.dart';
+import 'package:spice_wallet/screens/history.dart';
 import 'package:spice_wallet/screens/restore_wallet.dart';
 import 'package:spice_wallet/screens/reveal_seed.dart';
 import 'package:spice_wallet/screens/wallet_home.dart';
@@ -277,6 +278,7 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     '/coin_home': (context) => CoinHomeScreen(),
     '/coin_settings': (context) => const CoinSettingsScreen(),
     '/settings': (context) => SettingsScreen(),
+    '/history': (context) => const HistoryScreen(),
     '/reveal_seed': (context) => const RevealSeedScreen(),
     '/send': (context) => SendScreen(),
     '/scan_qr': (context) => ScanQrScreen(),

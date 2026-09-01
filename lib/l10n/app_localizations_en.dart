@@ -319,6 +319,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navigationBarSettings => 'Settings';
 
   @override
+  String get navigationBarHistory => 'History';
+
+  @override
+  String get historyTitle => 'History';
+
+  @override
+  String get historyFilterBlockchain => 'Blockchain';
+
+  @override
+  String get historyFilterAsset => 'Asset';
+
+  @override
+  String get historyFilterType => 'Type';
+
+  @override
+  String get historyFilterReset => 'Reset';
+
+  @override
   String get unlockButton => 'Unlock';
 
   @override

@@ -97,7 +97,7 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
 
     return Scaffold(
       backgroundColor: BrandColors.paper,
-      bottomNavigationBar: const WalletNavigationBar(selectedIndex: 1),
+      bottomNavigationBar: const WalletNavigationBar(selectedIndex: 2),
       body: SafeArea(
         bottom: false,
         child: Center(

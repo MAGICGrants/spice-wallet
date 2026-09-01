@@ -320,6 +320,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navigationBarSettings => 'Configurações';
 
   @override
+  String get navigationBarHistory => 'Histórico';
+
+  @override
+  String get historyTitle => 'Histórico';
+
+  @override
+  String get historyFilterBlockchain => 'Rede';
+
+  @override
+  String get historyFilterAsset => 'Ativo';
+
+  @override
+  String get historyFilterType => 'Tipo';
+
+  @override
+  String get historyFilterReset => 'Redefinir';
+
+  @override
   String get unlockButton => 'Desbloquear';
 
   @override

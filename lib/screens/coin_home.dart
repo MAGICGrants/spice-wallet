@@ -10,9 +10,9 @@ import 'package:spice_wallet/screens/coin_settings.dart';
 import 'package:spice_wallet/screens/explorer_setup.dart';
 import 'package:spice_wallet/screens/receive.dart';
 import 'package:spice_wallet/screens/send.dart';
-import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/format.dart';
+import 'package:spice_wallet/widgets/tx_activity_row.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -501,8 +501,6 @@ class _AssetRow extends StatelessWidget {
 }
 
 /// A transaction paired with the chain asset it belongs to (ETH or DAI, …).
-typedef _TxEntry = ({TxDetails tx, CryptoWallet asset});
-
 class _ActivitySliver extends StatelessWidget {
   final CryptoWallet chain;
   final List<CryptoWallet> assets;
@@ -525,7 +523,7 @@ class _ActivitySliver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Merge every chain asset's history into one timeline, newest first.
-    final entries = <_TxEntry>[
+    final entries = <TxEntry>[
       for (final asset in assets)
         for (final tx in asset.txHistory) (tx: tx, asset: asset),
     ]..sort((a, b) => b.tx.timestamp.compareTo(a.tx.timestamp));
@@ -574,170 +572,19 @@ class _ActivitySliver extends StatelessWidget {
               child: SectionHeader(label: row, padding: EdgeInsets.zero),
             );
           }
-          final e = row as _TxEntry;
+          final e = row as TxEntry;
           // Divider between consecutive tx rows in the same day group only.
           final next = index + 1 < rows.length ? rows[index + 1] : null;
-          return _TxRow(
+          return TxActivityRow(
             tx: e.tx,
             asset: e.asset,
             i18n: i18n,
             fiatRate: fiatRate,
             fiatSymbol: fiatSymbol,
-            showDivider: next is _TxEntry,
+            showDivider: next is TxEntry,
             onTap: () => onTapTx(e.asset, e.tx),
           );
         },
-      ),
-    );
-  }
-}
-
-class _TxRow extends StatelessWidget {
-  final TxDetails tx;
-  final CryptoWallet asset;
-  final AppLocalizations i18n;
-  final FiatRateModel fiatRate;
-  final String fiatSymbol;
-  final bool showDivider;
-  final VoidCallback onTap;
-
-  const _TxRow({
-    required this.tx,
-    required this.asset,
-    required this.i18n,
-    required this.fiatRate,
-    required this.fiatSymbol,
-    required this.showDivider,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final incoming = tx.direction == consts.txDirectionIncoming;
-    final coinRate = fiatRate.rateFor(asset.coinSymbol);
-    final amount = displayAmount(tx.amountBaseUnits, asset.baseUnitDecimals);
-    final amountFiat = coinRate != null ? amount * coinRate : null;
-    final confirmed = asset.isTxConfirmed(tx);
-    final date = DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
-    final amountColor = incoming ? BrandColors.success : BrandColors.ink;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        decoration: showDivider
-            ? BoxDecoration(
-                border: Border(bottom: BorderSide(color: BrandColors.surfaceTinted)),
-              )
-            : null,
-        padding: const EdgeInsets.symmetric(vertical: 11),
-        child: Row(
-          children: [
-            _TxAssetIcon(asset: asset, incoming: incoming),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    incoming ? i18n.coinHomeReceived : i18n.coinHomeSent,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      height: 1.25,
-                      color: BrandColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      if (!confirmed) ...[
-                        Icon(Icons.hourglass_top_rounded, size: 12, color: BrandColors.warning),
-                        const SizedBox(width: 4),
-                      ],
-                      Text(
-                        // Default (en) symbols: initializeDateFormatting isn't wired, so a
-                        // locale arg would throw for pt.
-                        '${DateFormat('HH:mm').format(date)} · ${asset.coinName}',
-                        style: TextStyle(fontSize: 11, height: 1.3, color: BrandColors.inkMuted),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${incoming ? '+' : '−'}${formatAmount(amount, asset.decimals, symbol: asset.coinSymbol)}',
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu Mono',
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    height: 1.25,
-                    color: amountColor,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
-                if (amountFiat != null && !fiatRate.isDisabled) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    formatFiat(amountFiat, fiatSymbol),
-                    style: TextStyle(
-                      fontFamily: 'Ubuntu Mono',
-                      fontSize: 11,
-                      height: 1.3,
-                      color: BrandColors.inkMuted,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// The asset's chain tile with a small direction badge (receive / send).
-class _TxAssetIcon extends StatelessWidget {
-  final CryptoWallet asset;
-  final bool incoming;
-
-  const _TxAssetIcon({required this.asset, required this.incoming});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 38,
-      height: 38,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          CoinMark(coinSymbol: asset.coinSymbol, iconAsset: asset.iconAsset, size: 36),
-          Positioned(
-            right: -2,
-            bottom: -2,
-            child: Container(
-              width: 17,
-              height: 17,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: BrandColors.paper,
-                shape: BoxShape.circle,
-                border: Border.all(color: BrandColors.hairline, width: 1.5),
-              ),
-              child: Icon(
-                incoming ? Icons.south : Icons.north,
-                size: 10,
-                color: incoming ? BrandColors.success : BrandColors.cinnamon,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

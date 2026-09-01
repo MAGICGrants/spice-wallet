@@ -5,13 +5,13 @@ import 'package:spice_wallet/theme/brand.dart';
 
 /// Brand bottom nav — flat icon+label tabs on the cream ground with a hairline
 /// top border (see design `brand/screens`). Keeps the app's real destinations
-/// (Home / Contacts / Settings).
+/// (Home / Contacts / History / Settings).
 class WalletNavigationBar extends StatelessWidget {
   final int selectedIndex;
 
   const WalletNavigationBar({super.key, required this.selectedIndex});
 
-  static const _routes = ['/wallet_home', '/address_book', '/settings'];
+  static const _routes = ['/wallet_home', '/history', '/address_book', '/settings'];
 
   void _select(BuildContext context, int index) {
     if (index == selectedIndex) return;
@@ -23,6 +23,7 @@ class WalletNavigationBar extends StatelessWidget {
     final i18n = AppLocalizations.of(context)!;
     final items = [
       (Icons.home_outlined, i18n.navigationBarHome),
+      (Icons.history, i18n.navigationBarHistory),
       (Icons.people_outline, i18n.addressBookTitle),
       (Icons.tune, i18n.navigationBarSettings),
     ];

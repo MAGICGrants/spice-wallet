@@ -675,6 +675,42 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get navigationBarSettings;
 
+  /// No description provided for @navigationBarHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get navigationBarHistory;
+
+  /// No description provided for @historyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get historyTitle;
+
+  /// No description provided for @historyFilterBlockchain.
+  ///
+  /// In en, this message translates to:
+  /// **'Blockchain'**
+  String get historyFilterBlockchain;
+
+  /// No description provided for @historyFilterAsset.
+  ///
+  /// In en, this message translates to:
+  /// **'Asset'**
+  String get historyFilterAsset;
+
+  /// No description provided for @historyFilterType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get historyFilterType;
+
+  /// No description provided for @historyFilterReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get historyFilterReset;
+
   /// No description provided for @unlockButton.
   ///
   /// In en, this message translates to:

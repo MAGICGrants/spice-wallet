@@ -319,7 +319,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: BrandColors.paper,
-      bottomNavigationBar: const WalletNavigationBar(selectedIndex: 2),
+      bottomNavigationBar: const WalletNavigationBar(selectedIndex: 3),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -331,7 +331,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   child: BrandScreenHeader(
-                    onBack: () => Navigator.pop(context),
                     center: Text(
                       i18n.settingsTitle,
                       style: BrandText.appBar.copyWith(fontSize: 16),
