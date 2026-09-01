@@ -140,6 +140,17 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
   int _lastAnnouncedTxCount = 0;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
+  /// Last resolved theme brightness, to detect a light↔dark flip.
+  Brightness? _lastBrightness;
+
+  /// Recursively marks an element and its descendants for rebuild — used to
+  /// refresh brand-coloured screens after a theme change (they don't depend on
+  /// Flutter's Theme, so nothing else marks them dirty).
+  static void _markSubtreeDirty(Element element) {
+    element.markNeedsBuild();
+    element.visitChildren(_markSubtreeDirty);
+  }
+
   void _startServicesOnce() {
     if (_startedServices) return;
     _startedServices = true;
@@ -296,7 +307,19 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
       // Pin the brand tokens to the resolved theme brightness before any screen
       // builds, so BrandColors.* return the light/dark palette for this frame.
       builder: (context, child) {
-        BrandColors.setBrightness(Theme.of(context).brightness);
+        final brightness = Theme.of(context).brightness;
+        BrandColors.setBrightness(brightness);
+        // Screens read BrandColors globally, not via Theme.of, so a theme flip
+        // doesn't mark them dirty on its own — cached routes keep their old
+        // colours. On an actual change, force an in-place rebuild of the whole
+        // navigator subtree (state is preserved; only build() re-runs).
+        if (_lastBrightness != null && _lastBrightness != brightness) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final navContext = _navigatorKey.currentContext;
+            if (navContext is Element) navContext.visitChildElements(_markSubtreeDirty);
+          });
+        }
+        _lastBrightness = brightness;
         return child ?? const SizedBox.shrink();
       },
       initialRoute: '/loading',

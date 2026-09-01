@@ -1182,7 +1182,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsThemeSystemDesc.
   ///
   /// In en, this message translates to:
-  /// **'Follows your phone, switching at sunset'**
+  /// **'Follows your phone'**
   String get settingsThemeSystemDesc;
 
   /// No description provided for @settingsThemeSheetSubtitle.

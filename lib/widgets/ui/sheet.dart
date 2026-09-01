@@ -4,22 +4,29 @@ import 'package:spice_wallet/theme/brand.dart';
 
 /// Presents a brand-styled modal bottom sheet (paper ground, rounded top,
 /// capped width). Use [SheetHandle]/[SheetIcon] inside for the grabber/title.
+///
+/// The paper background is drawn *inside* the builder content (not via the
+/// modal's `backgroundColor`, which is captured once at open) so it repaints
+/// when the theme changes while the sheet is open.
 Future<T?> showBrandSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   bool isScrollControlled = false,
-  bool showDragHandle = false,
 }) {
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: isScrollControlled,
-    showDragHandle: showDragHandle,
-    backgroundColor: BrandColors.paper,
+    backgroundColor: Colors.transparent,
     constraints: const BoxConstraints(maxWidth: 520),
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+    builder: (context) => Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: BrandColors.paper,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        boxShadow: BrandShadows.sheet,
+      ),
+      child: builder(context),
     ),
-    builder: builder,
   );
 }
 

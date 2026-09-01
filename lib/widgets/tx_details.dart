@@ -17,7 +17,6 @@ class TxDetailsDialog {
     showBrandSheet<void>(
       context: context,
       isScrollControlled: true,
-      showDragHandle: true,
       builder: (context) => _TxDetailsSheet(wallet: wallet, tx: tx),
     );
   }
@@ -71,11 +70,12 @@ class _TxDetailsSheet extends StatelessWidget {
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.86),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SheetHandle(),
               _header(i18n, incoming),
               const SizedBox(height: 18),
               Flexible(

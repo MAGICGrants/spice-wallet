@@ -597,7 +597,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsThemeDarkDesc => 'Dark ground, easier at night';
 
   @override
-  String get settingsThemeSystemDesc => 'Follows your phone, switching at sunset';
+  String get settingsThemeSystemDesc => 'Follows your phone';
 
   @override
   String get settingsThemeSheetSubtitle =>

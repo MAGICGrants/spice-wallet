@@ -230,7 +230,7 @@
   "settingsThemeDark": "Dark",
   "settingsThemeLightDesc": "Warm paper, the default",
   "settingsThemeDarkDesc": "Dark ground, easier at night",
-  "settingsThemeSystemDesc": "Follows your phone, switching at sunset",
+  "settingsThemeSystemDesc": "Follows your phone",
   "settingsThemeSheetSubtitle": "Changes take effect straight away. Amount colours stay the same in both.",
   "settingsLanguageLabel": "Language",
   "settingsLanguageSheetSubtitle": "Amounts and dates follow the language you pick.",
