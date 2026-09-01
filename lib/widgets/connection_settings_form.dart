@@ -115,33 +115,22 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     }
   }
 
-  // The two sync toggles only stage their value; nothing is persisted or
-  // started/stopped until the connection is saved (see _applySyncSettings).
-  void _setBackgroundSyncEnabled(bool value) => setState(() => _backgroundSyncEnabled = value);
+  void _setBackgroundSyncEnabled(bool value) async {
+    setState(() => _backgroundSyncEnabled = value);
+    await SharedPreferencesService.set<bool>(SharedPreferencesKeys.backgroundSyncEnabled, value);
+    await applyBackgroundTaskRegistration();
+  }
 
-  void _setForegroundSyncEnabled(bool value) => setState(() => _foregroundSyncEnabled = value);
-
-  /// Persists the staged sync toggles and (re)registers their services. Called
-  /// from [_saveConnection] on a node connection, so the toggles take effect on
-  /// Save, not on tap.
-  Future<void> _applySyncSettings() async {
-    // Read the wallets before any await so context isn't used across the gap.
-    // Seed the notification "synced" only when every active wallet is caught up.
-    final active = _foregroundSyncEnabled
+  void _setForegroundSyncEnabled(bool value) async {
+    setState(() => _foregroundSyncEnabled = value);
+    // Capture before the await so context isn't used across an async gap. Seed
+    // the notification "synced" only when every active wallet is caught up.
+    final active = value
         ? Provider.of<WalletManager>(context, listen: false).activeWallets
         : const <CryptoWallet>[];
     final synced = active.isNotEmpty && active.every(isWalletFullySynced);
-
-    await SharedPreferencesService.set<bool>(
-      SharedPreferencesKeys.backgroundSyncEnabled,
-      _backgroundSyncEnabled,
-    );
-    await SharedPreferencesService.set<bool>(
-      SharedPreferencesKeys.foregroundSyncEnabled,
-      _foregroundSyncEnabled,
-    );
-    await applyBackgroundTaskRegistration();
-    if (_foregroundSyncEnabled) {
+    await SharedPreferencesService.set<bool>(SharedPreferencesKeys.foregroundSyncEnabled, value);
+    if (value) {
       await startForegroundSync(synced: synced);
     } else {
       await stopForegroundSync();
@@ -519,16 +508,11 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       );
       await wallet.persistCurrentConnection();
 
-      // Background / continuous sync are node-only. Apply the staged toggles now
-      // (they take effect on Save, not on tap). Saving an LWS connection instead
-      // stops any that were enabled for node mode, since the toggles are hidden
-      // there and would otherwise keep a service running with no way to stop it.
-      if (Platform.isAndroid && widget.coinSymbol == 'XMR') {
-        if (_connectionType == 'node') {
-          await _applySyncSettings();
-        } else {
-          await _disableSyncForLws();
-        }
+      // Background / continuous sync are node-only; saving an LWS connection
+      // stops any that were enabled for node mode, since the toggles are now
+      // hidden and would otherwise keep a service running with no way to stop it.
+      if (Platform.isAndroid && widget.coinSymbol == 'XMR' && _connectionType != 'node') {
+        await _disableSyncForLws();
       }
     }
     await widget.onBeforeSave?.call();
