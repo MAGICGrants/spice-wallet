@@ -123,7 +123,7 @@ class _OptionCard extends StatelessWidget {
                       children: [
                         Text(
                           title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: BrandColors.ink,
@@ -135,7 +135,7 @@ class _OptionCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: BrandSpacing.sm),
-                  const Icon(Icons.chevron_right, color: BrandColors.inkFaint, size: 20),
+                  Icon(Icons.chevron_right, color: BrandColors.inkFaint, size: 20),
                 ],
               ),
             ),

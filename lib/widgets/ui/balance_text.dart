@@ -7,22 +7,18 @@ class BalanceText extends StatelessWidget {
   final String whole; // includes any currency symbol, e.g. "$99,412"
   final String fraction; // digits only, e.g. "65"
   final String separator;
-  final TextStyle style;
+  final TextStyle? style;
 
   const BalanceText({
     super.key,
     required this.whole,
     required this.fraction,
     this.separator = '.',
-    this.style = BrandText.balance,
+    this.style,
   });
 
   /// Splits a formatted amount on its last [separator] ("$99,412.65" / ".").
-  factory BalanceText.split(
-    String amount, {
-    String separator = '.',
-    TextStyle style = BrandText.balance,
-  }) {
+  factory BalanceText.split(String amount, {String separator = '.', TextStyle? style}) {
     final i = amount.lastIndexOf(separator);
     if (i < 0) return BalanceText(whole: amount, fraction: '', separator: separator, style: style);
     return BalanceText(
@@ -35,15 +31,16 @@ class BalanceText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = style ?? BrandText.balance;
     return RichText(
       text: TextSpan(
-        style: style,
+        style: s,
         children: [
           TextSpan(text: whole),
           if (fraction.isNotEmpty)
             TextSpan(
               text: '$separator$fraction',
-              style: style.copyWith(color: BrandColors.inkDisabled),
+              style: s.copyWith(color: BrandColors.inkDisabled),
             ),
         ],
       ),

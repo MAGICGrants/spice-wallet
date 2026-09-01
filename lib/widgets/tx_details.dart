@@ -29,21 +29,12 @@ class _TxDetailsSheet extends StatelessWidget {
 
   const _TxDetailsSheet({required this.wallet, required this.tx});
 
-  static const _labelStyle = TextStyle(
-    fontSize: 13.5,
-    fontWeight: FontWeight.w700,
-    color: BrandColors.ink,
-  );
-  static const _valueStyle = TextStyle(
-    fontFamily: 'Ubuntu Mono',
-    fontSize: 13,
-    color: BrandColors.ink,
-  );
-  static const _mutedMono = TextStyle(
-    fontFamily: 'Ubuntu Mono',
-    fontSize: 12.5,
-    color: BrandColors.inkMuted,
-  );
+  static TextStyle get _labelStyle =>
+      TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: BrandColors.ink);
+  static TextStyle get _valueStyle =>
+      TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 13, color: BrandColors.ink);
+  static TextStyle get _mutedMono =>
+      TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 12.5, color: BrandColors.inkMuted);
 
   void _copy(BuildContext context, String text) {
     SecureClipboard.copy(text);
@@ -220,11 +211,11 @@ class _TxDetailsSheet extends StatelessWidget {
                         fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
                         fontSize: bold ? 15 : 13,
                       )
-                    : const TextStyle(fontSize: 13, color: BrandColors.ink),
+                    : TextStyle(fontSize: 13, color: BrandColors.ink),
               ),
             ),
             const SizedBox(width: 10),
-            const Icon(Icons.copy_outlined, size: 15, color: BrandColors.inkFaint),
+            Icon(Icons.copy_outlined, size: 15, color: BrandColors.inkFaint),
           ],
         ),
       ),
@@ -258,7 +249,7 @@ class _TxDetailsSheet extends StatelessWidget {
                     const SizedBox(width: 10),
                     Text(_fmtAmount(r.amountBaseUnits), style: _valueStyle),
                     const SizedBox(width: 10),
-                    const Icon(Icons.copy_outlined, size: 15, color: BrandColors.inkFaint),
+                    Icon(Icons.copy_outlined, size: 15, color: BrandColors.inkFaint),
                   ],
                 ),
               ),

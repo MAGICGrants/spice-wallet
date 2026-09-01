@@ -10,8 +10,8 @@ class BrandCard extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final double? width;
   final double radius;
-  final Color color;
-  final Color borderColor;
+  final Color? color;
+  final Color? borderColor;
   final double borderWidth;
   final Clip clipBehavior;
   final List<BoxShadow>? shadow;
@@ -22,8 +22,8 @@ class BrandCard extends StatelessWidget {
     this.padding,
     this.width,
     this.radius = 16,
-    this.color = BrandColors.card,
-    this.borderColor = BrandColors.border,
+    this.color,
+    this.borderColor,
     this.borderWidth = 1,
     this.clipBehavior = Clip.none,
     this.shadow,
@@ -36,8 +36,8 @@ class BrandCard extends StatelessWidget {
       padding: padding,
       clipBehavior: clipBehavior,
       decoration: BoxDecoration(
-        color: color,
-        border: Border.all(color: borderColor, width: borderWidth),
+        color: color ?? BrandColors.card,
+        border: Border.all(color: borderColor ?? BrandColors.border, width: borderWidth),
         borderRadius: BorderRadius.circular(radius),
         boxShadow: shadow,
       ),

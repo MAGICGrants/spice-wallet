@@ -42,11 +42,11 @@ class BrandTextField extends StatelessWidget {
         filled: true,
         fillColor: BrandColors.surfaceSunken,
         contentPadding: const EdgeInsets.symmetric(horizontal: BrandSpacing.lg, vertical: 15),
-        enabledBorder: const OutlineInputBorder(
+        enabledBorder: OutlineInputBorder(
           borderRadius: BrandRadii.rField,
           borderSide: BorderSide(color: BrandColors.border, width: 1),
         ),
-        focusedBorder: const OutlineInputBorder(
+        focusedBorder: OutlineInputBorder(
           borderRadius: BrandRadii.rField,
           borderSide: BorderSide(color: BrandColors.cinnamon, width: 1),
         ),

@@ -123,7 +123,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                 ),
                 Expanded(
                   child: !ready
-                      ? const Center(child: CircularProgressIndicator(color: BrandColors.cinnamon))
+                      ? Center(child: CircularProgressIndicator(color: BrandColors.cinnamon))
                       : ListView(
                           padding: const EdgeInsets.fromLTRB(16, 22, 16, 24),
                           children: [
@@ -219,7 +219,7 @@ class _CoinCard extends StatelessWidget {
               children: [
                 Text(
                   wallet.coinName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w500,
                     height: 1.25,
@@ -261,8 +261,8 @@ class _QrCard extends StatelessWidget {
               data: address,
               size: 200,
               padding: EdgeInsets.zero,
-              eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: BrandColors.ink),
-              dataModuleStyle: const QrDataModuleStyle(
+              eyeStyle: QrEyeStyle(eyeShape: QrEyeShape.square, color: BrandColors.ink),
+              dataModuleStyle: QrDataModuleStyle(
                 dataModuleShape: QrDataModuleShape.square,
                 color: BrandColors.ink,
               ),
@@ -275,7 +275,7 @@ class _QrCard extends StatelessWidget {
             child: Text(
               address,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Ubuntu Mono',
                 fontSize: 12.5,
                 height: 1.7,

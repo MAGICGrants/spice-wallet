@@ -89,9 +89,9 @@ class _FiatApiSettingsSheetState extends State<_FiatApiSettingsSheet> {
                   children: [
                     Row(
                       children: [
-                        const SheetIcon(
+                        SheetIcon(
                           icon: Icons.attach_money,
-                          bg: Color(0xFFF6E9D6),
+                          bg: BrandColors.surfaceAccent,
                           color: BrandColors.cinnamonDeep,
                         ),
                         const SizedBox(width: 11),
@@ -181,7 +181,7 @@ class _FiatApiSettingsSheetState extends State<_FiatApiSettingsSheet> {
                           child: Center(
                             child: Text(
                               i18n.cancel,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                                 color: BrandColors.inkMuted,

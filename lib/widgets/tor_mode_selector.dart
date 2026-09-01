@@ -194,7 +194,7 @@ class _TorModeSelectorState extends State<TorModeSelector> {
 
   Widget _testStatus(AppLocalizations i18n) {
     if (_testing) {
-      return const Align(
+      return Align(
         alignment: Alignment.centerLeft,
         child: SizedBox(
           width: 16,
@@ -210,7 +210,7 @@ class _TorModeSelectorState extends State<TorModeSelector> {
           Container(
             width: 7,
             height: 7,
-            decoration: const BoxDecoration(color: BrandColors.success, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: BrandColors.success, shape: BoxShape.circle),
           ),
           const SizedBox(width: BrandSpacing.sm),
           Text(
@@ -225,7 +225,7 @@ class _TorModeSelectorState extends State<TorModeSelector> {
     }
     return Row(
       children: [
-        const Icon(Icons.error_outline, color: BrandColors.error, size: 18),
+        Icon(Icons.error_outline, color: BrandColors.error, size: 18),
         const SizedBox(width: BrandSpacing.sm),
         Text(
           i18n.torChoiceTestFailed,
@@ -259,7 +259,7 @@ class _PortField extends StatelessWidget {
         children: [
           Text(
             label.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Ubuntu Mono',
               fontSize: 10,
               fontWeight: FontWeight.w700,
@@ -271,7 +271,7 @@ class _PortField extends StatelessWidget {
           TextField(
             controller: controller,
             keyboardType: TextInputType.number,
-            style: const TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 14, color: BrandColors.ink),
+            style: TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 14, color: BrandColors.ink),
             cursorColor: BrandColors.cinnamon,
             decoration: const InputDecoration.collapsed(hintText: '9050'),
             onChanged: (_) => onChanged(),
@@ -293,7 +293,7 @@ class _TestChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10),
-      side: const BorderSide(color: BrandColors.border),
+      side: BorderSide(color: BrandColors.border),
     );
     return Opacity(
       opacity: onTap == null ? 0.5 : 1,
@@ -307,7 +307,7 @@ class _TestChip extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w500,
                 color: BrandColors.cinnamonDeep,

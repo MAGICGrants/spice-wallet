@@ -112,23 +112,23 @@ class BrandGalleryScreen extends StatelessWidget {
                 _Label('Activity'),
                 AssetRow(
                   padding: const EdgeInsets.symmetric(vertical: 11),
-                  leading: const IconBadge(icon: Icons.arrow_downward, color: BrandColors.success),
+                  leading: IconBadge(icon: Icons.arrow_downward, color: BrandColors.success),
                   title: 'Received',
                   subtitle: '18 Aug · 14:22',
                   onTap: () {},
                 ),
-                const Divider(height: 1, color: BrandColors.surfaceTinted),
+                Divider(height: 1, color: BrandColors.surfaceTinted),
                 AssetRow(
                   padding: const EdgeInsets.symmetric(vertical: 11),
-                  leading: const IconBadge(icon: Icons.swap_horiz, color: BrandColors.cinnamonDeep),
+                  leading: IconBadge(icon: Icons.swap_horiz, color: BrandColors.cinnamonDeep),
                   title: 'Bridged to Serai',
                   subtitle: '16 Aug · 09:07',
                   onTap: () {},
                 ),
-                const Divider(height: 1, color: BrandColors.surfaceTinted),
+                Divider(height: 1, color: BrandColors.surfaceTinted),
                 AssetRow(
                   padding: const EdgeInsets.symmetric(vertical: 11),
-                  leading: const IconBadge(icon: Icons.arrow_upward, color: BrandColors.error),
+                  leading: IconBadge(icon: Icons.arrow_upward, color: BrandColors.error),
                   title: 'Sent',
                   subtitle: '11 Aug · 20:41',
                   onTap: () {},
@@ -136,7 +136,7 @@ class BrandGalleryScreen extends StatelessWidget {
                 const SizedBox(height: BrandSpacing.xl),
 
                 _Label('Text field'),
-                const BrandTextField(
+                BrandTextField(
                   hint: 'Enter an address',
                   suffix: Icon(Icons.paste, color: BrandColors.cinnamon),
                 ),

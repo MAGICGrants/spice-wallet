@@ -21,14 +21,13 @@ class SettingsGroup extends StatelessWidget {
           color: BrandColors.card,
           clipBehavior: Clip.antiAlias,
           shape: RoundedRectangleBorder(
-            side: const BorderSide(color: BrandColors.border),
+            side: BorderSide(color: BrandColors.border),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
             children: [
               for (var i = 0; i < tiles.length; i++) ...[
-                if (i != 0)
-                  const Divider(height: 1, thickness: 1, color: BrandColors.surfaceTinted),
+                if (i != 0) Divider(height: 1, thickness: 1, color: BrandColors.surfaceTinted),
                 tiles[i],
               ],
             ],
@@ -39,8 +38,8 @@ class SettingsGroup extends StatelessWidget {
   }
 }
 
-const _titleStyle = TextStyle(fontSize: 14.5, height: 1.3, color: BrandColors.ink);
-const _descStyle = TextStyle(fontSize: 11.5, height: 1.4, color: BrandColors.inkMuted);
+TextStyle get _titleStyle => TextStyle(fontSize: 14.5, height: 1.3, color: BrandColors.ink);
+TextStyle get _descStyle => TextStyle(fontSize: 11.5, height: 1.4, color: BrandColors.inkMuted);
 
 /// Row that navigates, showing an optional current value + a chevron.
 class SettingsNavTile extends StatelessWidget {
@@ -87,7 +86,7 @@ class SettingsNavTile extends StatelessWidget {
             else
               const Spacer(),
             const SizedBox(width: 6),
-            const Icon(Icons.chevron_right, size: 18, color: BrandColors.inkMuted),
+            Icon(Icons.chevron_right, size: 18, color: BrandColors.inkMuted),
           ],
         ),
       ),
@@ -102,7 +101,7 @@ class SettingsLinkTile extends StatelessWidget {
   final String? subtitle;
   final String? linkLabel;
   final VoidCallback onTap;
-  final Color color;
+  final Color? color;
   final Color? titleColor;
 
   const SettingsLinkTile({
@@ -111,7 +110,7 @@ class SettingsLinkTile extends StatelessWidget {
     required this.onTap,
     this.subtitle,
     this.linkLabel,
-    this.color = BrandColors.cinnamon,
+    this.color,
     this.titleColor,
   });
 
@@ -139,7 +138,11 @@ class SettingsLinkTile extends StatelessWidget {
               const SizedBox(width: 12),
               Text(
                 linkLabel!,
-                style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500, color: color),
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w500,
+                  color: color ?? BrandColors.cinnamon,
+                ),
               ),
             ],
           ],
@@ -225,7 +228,7 @@ class BrandSwitch extends StatelessWidget {
         child: Container(
           width: 22,
           height: 22,
-          decoration: const BoxDecoration(color: BrandColors.paper, shape: BoxShape.circle),
+          decoration: BoxDecoration(color: BrandColors.paper, shape: BoxShape.circle),
         ),
       ),
     );

@@ -25,7 +25,7 @@ class CoinHomeScreenArgs {
   CoinHomeScreenArgs({required this.coinSymbol, this.showTxSuccessToast = false});
 }
 
-const _balanceStyle = TextStyle(
+TextStyle get _balanceStyle => TextStyle(
   fontFamily: 'Ubuntu Mono',
   fontSize: 33,
   height: 1,
@@ -261,12 +261,12 @@ class _BalanceHero extends StatelessWidget {
           if (hasTokens)
             Text(
               i18n.homeAssetsCount(assetCount),
-              style: const TextStyle(fontSize: 13.5, height: 1, color: BrandColors.inkMuted),
+              style: TextStyle(fontSize: 13.5, height: 1, color: BrandColors.inkMuted),
             )
           else if (showFiat)
             Text(
               '${_amountText(wallet)} ${wallet.coinSymbol}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Ubuntu Mono',
                 fontSize: 13.5,
                 height: 1,
@@ -324,7 +324,7 @@ class _RouteLine extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               parts.join(' · '),
-              style: const TextStyle(fontSize: 11.5, height: 1, color: BrandColors.inkMuted),
+              style: TextStyle(fontSize: 11.5, height: 1, color: BrandColors.inkMuted),
             ),
           ],
         ),
@@ -332,7 +332,7 @@ class _RouteLine extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             i18n.homeBlocksRemaining(NumberFormat.decimalPattern().format(blocks)),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Ubuntu Mono',
               fontSize: 11.5,
               height: 1,
@@ -438,7 +438,7 @@ class _AssetRow extends StatelessWidget {
 
   const _AssetRow({required this.wallet, required this.fiatRate, required this.fiatSymbol});
 
-  static const _fiatStyle = TextStyle(
+  static TextStyle get _fiatStyle => TextStyle(
     fontFamily: 'Ubuntu Mono',
     fontSize: 14,
     height: 1,
@@ -447,7 +447,7 @@ class _AssetRow extends StatelessWidget {
     fontFeatures: [FontFeature.tabularFigures()],
   );
 
-  static const _amountStyle = TextStyle(
+  static TextStyle get _amountStyle => TextStyle(
     fontFamily: 'Ubuntu Mono',
     fontSize: 11.5,
     height: 1.3,
@@ -472,7 +472,7 @@ class _AssetRow extends StatelessWidget {
               children: [
                 Text(
                   wallet.coinName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w500,
                     height: 1.25,
@@ -626,7 +626,7 @@ class _TxRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: showDivider
-            ? const BoxDecoration(
+            ? BoxDecoration(
                 border: Border(bottom: BorderSide(color: BrandColors.surfaceTinted)),
               )
             : null,
@@ -641,7 +641,7 @@ class _TxRow extends StatelessWidget {
                 children: [
                   Text(
                     incoming ? i18n.coinHomeReceived : i18n.coinHomeSent,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       height: 1.25,
@@ -659,11 +659,7 @@ class _TxRow extends StatelessWidget {
                         // Default (en) symbols: initializeDateFormatting isn't wired, so a
                         // locale arg would throw for pt.
                         '${DateFormat('HH:mm').format(date)} · ${asset.coinName}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          height: 1.3,
-                          color: BrandColors.inkMuted,
-                        ),
+                        style: TextStyle(fontSize: 11, height: 1.3, color: BrandColors.inkMuted),
                       ),
                     ],
                   ),
@@ -689,7 +685,7 @@ class _TxRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     formatFiat(amountFiat, fiatSymbol),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Ubuntu Mono',
                       fontSize: 11,
                       height: 1.3,
@@ -759,7 +755,7 @@ class _AddExplorerNudge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF6E8D2),
+        color: BrandColors.surfaceAccent,
         border: Border.all(color: BrandColors.borderStrong),
         borderRadius: BorderRadius.circular(16),
       ),
@@ -770,7 +766,7 @@ class _AddExplorerNudge extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(top: 1),
                 child: Icon(Icons.search, size: 19, color: BrandColors.cinnamon),
               ),
@@ -778,7 +774,7 @@ class _AddExplorerNudge extends StatelessWidget {
               Expanded(
                 child: Text(
                   i18n.coinHomeAddExplorerTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     height: 1.35,
                     fontWeight: FontWeight.w500,

@@ -204,11 +204,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     width: 44,
                     height: 44,
                     alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      color: BrandColors.errorBg,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.delete_outline, size: 20, color: BrandColors.error),
+                    decoration: BoxDecoration(color: BrandColors.errorBg, shape: BoxShape.circle),
+                    child: Icon(Icons.delete_outline, size: 20, color: BrandColors.error),
                   ),
                   const SizedBox(width: 12),
                   Text(i18n.settingsDeleteWalletButton, style: BrandText.sheetTitle),
@@ -315,7 +312,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       Expanded(child: Text(label, style: BrandText.listTitle)),
                       if (value == current)
-                        const Icon(Icons.check, size: 20, color: BrandColors.cinnamon),
+                        Icon(Icons.check, size: 20, color: BrandColors.cinnamon),
                     ],
                   ),
                 ),

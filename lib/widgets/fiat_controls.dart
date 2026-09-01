@@ -22,7 +22,7 @@ class FiatCurrencyChip extends StatelessWidget {
     final fg = selected ? BrandColors.onCinnamon : BrandColors.ink;
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(11),
-      side: selected ? BorderSide.none : const BorderSide(color: BrandColors.border),
+      side: selected ? BorderSide.none : BorderSide(color: BrandColors.border),
     );
     return Material(
       color: selected ? BrandColors.cinnamon : BrandColors.surfaceSunken,

@@ -59,7 +59,7 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
               const SheetHandle(),
               Row(
                 children: [
-                  const SheetIcon(
+                  SheetIcon(
                     icon: Icons.delete_outline,
                     bg: BrandColors.errorBg,
                     color: BrandColors.error,
@@ -197,19 +197,19 @@ class _SearchField extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.search, size: 20, color: BrandColors.inkFaint),
+          Icon(Icons.search, size: 20, color: BrandColors.inkFaint),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
               controller: controller,
               onChanged: onChanged,
               textInputAction: TextInputAction.search,
-              style: const TextStyle(fontSize: 14, color: BrandColors.ink),
+              style: TextStyle(fontSize: 14, color: BrandColors.ink),
               decoration: InputDecoration(
                 isCollapsed: true,
                 border: InputBorder.none,
                 hintText: i18n.addressBookSearchHint,
-                hintStyle: const TextStyle(fontSize: 14, color: BrandColors.inkFaint),
+                hintStyle: TextStyle(fontSize: 14, color: BrandColors.inkFaint),
               ),
             ),
           ),
@@ -232,7 +232,7 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.people_outline, size: 56, color: BrandColors.inkDisabled),
+            Icon(Icons.people_outline, size: 56, color: BrandColors.inkDisabled),
             const SizedBox(height: 16),
             Text(
               searching ? i18n.addressBookNoSearchResults : i18n.addressBookNoContacts,
@@ -265,7 +265,7 @@ class _Avatar extends StatelessWidget {
       width: 44,
       height: 44,
       alignment: Alignment.center,
-      decoration: const BoxDecoration(color: BrandColors.cinnamonDeep, shape: BoxShape.circle),
+      decoration: BoxDecoration(color: BrandColors.cinnamonDeep, shape: BoxShape.circle),
       child: Text(
         name.isNotEmpty ? name[0].toUpperCase() : '?',
         style: const TextStyle(
@@ -319,7 +319,7 @@ class _ContactTile extends StatelessWidget {
                       children: [
                         Text(
                           contact.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15.5,
                             fontWeight: FontWeight.w700,
                             color: BrandColors.ink,
@@ -333,12 +333,12 @@ class _ContactTile extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(Icons.keyboard_arrow_down, size: 22, color: BrandColors.inkMuted),
+                  Icon(Icons.keyboard_arrow_down, size: 22, color: BrandColors.inkMuted),
                 ],
               ),
             ),
           ),
-          if (!isLast) const Divider(height: 1, thickness: 1, color: BrandColors.surfaceTinted),
+          if (!isLast) Divider(height: 1, thickness: 1, color: BrandColors.surfaceTinted),
         ],
       );
     }
@@ -366,7 +366,7 @@ class _ContactTile extends StatelessWidget {
                         children: [
                           Text(
                             contact.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15.5,
                               fontWeight: FontWeight.w700,
                               color: BrandColors.ink,
@@ -377,7 +377,7 @@ class _ContactTile extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const Icon(Icons.keyboard_arrow_up, size: 22, color: BrandColors.inkMuted),
+                    Icon(Icons.keyboard_arrow_up, size: 22, color: BrandColors.inkMuted),
                   ],
                 ),
               ),
@@ -432,7 +432,7 @@ class _AddressRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(top: BorderSide(color: BrandColors.surfaceTinted)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
@@ -446,7 +446,7 @@ class _AddressRow extends StatelessWidget {
               children: [
                 Text(
                   wallet?.coinName ?? coinSymbol,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w500,
                     color: BrandColors.ink,
@@ -455,7 +455,7 @@ class _AddressRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   shortenMiddle(address, head: 8, tail: 8),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Ubuntu Mono',
                     fontSize: 11.5,
                     color: BrandColors.inkMuted,
@@ -645,7 +645,7 @@ class _ContactSheetState extends State<_ContactSheet> {
                       children: [
                         SheetIcon(
                           icon: _isEditing ? Icons.edit_outlined : Icons.add,
-                          bg: const Color(0xFFF6E9D6),
+                          bg: BrandColors.surfaceAccent,
                           color: BrandColors.cinnamonDeep,
                         ),
                         const SizedBox(width: 11),
@@ -742,7 +742,7 @@ class _ContactSheetState extends State<_ContactSheet> {
                       color: BrandColors.onCinnamon,
                     ),
                   )
-                : const Icon(Icons.person_outline, size: 17, color: BrandColors.inkDisabled),
+                : Icon(Icons.person_outline, size: 17, color: BrandColors.inkDisabled),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -750,12 +750,12 @@ class _ContactSheetState extends State<_ContactSheet> {
               controller: _nameController,
               onChanged: (_) => setState(() {}),
               textCapitalization: TextCapitalization.words,
-              style: const TextStyle(fontSize: 14.5, height: 1.3, color: BrandColors.ink),
+              style: TextStyle(fontSize: 14.5, height: 1.3, color: BrandColors.ink),
               decoration: InputDecoration(
                 isCollapsed: true,
                 border: InputBorder.none,
                 hintText: i18n.addressBookNameHint,
-                hintStyle: const TextStyle(fontSize: 14.5, color: BrandColors.inkFaint),
+                hintStyle: TextStyle(fontSize: 14.5, color: BrandColors.inkFaint),
               ),
             ),
           ),
@@ -782,7 +782,7 @@ class _ContactSheetState extends State<_ContactSheet> {
                 children: [
                   Text(
                     wallet.coinName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w500,
                       color: BrandColors.ink,
@@ -791,7 +791,7 @@ class _ContactSheetState extends State<_ContactSheet> {
                   const SizedBox(height: 3),
                   Text(
                     shortenMiddle(address, head: 9, tail: 9),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Ubuntu Mono',
                       fontSize: 11,
                       color: BrandColors.inkMuted,
@@ -807,11 +807,8 @@ class _ContactSheetState extends State<_ContactSheet> {
                 width: 26,
                 height: 26,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: BrandColors.surfaceTinted,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close, size: 13, color: BrandColors.inkMuted),
+                decoration: BoxDecoration(color: BrandColors.surfaceTinted, shape: BoxShape.circle),
+                child: Icon(Icons.close, size: 13, color: BrandColors.inkMuted),
               ),
             ),
           ],
@@ -822,7 +819,7 @@ class _ContactSheetState extends State<_ContactSheet> {
     return Container(
       decoration: BoxDecoration(
         color: BrandColors.surfaceSunken,
-        border: Border.all(color: const Color(0xFFE0CDB2)),
+        border: Border.all(color: BrandColors.border),
         borderRadius: BorderRadius.circular(14),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
@@ -833,7 +830,7 @@ class _ContactSheetState extends State<_ContactSheet> {
           Expanded(
             child: Text(
               wallet.coinName,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w500,
                 color: BrandColors.inkFaint,

@@ -93,7 +93,7 @@ class _LwsKeysScreenState extends State<LwsKeysScreen> with SecureScreenMixin {
                           padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
                           child: Text(
                             i18n.lwsDetailsDescription,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13.5,
                               height: 1.6,
                               color: BrandColors.inkMuted,
@@ -127,11 +127,11 @@ class _LwsKeysScreenState extends State<LwsKeysScreen> with SecureScreenMixin {
                                 height: 26,
                                 margin: const EdgeInsets.only(top: 1),
                                 alignment: Alignment.center,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   color: BrandColors.ink,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.visibility_off_outlined,
                                   size: 14,
                                   color: BrandColors.paper,
@@ -141,7 +141,7 @@ class _LwsKeysScreenState extends State<LwsKeysScreen> with SecureScreenMixin {
                               Expanded(
                                 child: Text(
                                   i18n.lwsKeysWarning,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11.5,
                                     height: 1.5,
                                     color: BrandColors.inkMuted,
@@ -185,7 +185,7 @@ class _KeyField extends StatelessWidget {
   Widget build(BuildContext context) {
     final valueText = Text(
       value,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: 'Ubuntu Mono',
         fontSize: 12.5,
         height: 1.6,
@@ -232,7 +232,7 @@ class _KeyField extends StatelessWidget {
                           ),
                           child: Text(
                             AppLocalizations.of(context)!.generateSeedReveal,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
                               color: BrandColors.paper,
@@ -271,7 +271,7 @@ class _CopyChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(11),
           border: Border.all(color: BrandColors.border),
         ),
-        child: const Icon(Icons.copy_outlined, size: 15, color: BrandColors.cinnamonDeep),
+        child: Icon(Icons.copy_outlined, size: 15, color: BrandColors.cinnamonDeep),
       ),
     );
   }

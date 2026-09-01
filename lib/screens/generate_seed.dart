@@ -194,7 +194,7 @@ class _SeedGrid extends StatelessWidget {
                     width: 52,
                     height: 52,
                     alignment: Alignment.center,
-                    decoration: const BoxDecoration(color: BrandColors.ink, shape: BoxShape.circle),
+                    decoration: BoxDecoration(color: BrandColors.ink, shape: BoxShape.circle),
                     child: const Icon(
                       Icons.visibility_off_outlined,
                       color: BrandColors.onCinnamon,
@@ -204,7 +204,7 @@ class _SeedGrid extends StatelessWidget {
                   const SizedBox(height: BrandSpacing.md),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: BrandColors.ink,
                       borderRadius: BrandRadii.rPill,
                     ),
@@ -256,11 +256,7 @@ class _WordCell extends StatelessWidget {
             child: Text(
               word,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: BrandColors.ink,
-              ),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: BrandColors.ink),
             ),
           ),
         ],

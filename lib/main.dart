@@ -291,6 +291,12 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
       theme: _themeData,
       darkTheme: _darkThemeData,
       themeMode: themeMode,
+      // Pin the brand tokens to the resolved theme brightness before any screen
+      // builds, so BrandColors.* return the light/dark palette for this frame.
+      builder: (context, child) {
+        BrandColors.setBrightness(Theme.of(context).brightness);
+        return child ?? const SizedBox.shrink();
+      },
       initialRoute: '/loading',
       locale: Locale.fromSubtags(languageCode: languageProvider.language),
       routes: {

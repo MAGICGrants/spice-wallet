@@ -45,7 +45,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               const Spacer(flex: 3),
               SvgPicture.asset('assets/spice-mark.svg', width: 96, height: 96),
               const SizedBox(height: BrandSpacing.xl),
-              const Text(
+              Text(
                 'Spice Wallet',
                 style: TextStyle(
                   fontSize: 28,

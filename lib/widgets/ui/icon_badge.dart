@@ -6,23 +6,18 @@ import 'package:spice_wallet/theme/brand.dart';
 /// rows (received/sent/bridged).
 class IconBadge extends StatelessWidget {
   final IconData icon;
-  final Color color;
+  final Color? color;
   final double size;
 
-  const IconBadge({
-    super.key,
-    required this.icon,
-    this.color = BrandColors.cinnamonDeep,
-    this.size = 32,
-  });
+  const IconBadge({super.key, required this.icon, this.color, this.size = 32});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: size,
       height: size,
-      decoration: const BoxDecoration(color: BrandColors.surfaceSunken, shape: BoxShape.circle),
-      child: Icon(icon, size: size * 0.47, color: color),
+      decoration: BoxDecoration(color: BrandColors.surfaceSunken, shape: BoxShape.circle),
+      child: Icon(icon, size: size * 0.47, color: color ?? BrandColors.cinnamonDeep),
     );
   }
 }

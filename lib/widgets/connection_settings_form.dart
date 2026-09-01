@@ -542,26 +542,26 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     final address = _cleanAddress(_addressController.text);
     if (_useTor) {
       pills.add(
-        const _RoutePill(
+        _RoutePill(
           label: 'TOR',
           color: BrandColors.routeTor,
-          bg: Color(0xFFEFE9F8),
+          bg: BrandColors.routeTorBg,
           icon: _PillIcon.tor,
         ),
       );
     } else if (_customProxyPortController.text.trim().isNotEmpty) {
       pills.add(
-        const _RoutePill(
+        _RoutePill(
           label: 'PROXY',
           color: BrandColors.routeProxy,
-          bg: Color(0xFFE6EEF7),
+          bg: BrandColors.routeProxyBg,
           icon: _PillIcon.proxy,
         ),
       );
     }
     if (_useSsl) {
       pills.add(
-        const _RoutePill(
+        _RoutePill(
           label: 'HTTPS',
           color: BrandColors.success,
           bg: BrandColors.successBg,
@@ -570,7 +570,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       );
     } else if (_isLocalAddress(address)) {
       pills.add(
-        const _RoutePill(
+        _RoutePill(
           label: 'LOCAL',
           color: BrandColors.inkFaint,
           bg: BrandColors.surfaceMuted,
@@ -617,7 +617,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     }
     if (_connectionSuccess) {
       return _ResultCard(
-        icon: const Icon(Icons.check, size: 13, color: BrandColors.success),
+        icon: Icon(Icons.check, size: 13, color: BrandColors.success),
         iconBg: BrandColors.successBg,
         title: i18n.connectionResultWorksTitle,
         trailing: _latencyMs != null ? '$_latencyMs ms' : null,
@@ -909,7 +909,7 @@ class _CheckRow extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: BrandColors.inputBorder, width: 1.4),
                 ),
-                child: const Text(
+                child: Text(
                   '?',
                   style: TextStyle(
                     fontSize: 10,
@@ -1014,7 +1014,7 @@ class _Spinner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
+    return SizedBox(
       width: 22,
       height: 22,
       child: CircularProgressIndicator(
@@ -1045,7 +1045,7 @@ class _StatusRowCard extends StatelessWidget {
           Container(
             padding: EdgeInsets.only(top: 8, bottom: detail != null ? 10 : 8),
             decoration: detail != null
-                ? const BoxDecoration(
+                ? BoxDecoration(
                     border: Border(bottom: BorderSide(color: BrandColors.hairline)),
                   )
                 : null,
@@ -1056,7 +1056,7 @@ class _StatusRowCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       height: 1.2,
                       fontWeight: FontWeight.w700,
@@ -1073,7 +1073,7 @@ class _StatusRowCard extends StatelessWidget {
               padding: const EdgeInsets.only(top: 10, bottom: 4),
               child: Text(
                 detail!,
-                style: const TextStyle(fontSize: 12.5, height: 1.45, color: BrandColors.inkMuted),
+                style: TextStyle(fontSize: 12.5, height: 1.45, color: BrandColors.inkMuted),
               ),
             ),
         ],
@@ -1126,7 +1126,7 @@ class _ResultCard extends StatelessWidget {
             padding: EdgeInsets.only(top: 8, bottom: isFailure ? 4 : 10),
             decoration: isFailure
                 ? null
-                : const BoxDecoration(
+                : BoxDecoration(
                     border: Border(bottom: BorderSide(color: BrandColors.hairline)),
                   ),
             child: Row(
@@ -1139,9 +1139,7 @@ class _ResultCard extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: isFailure ? BrandColors.errorBg : iconBg,
                   ),
-                  child: isFailure
-                      ? const Icon(Icons.close, size: 13, color: BrandColors.error)
-                      : icon,
+                  child: isFailure ? Icon(Icons.close, size: 13, color: BrandColors.error) : icon,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -1158,7 +1156,7 @@ class _ResultCard extends StatelessWidget {
                 if (trailing != null)
                   Text(
                     trailing!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Ubuntu Mono',
                       fontSize: 11.5,
                       height: 1,

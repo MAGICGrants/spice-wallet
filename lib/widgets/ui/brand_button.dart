@@ -104,7 +104,7 @@ class BrandButton extends StatelessWidget {
       case BrandButtonVariant.secondary:
         bg = BrandColors.surfaceSunken;
         fg = active ? accent : BrandColors.inkDisabled;
-        side = const BorderSide(color: BrandColors.borderStrong);
+        side = BorderSide(color: BrandColors.borderStrong);
       case BrandButtonVariant.ghost:
         bg = Colors.transparent;
         fg = active ? accent : BrandColors.inkDisabled;

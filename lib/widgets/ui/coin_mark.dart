@@ -11,12 +11,7 @@ class CoinMark extends StatelessWidget {
   final String iconAsset;
   final double size;
 
-  const CoinMark({
-    super.key,
-    required this.coinSymbol,
-    required this.iconAsset,
-    this.size = 40,
-  });
+  const CoinMark({super.key, required this.coinSymbol, required this.iconAsset, this.size = 40});
 
   static ({Color color, String glyph})? _mark(String symbol) {
     switch (symbol.toUpperCase()) {

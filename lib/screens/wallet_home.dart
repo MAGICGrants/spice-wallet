@@ -131,7 +131,7 @@ class _Header extends StatelessWidget {
         children: [
           SvgPicture.asset('assets/spice-icon.svg', width: 30, height: 30),
           const SizedBox(width: 9),
-          const Text(
+          Text(
             'Spice Wallet',
             style: TextStyle(
               fontWeight: FontWeight.w700,
@@ -188,14 +188,14 @@ class _TotalBalanceHeader extends StatelessWidget {
                   ),
                 )
               else
-                const Text('--', style: BrandText.balance),
+                Text('--', style: BrandText.balance),
               if (fiatRate.hasFailed && !fiatRate.isDisabled) ...[
                 const SizedBox(width: 8),
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Tooltip(
                     message: i18n.homeFiatApiError,
-                    child: const Icon(Icons.warning_rounded, size: 18, color: BrandColors.warning),
+                    child: Icon(Icons.warning_rounded, size: 18, color: BrandColors.warning),
                   ),
                 ),
               ],
@@ -205,7 +205,7 @@ class _TotalBalanceHeader extends StatelessWidget {
             const SizedBox(height: 11),
             Text(
               '$fiatCode · ${i18n.homeFiatSource}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w400,
                 height: 1,
@@ -238,7 +238,7 @@ class _CoinCard extends StatelessWidget {
     this.fiatOverride,
   });
 
-  static const _cardBalanceStyle = TextStyle(
+  static TextStyle get _cardBalanceStyle => TextStyle(
     fontFamily: 'Ubuntu Mono',
     fontSize: 14.5,
     fontWeight: FontWeight.w700,
@@ -296,7 +296,7 @@ class _CoinCard extends StatelessWidget {
     return Material(
       color: BrandColors.card,
       shape: RoundedRectangleBorder(
-        side: const BorderSide(color: BrandColors.border),
+        side: BorderSide(color: BrandColors.border),
         borderRadius: BorderRadius.circular(BrandRadii.field),
       ),
       child: InkWell(
@@ -314,7 +314,7 @@ class _CoinCard extends StatelessWidget {
                   children: [
                     Text(
                       wallet.coinName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15.5,
                         fontWeight: FontWeight.w500,
                         height: 1.25,
@@ -335,7 +335,7 @@ class _CoinCard extends StatelessWidget {
                         Flexible(
                           child: Text(
                             statusText,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w400,
                               height: 1.3,
@@ -350,7 +350,7 @@ class _CoinCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               if (configured) _trailingBalance(balance, balanceFiat),
-              const Icon(Icons.chevron_right, size: 20, color: BrandColors.inkMuted),
+              Icon(Icons.chevron_right, size: 20, color: BrandColors.inkMuted),
             ],
           ),
         ),
@@ -368,7 +368,7 @@ class _CoinCard extends StatelessWidget {
       );
     }
     if (balance == null) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.only(right: 7),
         child: Skeletonizer(child: Text('0.000000', style: _cardBalanceStyle)),
       );

@@ -136,9 +136,9 @@ class _TorSettingsSheetState extends State<_TorSettingsSheet> {
                   children: [
                     Row(
                       children: [
-                        const SheetIcon(
+                        SheetIcon(
                           icon: Icons.public,
-                          bg: Color(0xFFEFE9F8),
+                          bg: BrandColors.routeTorBg,
                           color: BrandColors.routeTor,
                         ),
                         const SizedBox(width: 11),
@@ -180,7 +180,7 @@ class _TorSettingsSheetState extends State<_TorSettingsSheet> {
                           child: Center(
                             child: Text(
                               i18n.cancel,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                                 color: BrandColors.inkMuted,

@@ -413,7 +413,7 @@ class _WordSlotState extends State<_WordSlot> {
               padding: const EdgeInsets.only(top: 3),
               child: Text(
                 widget.index.toString().padLeft(2, '0'),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Ubuntu Mono',
                   fontSize: 10,
                   height: 1,
@@ -474,7 +474,7 @@ class _SeedLengthSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1E4CE),
+        color: BrandColors.surfaceAccent,
         borderRadius: BorderRadius.circular(9),
       ),
       child: Row(
@@ -524,11 +524,7 @@ class _PasteChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         child: Text(
           label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: BrandColors.cinnamon,
-          ),
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: BrandColors.cinnamon),
         ),
       ),
     );
@@ -551,7 +547,7 @@ class _BadWordNotice extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.error_outline, size: 16, color: BrandColors.error),
+        Icon(Icons.error_outline, size: 16, color: BrandColors.error),
         const SizedBox(width: BrandSpacing.sm),
         Expanded(
           child: Text.rich(
@@ -608,7 +604,7 @@ class _ScanFromSheetState extends State<_ScanFromSheet> {
     final now = DateTime.now();
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: BrandColors.paper,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -777,10 +773,10 @@ class _ScanDropdown<T> extends StatelessWidget {
         child: DropdownButton<T>(
           value: value,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: BrandColors.inkFaint),
+          icon: Icon(Icons.keyboard_arrow_down, color: BrandColors.inkFaint),
           borderRadius: BrandRadii.rField,
           dropdownColor: BrandColors.card,
-          style: const TextStyle(fontFamily: 'Ubuntu', fontSize: 14, color: BrandColors.ink),
+          style: TextStyle(fontFamily: 'Ubuntu', fontSize: 14, color: BrandColors.ink),
           items: [for (final it in items) DropdownMenuItem<T>(value: it, child: Text(label(it)))],
           onChanged: (v) {
             if (v != null) onChanged(v);
@@ -838,7 +834,7 @@ class _ScanFromCard extends StatelessWidget {
                   const SizedBox(width: BrandSpacing.md),
                   Text(value, style: valueStyle),
                   const SizedBox(width: BrandSpacing.xs),
-                  const Icon(Icons.chevron_right, size: 18, color: BrandColors.inkFaint),
+                  Icon(Icons.chevron_right, size: 18, color: BrandColors.inkFaint),
                 ],
               ),
             ),

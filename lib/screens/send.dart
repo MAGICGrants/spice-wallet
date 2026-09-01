@@ -780,7 +780,7 @@ class _SendScreenState extends State<SendScreen> {
             AnimatedRotation(
               turns: _assetMenuOpen ? 0.5 : 0,
               duration: BrandMotion.transition,
-              child: const Icon(Icons.keyboard_arrow_down, size: 20, color: BrandColors.inkMuted),
+              child: Icon(Icons.keyboard_arrow_down, size: 20, color: BrandColors.inkMuted),
             ),
         ],
       ),
@@ -899,7 +899,7 @@ class _SendScreenState extends State<SendScreen> {
                       children: [
                         Text(
                           asset.coinName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14.5,
                             fontWeight: FontWeight.w500,
                             height: 1.25,
@@ -909,7 +909,7 @@ class _SendScreenState extends State<SendScreen> {
                         const SizedBox(height: 2),
                         Text(
                           subtitle,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Ubuntu Mono',
                             fontSize: 11.5,
                             height: 1.3,
@@ -922,7 +922,7 @@ class _SendScreenState extends State<SendScreen> {
                   const SizedBox(width: 8),
                   Text(
                     fiat != null ? '$fiatSymbol${NumberFormat('#,##0').format(fiat)}' : '—',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Ubuntu Mono',
                       fontSize: 13,
                       color: BrandColors.inkMuted,
@@ -930,7 +930,7 @@ class _SendScreenState extends State<SendScreen> {
                   ),
                   if (selected) ...[
                     const SizedBox(width: 8),
-                    const Icon(Icons.check, size: 18, color: BrandColors.cinnamon),
+                    Icon(Icons.check, size: 18, color: BrandColors.cinnamon),
                   ],
                 ],
               ),
@@ -952,7 +952,7 @@ class _SendScreenState extends State<SendScreen> {
       children: [
         Text(
           wallet.coinName,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14.5,
             fontWeight: FontWeight.w500,
             height: 1.25,
@@ -962,7 +962,7 @@ class _SendScreenState extends State<SendScreen> {
         const SizedBox(height: 2),
         Text(
           available,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Ubuntu Mono',
             fontSize: 11.5,
             height: 1.3,
@@ -1002,10 +1002,7 @@ class _SendScreenState extends State<SendScreen> {
               width: 34,
               height: 34,
               alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                color: BrandColors.cinnamonDeep,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: BrandColors.cinnamonDeep, shape: BoxShape.circle),
               child: Text(
                 _selectedContact!.name.isNotEmpty ? _selectedContact!.name[0].toUpperCase() : '?',
                 style: const TextStyle(
@@ -1022,7 +1019,7 @@ class _SendScreenState extends State<SendScreen> {
                 children: [
                   Text(
                     _selectedContact!.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: BrandColors.ink,
@@ -1031,7 +1028,7 @@ class _SendScreenState extends State<SendScreen> {
                   const SizedBox(height: 3),
                   Text(
                     shortenMiddle(_destinationAddressController.text, head: 8, tail: 10),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Ubuntu Mono',
                       fontSize: 11,
                       color: BrandColors.inkMuted,
@@ -1052,7 +1049,7 @@ class _SendScreenState extends State<SendScreen> {
                   shape: BoxShape.circle,
                   border: Border.all(color: BrandColors.border),
                 ),
-                child: const Icon(Icons.close, size: 15, color: BrandColors.ink),
+                child: Icon(Icons.close, size: 15, color: BrandColors.ink),
               ),
             ),
           ],
@@ -1071,7 +1068,7 @@ class _SendScreenState extends State<SendScreen> {
             focusNode: _addressFocusNode,
             maxLines: null,
             textInputAction: TextInputAction.done,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Ubuntu Mono',
               fontSize: 13.5,
               height: 1.5,
@@ -1081,7 +1078,7 @@ class _SendScreenState extends State<SendScreen> {
               isCollapsed: true,
               border: InputBorder.none,
               hintText: i18n.sendAddressHint(wallet.coinName),
-              hintStyle: const TextStyle(
+              hintStyle: TextStyle(
                 fontFamily: 'Ubuntu Mono',
                 fontSize: 13.5,
                 height: 1.5,
@@ -1089,7 +1086,7 @@ class _SendScreenState extends State<SendScreen> {
               ),
               suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
               suffixIcon: _openAliasResolving > 0
-                  ? const Padding(
+                  ? Padding(
                       padding: EdgeInsets.only(left: 8),
                       child: SizedBox(
                         width: 14,
@@ -1161,14 +1158,14 @@ class _SendScreenState extends State<SendScreen> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   textInputAction: TextInputAction.done,
                   inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+(\.\d*)?'))],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Ubuntu Mono',
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
                     height: 1,
                     color: BrandColors.ink,
                   ),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     isCollapsed: true,
                     border: InputBorder.none,
                     hintText: '0.000000',
@@ -1185,7 +1182,7 @@ class _SendScreenState extends State<SendScreen> {
               const SizedBox(width: 10),
               Text(
                 wallet.coinSymbol,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Ubuntu Mono',
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -1199,12 +1196,12 @@ class _SendScreenState extends State<SendScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF6E8D2),
+                    color: BrandColors.surfaceAccent,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     i18n.sendMaxButton,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Ubuntu Mono',
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
@@ -1221,11 +1218,7 @@ class _SendScreenState extends State<SendScreen> {
           const SizedBox(height: 11),
           Text(
             '≈ ${formatFiat(amountFiat, fiatSymbol)}',
-            style: const TextStyle(
-              fontFamily: 'Ubuntu Mono',
-              fontSize: 12,
-              color: BrandColors.inkMuted,
-            ),
+            style: TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 12, color: BrandColors.inkMuted),
           ),
         ],
       ),
@@ -1252,7 +1245,7 @@ class _SendScreenState extends State<SendScreen> {
             children: [
               Text(
                 i18n.sendNetworkFee,
-                style: const TextStyle(fontSize: 12, color: BrandColors.inkMuted),
+                style: TextStyle(fontSize: 12, color: BrandColors.inkMuted),
               ),
               _feeValue(wallet, fiatSymbol, coinRate),
             ],
@@ -1267,14 +1260,14 @@ class _SendScreenState extends State<SendScreen> {
         ? _fees![_selectedPriority]
         : null;
     if (_isLoadingFees || (_feesInProgress && feeTx == null)) {
-      return const SizedBox(
+      return SizedBox(
         width: 14,
         height: 14,
         child: CircularProgressIndicator(strokeWidth: 2, color: BrandColors.cinnamon),
       );
     }
     if (feeTx == null) {
-      return const Text(
+      return Text(
         '—',
         style: TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 12, color: BrandColors.inkMuted),
       );
@@ -1286,7 +1279,7 @@ class _SendScreenState extends State<SendScreen> {
         : '';
     return Text(
       '$feeStr$feeFiat',
-      style: const TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 12, color: BrandColors.inkMuted),
+      style: TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 12, color: BrandColors.inkMuted),
     );
   }
 }
@@ -1362,20 +1355,20 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: Row(
                     children: [
-                      const Icon(Icons.search, size: 18, color: BrandColors.inkFaint),
+                      Icon(Icons.search, size: 18, color: BrandColors.inkFaint),
                       const SizedBox(width: 10),
                       Expanded(
                         child: TextField(
                           controller: _searchController,
                           onChanged: (q) => setState(() => _query = q),
                           textInputAction: TextInputAction.search,
-                          style: const TextStyle(fontSize: 13.5, color: BrandColors.ink),
+                          style: TextStyle(fontSize: 13.5, color: BrandColors.ink),
                           decoration: InputDecoration(
                             isCollapsed: true,
                             contentPadding: const EdgeInsets.symmetric(vertical: 14),
                             border: InputBorder.none,
                             hintText: i18n.addressBookSearchHint,
-                            hintStyle: const TextStyle(fontSize: 13.5, color: BrandColors.inkFaint),
+                            hintStyle: TextStyle(fontSize: 13.5, color: BrandColors.inkFaint),
                           ),
                         ),
                       ),
@@ -1424,7 +1417,7 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
                     child: Center(
                       child: Text(
                         i18n.cancel,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: BrandColors.inkMuted,
@@ -1464,7 +1457,7 @@ class _ContactPickRow extends StatelessWidget {
         : (contact.addresses.keys.isNotEmpty ? contact.addresses.keys.first : chain.coinSymbol);
 
     final row = Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: BrandColors.surfaceTinted)),
       ),
       padding: const EdgeInsets.symmetric(vertical: 13),
@@ -1494,7 +1487,7 @@ class _ContactPickRow extends StatelessWidget {
               children: [
                 Text(
                   contact.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w500,
                     color: BrandColors.ink,
@@ -1526,7 +1519,7 @@ class _ContactPickRow extends StatelessWidget {
           ),
           if (enabled) ...[
             const SizedBox(width: 8),
-            const Icon(Icons.chevron_right, size: 20, color: BrandColors.inkDisabled),
+            Icon(Icons.chevron_right, size: 20, color: BrandColors.inkDisabled),
           ],
         ],
       ),

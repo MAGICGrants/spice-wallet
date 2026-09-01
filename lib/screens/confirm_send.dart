@@ -148,7 +148,7 @@ class _ConfirmSendSheetState extends State<_ConfirmSendSheet> {
                   child: Text(
                     '${amount.toStringAsFixed(decimals)} $coinSymbol',
                     textAlign: TextAlign.end,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Ubuntu Mono',
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -174,7 +174,7 @@ class _ConfirmSendSheetState extends State<_ConfirmSendSheet> {
             Text(
               '${fee.toStringAsFixed(feeDecimals)} $feeSymbol',
               textAlign: TextAlign.end,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Ubuntu Mono',
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -194,7 +194,7 @@ class _ConfirmSendSheetState extends State<_ConfirmSendSheet> {
           Text(
             args.destinationOpenAlias!,
             textAlign: TextAlign.end,
-            style: const TextStyle(fontSize: 12.5, color: BrandColors.ink),
+            style: TextStyle(fontSize: 12.5, color: BrandColors.ink),
           ),
         ),
       _detailRow(
@@ -233,9 +233,9 @@ class _ConfirmSendSheetState extends State<_ConfirmSendSheet> {
                     children: [
                       Row(
                         children: [
-                          const SheetIcon(
+                          SheetIcon(
                             icon: Icons.north_east,
-                            bg: Color(0xFFF6E9D6),
+                            bg: BrandColors.surfaceAccent,
                             color: BrandColors.cinnamonDeep,
                           ),
                           const SizedBox(width: 11),
@@ -301,7 +301,7 @@ class _ConfirmSendSheetState extends State<_ConfirmSendSheet> {
                             child: Center(
                               child: Text(
                                 i18n.cancel,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                   color: BrandColors.inkMuted,
@@ -330,7 +330,7 @@ class _ConfirmSendSheetState extends State<_ConfirmSendSheet> {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
               height: 1.35,
@@ -366,7 +366,7 @@ class _ConfirmSendSheetState extends State<_ConfirmSendSheet> {
       constraints: const BoxConstraints(maxWidth: 210),
       child: Text.rich(
         TextSpan(
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Ubuntu Mono',
             fontSize: 12.5,
             height: 1.5,
@@ -380,7 +380,7 @@ class _ConfirmSendSheetState extends State<_ConfirmSendSheet> {
             if (parts.middle.isNotEmpty)
               TextSpan(
                 text: parts.middle,
-                style: const TextStyle(fontWeight: FontWeight.w300, color: BrandColors.inkMuted),
+                style: TextStyle(fontWeight: FontWeight.w300, color: BrandColors.inkMuted),
               ),
             TextSpan(
               text: parts.suffix,
@@ -408,12 +408,12 @@ class _ConfirmSendSheetState extends State<_ConfirmSendSheet> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.warning_amber_rounded, color: BrandColors.warning, size: 20),
+          Icon(Icons.warning_amber_rounded, color: BrandColors.warning, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text.rich(
               TextSpan(
-                style: const TextStyle(fontSize: 12.5, height: 1.4, color: BrandColors.ink),
+                style: TextStyle(fontSize: 12.5, height: 1.4, color: BrandColors.ink),
                 children: [
                   TextSpan(text: parts.first),
                   TextSpan(

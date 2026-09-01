@@ -32,7 +32,7 @@ class WalletNavigationBar extends StatelessWidget {
       child: Material(
         color: BrandColors.paper,
         child: DecoratedBox(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             border: Border(top: BorderSide(color: BrandColors.border)),
           ),
           child: SafeArea(
