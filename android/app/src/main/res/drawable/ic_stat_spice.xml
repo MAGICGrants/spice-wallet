@@ -1,0 +1,16 @@
+<!-- Spice spiral mark as a monochrome notification small icon (Android tints it,
+     so only the white silhouette / alpha matters). Path from assets/spice-mark.svg,
+     centred into a square 53x53 viewport. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="53"
+    android:viewportHeight="53">
+    <group android:translateX="-26.5" android:translateY="-31">
+        <path
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="10"
+            android:strokeLineCap="round"
+            android:pathData="M 50 50 a 5 5 0 0 1 5 5 a 8 8 0 0 1 -8 8 a 11.5 11.5 0 0 1 -11.5 -11.5 a 15.5 15.5 0 0 1 15.5 -15.5 a 19.5 19.5 0 0 1 19.5 19.5 a 23.5 23.5 0 0 1 -23.5 23.5" />
+    </group>
+</vector>

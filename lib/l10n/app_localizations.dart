@@ -255,12 +255,6 @@ abstract class AppLocalizations {
   /// **'Connected to Tor'**
   String get torChoiceConnected;
 
-  /// No description provided for @torChoiceRecommended.
-  ///
-  /// In en, this message translates to:
-  /// **'Recommended'**
-  String get torChoiceRecommended;
-
   /// No description provided for @connectionSetupTitle.
   ///
   /// In en, this message translates to:
@@ -446,6 +440,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Display Currency'**
   String get fiatApiSettingsDisplayCurrencyLabel;
+
+  /// No description provided for @settingsFiatApiSettingsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fiat Display Settings'**
+  String get settingsFiatApiSettingsLabel;
+
+  /// No description provided for @fiatApiSettingsSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How rates are fetched, and the currency they are shown in.'**
+  String get fiatApiSettingsSheetSubtitle;
 
   /// No description provided for @createWalletTitle.
   ///
@@ -768,7 +774,7 @@ abstract class AppLocalizations {
   /// No description provided for @coinHomeSwapComingSoon.
   ///
   /// In en, this message translates to:
-  /// **'Swap is coming soon.'**
+  /// **'Coming soon!'**
   String get coinHomeSwapComingSoon;
 
   /// No description provided for @coinHomeReceived.
@@ -1269,6 +1275,12 @@ abstract class AppLocalizations {
   /// **'Secret View Key'**
   String get lwsKeysSecretViewKey;
 
+  /// No description provided for @lwsKeysWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshots are blocked on this screen. The view key lets a server see everything you receive — share it only with a server you run or trust.'**
+  String get lwsKeysWarning;
+
   /// No description provided for @scanQrTitle.
   ///
   /// In en, this message translates to:
@@ -1515,41 +1527,17 @@ abstract class AppLocalizations {
   /// **'Failed to get fees.'**
   String get sendFailedToGetFeesError;
 
-  /// No description provided for @torInfoTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Tor Built-in'**
-  String get torInfoTitle;
-
-  /// No description provided for @torInfoDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Spice Wallet automatically uses built-in Tor to protect your internet connections.'**
-  String get torInfoDescription;
-
-  /// No description provided for @torInfoContinueButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue'**
-  String get torInfoContinueButton;
-
-  /// No description provided for @torInfoConfigureButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Configure'**
-  String get torInfoConfigureButton;
-
   /// No description provided for @torSettingsTitle.
   ///
   /// In en, this message translates to:
   /// **'Tor Settings'**
   String get torSettingsTitle;
 
-  /// No description provided for @torSettingsModeLabel.
+  /// No description provided for @torSettingsSheetSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Tor Mode'**
-  String get torSettingsModeLabel;
+  /// **'How Spice Wallet reaches the network. Changing this reconnects every chain.'**
+  String get torSettingsSheetSubtitle;
 
   /// No description provided for @torSettingsModeBuiltIn.
   ///
@@ -1574,30 +1562,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SOCKS Port'**
   String get torSettingsSocksPortLabel;
-
-  /// No description provided for @torSettingsSocksPortHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. 9050'**
-  String get torSettingsSocksPortHint;
-
-  /// No description provided for @torSettingsUseOrbotLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Use Orbot/InviZible'**
-  String get torSettingsUseOrbotLabel;
-
-  /// No description provided for @torSettingsUseOrbotLabelIos.
-  ///
-  /// In en, this message translates to:
-  /// **'Use Orbot'**
-  String get torSettingsUseOrbotLabelIos;
-
-  /// No description provided for @torSettingsSaveButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get torSettingsSaveButton;
 
   /// No description provided for @torSettingsTestConnectionButton.
   ///
@@ -1688,36 +1652,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Explorer removed.'**
   String get explorerRemovedMessage;
-
-  /// No description provided for @legacyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Unsupported Wallet'**
-  String get legacyTitle;
-
-  /// No description provided for @legacyDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Spice Wallet is dropping support for legacy and polyseed seed phrases in favor of BIP39. Please write down the seed phrase below, delete this wallet and create a new wallet. You can restore the seed below on another Monero wallet and move the funds to your new BIP39 seed wallet.'**
-  String get legacyDescription;
-
-  /// No description provided for @legacyShowSeedButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Show seed'**
-  String get legacyShowSeedButton;
-
-  /// No description provided for @legacySeedLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Seed'**
-  String get legacySeedLabel;
-
-  /// No description provided for @legacyError.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t open the wallet. Check your password and try again.'**
-  String get legacyError;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

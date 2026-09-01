@@ -93,9 +93,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get torChoiceConnected => 'Conectado ao Tor';
 
   @override
-  String get torChoiceRecommended => 'Recomendado';
-
-  @override
   String get connectionSetupTitle => 'Configuração da Conexão';
 
   @override
@@ -191,6 +188,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get fiatApiSettingsDisplayCurrencyLabel => 'Moeda de Exibição';
+
+  @override
+  String get settingsFiatApiSettingsLabel => 'Configurações de exibição fiat';
+
+  @override
+  String get fiatApiSettingsSheetSubtitle =>
+      'Como as cotações são obtidas e a moeda em que são exibidas.';
 
   @override
   String get createWalletTitle => 'Começar do zero ou restaurar?';
@@ -372,7 +376,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get coinHomeSwap => 'Trocar';
 
   @override
-  String get coinHomeSwapComingSoon => 'A troca chegará em breve.';
+  String get coinHomeSwapComingSoon => 'Em breve!';
 
   @override
   String get coinHomeReceived => 'Recebido';
@@ -643,6 +647,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get lwsKeysSecretViewKey => 'Chave Privada de Visualização';
 
   @override
+  String get lwsKeysWarning =>
+      'Capturas de tela estão bloqueadas nesta tela. A chave de visualização permite que um servidor veja tudo o que você recebe — compartilhe-a apenas com um servidor que você opera ou confia.';
+
+  @override
   String get scanQrTitle => 'Escanear QR Code';
 
   @override
@@ -780,23 +788,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sendFailedToGetFeesError => 'Não foi possível carregar taxas.';
 
   @override
-  String get torInfoTitle => 'Tor Integrado';
-
-  @override
-  String get torInfoDescription =>
-      'A Carteira Spice usa automaticamente Tor integrado para proteger suas conexões de internet.';
-
-  @override
-  String get torInfoContinueButton => 'Continuar';
-
-  @override
-  String get torInfoConfigureButton => 'Configurar';
-
-  @override
   String get torSettingsTitle => 'Configurações do Tor';
 
   @override
-  String get torSettingsModeLabel => 'Modo Tor';
+  String get torSettingsSheetSubtitle =>
+      'Como o Spice Wallet acessa a rede. Alterar isto reconecta todas as redes.';
 
   @override
   String get torSettingsModeBuiltIn => 'Tor Integrado';
@@ -809,18 +805,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get torSettingsSocksPortLabel => 'Porta SOCKS';
-
-  @override
-  String get torSettingsSocksPortHint => 'ex: 9050';
-
-  @override
-  String get torSettingsUseOrbotLabel => 'Usar Orbot/InviZible';
-
-  @override
-  String get torSettingsUseOrbotLabelIos => 'Usar Orbot';
-
-  @override
-  String get torSettingsSaveButton => 'Salvar';
 
   @override
   String get torSettingsTestConnectionButton => 'Testar Conexão';
@@ -869,21 +853,4 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get explorerRemovedMessage => 'Explorador removido.';
-
-  @override
-  String get legacyTitle => 'Carteira Não Suportada';
-
-  @override
-  String get legacyDescription =>
-      'A Spice Wallet está descontinuando o suporte a frases seed legacy e polyseed em favor do BIP39. Por favor, anote a frase seed abaixo, exclua esta carteira e crie uma nova carteira com seed BIP39. Você pode restaurar esta seed em outra carteira Monero e mover os fundos para sua nova carteira BIP39.';
-
-  @override
-  String get legacyShowSeedButton => 'Mostrar seed';
-
-  @override
-  String get legacySeedLabel => 'Seed';
-
-  @override
-  String get legacyError =>
-      'Não foi possível abrir a carteira. Verifique sua senha e tente novamente.';
 }

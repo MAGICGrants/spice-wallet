@@ -7,7 +7,8 @@ import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
-import 'package:spice_wallet/widgets/tor_settings_form.dart';
+import 'package:spice_wallet/widgets/fiat_api_settings_sheet.dart';
+import 'package:spice_wallet/widgets/tor_settings_sheet.dart';
 import 'package:spice_wallet/models/language_model.dart';
 import 'package:spice_wallet/models/theme_model.dart';
 import 'package:wallet_domain/wallet_domain.dart';
@@ -15,6 +16,7 @@ import 'package:spice_wallet/periodic_tasks.dart';
 import 'package:spice_wallet/services/foreground_sync_service.dart';
 import 'package:spice_wallet/services/notifications_service.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
+import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/widgets/settings_group.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
@@ -33,6 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   var _appLockEnabled = false;
   var _verboseLoggingEnabled = false;
   var _testnetCoinsEnabled = false;
+  FiatApiMode _fiatMode = FiatApiMode.torOnly;
   // Toggles animate only after the stored values have loaded, so they don't
   // slide from off→on when the screen first appears.
   var _animateToggles = false;
@@ -70,12 +73,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         await SharedPreferencesService.get<bool>(SharedPreferencesKeys.testnetCoinsEnabled) ??
         false;
 
+    final fiatMode = await FiatRateModel.loadFiatApiMode();
+
     if (!mounted) return;
     setState(() {
       _newTxNotificationsEnabled = newTxNotificationsEnabled;
       _appLockEnabled = appLockEnabled;
       _verboseLoggingEnabled = verboseLoggingEnabled;
       _testnetCoinsEnabled = testnetCoinsEnabled;
+      _fiatMode = fiatMode;
     });
     // Enable animation a frame after the loaded values are painted.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -245,30 +251,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showTorSettingsDialog() {
-    final i18n = AppLocalizations.of(context)!;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final dialogWidth = screenWidth.clamp(0.0, 500.0);
-
-    Future<void> onSaved() async {
-      final manager = Provider.of<WalletManager>(context, listen: false);
-      manager.syncInBackground();
-
-      final fiatRate = Provider.of<FiatRateModel>(context, listen: false);
-      fiatRate.startService(walletManager: manager);
-
-      Navigator.pop(context);
+  void _showFiatApiSettings() async {
+    final changed = await showFiatApiSettingsSheet(context);
+    if (changed == true) {
+      final mode = await FiatRateModel.loadFiatApiMode();
+      if (mounted) setState(() => _fiatMode = mode);
     }
+  }
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        constraints: BoxConstraints.tightFor(width: dialogWidth),
-        insetPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-        title: Text(i18n.torSettingsTitle),
-        content: TorSettingsForm(saveButtonLabel: i18n.torSettingsSaveButton, onSaved: onSaved),
-      ),
-    );
+  String _fiatModeLabel(AppLocalizations i18n) => switch (_fiatMode) {
+    FiatApiMode.torOnly => i18n.fiatApiSettingsModeTorOnly,
+    FiatApiMode.clearnet => i18n.fiatApiSettingsModeClearnet,
+    FiatApiMode.disabled => i18n.fiatApiSettingsModeDisabled,
+  };
+
+  String _torModeLabel(AppLocalizations i18n) =>
+      switch (TorSettingsService.sharedInstance.torMode) {
+        TorMode.builtIn => i18n.torSettingsModeBuiltIn,
+        TorMode.external => i18n.torSettingsModeExternal,
+        TorMode.disabled => i18n.torSettingsModeDisabled,
+      };
+
+  void _showTorSettings() async {
+    final changed = await showTorSettingsSheet(context);
+    // Disabling Tor can auto-disable a Tor-only fiat mode, so refresh the row.
+    if (changed == true) {
+      final mode = await FiatRateModel.loadFiatApiMode();
+      if (mounted) setState(() => _fiatMode = mode);
+    }
   }
 
   /// Bottom-sheet single-choice picker (theme / language).
@@ -331,6 +341,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       'light': i18n.settingsThemeLight,
       'dark': i18n.settingsThemeDark,
     }[theme.theme];
+
+    final fiatCode = context.watch<FiatRateModel>().fiatCode;
+    final fiatSubtitle = _fiatMode == FiatApiMode.disabled
+        ? _fiatModeLabel(i18n)
+        : '${_fiatModeLabel(i18n)} · $fiatCode';
 
     return Scaffold(
       backgroundColor: BrandColors.paper,
@@ -401,8 +416,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           SettingsLinkTile(
                             title: i18n.settingsTorSettingsLabel,
+                            subtitle: _torModeLabel(i18n),
                             linkLabel: i18n.settingsLwsViewKeysButton,
-                            onTap: _showTorSettingsDialog,
+                            onTap: _showTorSettings,
+                          ),
+                          SettingsLinkTile(
+                            title: i18n.settingsFiatApiSettingsLabel,
+                            subtitle: fiatSubtitle,
+                            linkLabel: i18n.settingsLwsViewKeysButton,
+                            onTap: _showFiatApiSettings,
                           ),
                         ],
                       ),

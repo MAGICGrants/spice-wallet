@@ -18,6 +18,7 @@ export 'coin_tile.dart';
 export 'icon_badge.dart';
 export 'icon_circle_button.dart';
 export 'mini_action_button.dart';
+export 'mode_select_card.dart';
 export 'radio_dot.dart';
 export 'section_header.dart';
 export 'sheet.dart';

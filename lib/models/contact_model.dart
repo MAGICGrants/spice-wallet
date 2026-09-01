@@ -12,11 +12,7 @@ class Contact {
 
   String? addressFor(String coinSymbol) => addresses[coinSymbol.toUpperCase()];
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'addresses': addresses,
-  };
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'addresses': addresses};
 
   factory Contact.fromJson(Map<String, dynamic> json) {
     if (json.containsKey('addresses')) {
@@ -122,20 +118,23 @@ class ContactModel with ChangeNotifier {
   }
 
   List<Contact> searchContacts(String query, {String? coinSymbol}) {
-    var results = _contacts;
+    var results = _contacts.toList();
 
     if (coinSymbol != null) {
       final symbol = coinSymbol.toUpperCase();
       results = results.where((c) => c.addressFor(symbol) != null).toList();
     }
 
-    if (query.isEmpty) return results;
+    if (query.isNotEmpty) {
+      final lowercaseQuery = query.toLowerCase();
+      results = results.where((contact) {
+        if (contact.name.toLowerCase().contains(lowercaseQuery)) return true;
+        return contact.addresses.values.any((a) => a.toLowerCase().contains(lowercaseQuery));
+      }).toList();
+    }
 
-    final lowercaseQuery = query.toLowerCase();
-    return results.where((contact) {
-      if (contact.name.toLowerCase().contains(lowercaseQuery)) return true;
-      return contact.addresses.values.any((a) => a.toLowerCase().contains(lowercaseQuery));
-    }).toList();
+    results.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return results;
   }
 
   Map<String, String> _normalizeAddresses(Map<String, String> addresses) {

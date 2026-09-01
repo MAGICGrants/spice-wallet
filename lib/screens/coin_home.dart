@@ -16,7 +16,6 @@ import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
-import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 
 class CoinHomeScreenArgs {
@@ -117,9 +116,7 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
 
     return Scaffold(
       backgroundColor: BrandColors.paper,
-      bottomNavigationBar: const WalletNavigationBar(selectedIndex: 0),
       body: SafeArea(
-        bottom: false,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),

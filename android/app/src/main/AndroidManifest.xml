@@ -28,6 +28,12 @@
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="incoming_transactions"/>
 
+        <!-- Small icon for the background-sync foreground-service notification
+             (flutter_foreground_task resolves this meta-data by name). -->
+        <meta-data
+            android:name="org.magicgrants.spicewallet.notification_icon"
+            android:resource="@drawable/ic_stat_spice"/>
+
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">

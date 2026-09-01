@@ -22,7 +22,6 @@ import 'package:spice_wallet/screens/connection_setup.dart';
 import 'package:spice_wallet/screens/explorer_setup.dart';
 import 'package:spice_wallet/screens/fiat_api_setup_screen.dart';
 import 'package:spice_wallet/screens/generate_seed.dart';
-import 'package:spice_wallet/screens/legacy_wallet_screen.dart';
 import 'package:spice_wallet/screens/lws_keys.dart';
 import 'package:spice_wallet/screens/receive.dart';
 import 'package:spice_wallet/screens/send.dart';
@@ -32,7 +31,6 @@ import 'package:spice_wallet/screens/restore_wallet.dart';
 import 'package:spice_wallet/screens/wallet_home.dart';
 import 'package:spice_wallet/screens/welcome.dart';
 import 'package:spice_wallet/screens/dev/brand_gallery.dart';
-import 'package:spice_wallet/screens/tor_info.dart';
 import 'package:spice_wallet/theme/brand.dart';
 import 'package:spice_wallet/screens/tor_settings.dart';
 import 'package:spice_wallet/screens/address_book.dart';
@@ -46,7 +44,6 @@ import 'package:spice_wallet/services/foreground_sync_service.dart';
 import 'package:spice_wallet/util/dirs.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/cacert.dart';
-import 'package:spice_wallet/util/wallet.dart';
 import 'package:spice_wallet/wallet_core_glue.dart';
 import 'package:wallet_domain/wallet_domain.dart' show WalletManager;
 
@@ -220,16 +217,6 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
 
       final appLockEnabled = prefs.getBool(SharedPreferencesKeys.appLockEnabled) ?? false;
 
-      // A v1 (legacy/polyseed) wallet file is no longer supported — send the
-      // user to the unsupported-wallet screen to back up its seed and delete it.
-      final hasLegacyWallet = await File(await getLegacyWalletPath()).exists();
-      if (hasLegacyWallet) {
-        if (!mounted) return;
-        _startServicesOnce();
-        _navigatorKey.currentState?.pushReplacementNamed('/legacy_wallet');
-        return;
-      }
-
       final initialRoute = walletExists
           ? appLockEnabled || isDesktop
                 ? '/unlock'
@@ -264,7 +251,6 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
   Map<String, WidgetBuilder> get _routes => {
     '/welcome': (context) => WelcomeScreen(),
     '/brand_gallery': (context) => const BrandGalleryScreen(),
-    '/tor_info': (context) => TorInfoScreen(),
     '/tor_settings': (context) => TorSettingsScreen(),
     '/connection_setup': (context) => ConnectionSetupScreen(),
     '/explorer_setup': (context) => ExplorerSetupScreen(),
@@ -272,7 +258,6 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     '/create_wallet_password': (context) => CreateWalletPasswordScreen(),
     '/create_wallet': (context) => CreateWalletScreen(),
     '/generate_seed': (context) => GenerateSeedScreen(),
-    '/legacy_wallet': (context) => LegacyWalletScreen(),
     '/lws_keys': (context) => LwsKeysScreen(),
     '/restore_wallet': (context) => RestoreWalletScreen(),
     '/unlock': (context) => UnlockScreen(),

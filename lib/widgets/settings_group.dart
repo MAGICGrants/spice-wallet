@@ -27,7 +27,8 @@ class SettingsGroup extends StatelessWidget {
           child: Column(
             children: [
               for (var i = 0; i < tiles.length; i++) ...[
-                if (i != 0) const Divider(height: 1, thickness: 1, color: BrandColors.surfaceTinted),
+                if (i != 0)
+                  const Divider(height: 1, thickness: 1, color: BrandColors.surfaceTinted),
                 tiles[i],
               ],
             ],
@@ -98,6 +99,7 @@ class SettingsNavTile extends StatelessWidget {
 /// only the link label is coloured. Set [titleColor] for destructive rows.
 class SettingsLinkTile extends StatelessWidget {
   final String title;
+  final String? subtitle;
   final String? linkLabel;
   final VoidCallback onTap;
   final Color color;
@@ -107,6 +109,7 @@ class SettingsLinkTile extends StatelessWidget {
     super.key,
     required this.title,
     required this.onTap,
+    this.subtitle,
     this.linkLabel,
     this.color = BrandColors.cinnamon,
     this.titleColor,
@@ -120,7 +123,18 @@ class SettingsLinkTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         child: Row(
           children: [
-            Expanded(child: Text(title, style: _titleStyle.copyWith(color: titleColor))),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: _titleStyle.copyWith(color: titleColor)),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 3),
+                    Text(subtitle!, style: _descStyle),
+                  ],
+                ],
+              ),
+            ),
             if (linkLabel != null) ...[
               const SizedBox(width: 12),
               Text(
@@ -191,12 +205,7 @@ class BrandSwitch extends StatelessWidget {
   final ValueChanged<bool> onChanged;
   final bool animate;
 
-  const BrandSwitch({
-    super.key,
-    required this.value,
-    required this.onChanged,
-    this.animate = true,
-  });
+  const BrandSwitch({super.key, required this.value, required this.onChanged, this.animate = true});
 
   @override
   Widget build(BuildContext context) {

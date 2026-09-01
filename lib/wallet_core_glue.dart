@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' show Color;
 
 import 'package:provider/provider.dart';
 
@@ -10,7 +11,7 @@ import 'package:spice_wallet/services/tor_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 
 import 'package:wallet_infra/wallet_infra.dart' as wcore;
-import 'package:wallet_background/wallet_background.dart' show BackgroundSync;
+import 'package:wallet_background/wallet_background.dart' show BackgroundSync, NotificationIcon;
 import 'package:wallet_fiat/wallet_fiat.dart' show FiatRates;
 import 'package:wallet_domain/wallet_domain.dart'
     show WalletAppConfig, WalletManager, CryptoWallet, baseUnitsToDecimalString;
@@ -70,6 +71,12 @@ void installWalletCore() {
     ensureTorConnected: _ensureTorConnected,
     iosBundleId: 'org.magicgrants.spicewallet',
     foregroundTitle: 'Spice Wallet',
+    // Spice's spiral mark (white silhouette) as the sync notification's small
+    // icon, tinted cinnamon; the res + manifest meta-data live in android/.
+    foregroundIcon: const NotificationIcon(
+      metaDataName: 'org.magicgrants.spicewallet.notification_icon',
+      backgroundColor: Color(0xFFA0451C),
+    ),
   );
 
   FiatRates.install(getTorProxy: TorSettingsService.sharedInstance.getProxy);

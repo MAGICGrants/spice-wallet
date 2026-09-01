@@ -92,9 +92,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get torChoiceConnected => 'Connected to Tor';
 
   @override
-  String get torChoiceRecommended => 'Recommended';
-
-  @override
   String get connectionSetupTitle => 'Connection Setup';
 
   @override
@@ -190,6 +187,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fiatApiSettingsDisplayCurrencyLabel => 'Display Currency';
+
+  @override
+  String get settingsFiatApiSettingsLabel => 'Fiat Display Settings';
+
+  @override
+  String get fiatApiSettingsSheetSubtitle =>
+      'How rates are fetched, and the currency they are shown in.';
 
   @override
   String get createWalletTitle => 'Start fresh, or restore?';
@@ -371,7 +375,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coinHomeSwap => 'Swap';
 
   @override
-  String get coinHomeSwapComingSoon => 'Swap is coming soon.';
+  String get coinHomeSwapComingSoon => 'Coming soon!';
 
   @override
   String get coinHomeReceived => 'Received';
@@ -642,6 +646,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lwsKeysSecretViewKey => 'Secret View Key';
 
   @override
+  String get lwsKeysWarning =>
+      'Screenshots are blocked on this screen. The view key lets a server see everything you receive — share it only with a server you run or trust.';
+
+  @override
   String get scanQrTitle => 'Scan QR Code';
 
   @override
@@ -779,23 +787,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendFailedToGetFeesError => 'Failed to get fees.';
 
   @override
-  String get torInfoTitle => 'Tor Built-in';
-
-  @override
-  String get torInfoDescription =>
-      'Spice Wallet automatically uses built-in Tor to protect your internet connections.';
-
-  @override
-  String get torInfoContinueButton => 'Continue';
-
-  @override
-  String get torInfoConfigureButton => 'Configure';
-
-  @override
   String get torSettingsTitle => 'Tor Settings';
 
   @override
-  String get torSettingsModeLabel => 'Tor Mode';
+  String get torSettingsSheetSubtitle =>
+      'How Spice Wallet reaches the network. Changing this reconnects every chain.';
 
   @override
   String get torSettingsModeBuiltIn => 'Built-in Tor';
@@ -808,18 +804,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get torSettingsSocksPortLabel => 'SOCKS Port';
-
-  @override
-  String get torSettingsSocksPortHint => 'e.g. 9050';
-
-  @override
-  String get torSettingsUseOrbotLabel => 'Use Orbot/InviZible';
-
-  @override
-  String get torSettingsUseOrbotLabelIos => 'Use Orbot';
-
-  @override
-  String get torSettingsSaveButton => 'Save';
 
   @override
   String get torSettingsTestConnectionButton => 'Test Connection';
@@ -868,20 +852,4 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get explorerRemovedMessage => 'Explorer removed.';
-
-  @override
-  String get legacyTitle => 'Unsupported Wallet';
-
-  @override
-  String get legacyDescription =>
-      'Spice Wallet is dropping support for legacy and polyseed seed phrases in favor of BIP39. Please write down the seed phrase below, delete this wallet and create a new wallet. You can restore the seed below on another Monero wallet and move the funds to your new BIP39 seed wallet.';
-
-  @override
-  String get legacyShowSeedButton => 'Show seed';
-
-  @override
-  String get legacySeedLabel => 'Seed';
-
-  @override
-  String get legacyError => 'Couldn\'t open the wallet. Check your password and try again.';
 }
