@@ -128,13 +128,13 @@ class _LwsKeysScreenState extends State<LwsKeysScreen> with SecureScreenMixin {
                                 margin: const EdgeInsets.only(top: 1),
                                 alignment: Alignment.center,
                                 decoration: BoxDecoration(
-                                  color: BrandColors.ink,
+                                  color: BrandColors.inverseSurface,
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   Icons.visibility_off_outlined,
                                   size: 14,
-                                  color: BrandColors.paper,
+                                  color: BrandColors.onCinnamon,
                                 ),
                               ),
                               const SizedBox(width: 11),
@@ -227,7 +227,7 @@ class _KeyField extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
                           decoration: BoxDecoration(
-                            color: BrandColors.ink,
+                            color: BrandColors.inverseSurface,
                             borderRadius: BorderRadius.circular(100),
                           ),
                           child: Text(
@@ -235,7 +235,7 @@ class _KeyField extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
-                              color: BrandColors.paper,
+                              color: BrandColors.onCinnamon,
                             ),
                           ),
                         ),

@@ -1167,11 +1167,83 @@ abstract class AppLocalizations {
   /// **'Dark'**
   String get settingsThemeDark;
 
+  /// No description provided for @settingsThemeLightDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm paper, the default'**
+  String get settingsThemeLightDesc;
+
+  /// No description provided for @settingsThemeDarkDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark ground, easier at night'**
+  String get settingsThemeDarkDesc;
+
+  /// No description provided for @settingsThemeSystemDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows your phone, switching at sunset'**
+  String get settingsThemeSystemDesc;
+
+  /// No description provided for @settingsThemeSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes take effect straight away. Amount colours stay the same in both.'**
+  String get settingsThemeSheetSubtitle;
+
   /// No description provided for @settingsLanguageLabel.
   ///
   /// In en, this message translates to:
   /// **'Language'**
   String get settingsLanguageLabel;
+
+  /// No description provided for @settingsLanguageSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Amounts and dates follow the language you pick.'**
+  String get settingsLanguageSheetSubtitle;
+
+  /// No description provided for @settingsSeedPhraseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed phrase'**
+  String get settingsSeedPhraseLabel;
+
+  /// No description provided for @revealSeedSubtitleCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'The same fifteen words this wallet was created with, in the same order.'**
+  String get revealSeedSubtitleCovered;
+
+  /// No description provided for @revealSeedSubtitleRevealed.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone holding these words holds the wallet. No support agent will ever ask you for them.'**
+  String get revealSeedSubtitleRevealed;
+
+  /// No description provided for @revealSeedBackButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to settings'**
+  String get revealSeedBackButton;
+
+  /// No description provided for @revealSeedHideButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide and go back'**
+  String get revealSeedHideButton;
+
+  /// No description provided for @revealSeedAuthReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you to view your seed phrase'**
+  String get revealSeedAuthReason;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
 
   /// No description provided for @settingsLwsViewKeysButton.
   ///

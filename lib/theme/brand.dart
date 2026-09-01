@@ -35,6 +35,10 @@ class BrandColors {
 
   // Ink
   static Color get ink => _pick(0xFF2C170C, 0xFFF4E8DA);
+
+  /// A dark chip that stays dark in both modes (with [onCinnamon] text on it) —
+  /// e.g. the "tap to reveal" affordance. Unlike [ink], it does not invert.
+  static Color get inverseSurface => _pick(0xFF2C170C, 0xFF3A2E27);
   static Color get inkMuted => _pick(0xFF7C6353, 0xFFA6907F);
   static Color get inkFaint => _pick(0xFF9C8571, 0xFF8A7666);
   static Color get inkDisabled => _pick(0xFFC4AE96, 0xFF6B5A4E);

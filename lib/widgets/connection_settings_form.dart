@@ -1113,11 +1113,9 @@ class _ResultCard extends StatelessWidget {
        trailing = null,
        isFailure = true;
 
-  static const _errorText = Color(0xFF8E3A22);
-
   @override
   Widget build(BuildContext context) {
-    final titleColor = isFailure ? _errorText : BrandColors.ink;
+    final titleColor = isFailure ? BrandColors.error : BrandColors.ink;
     return _TestCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1174,7 +1172,7 @@ class _ResultCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: isFailure ? 12 : 12.5,
                 height: isFailure ? 1.5 : 1.45,
-                color: isFailure ? _errorText : BrandColors.inkMuted,
+                color: isFailure ? BrandColors.error : BrandColors.inkMuted,
               ),
             ),
           ),

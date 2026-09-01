@@ -15,6 +15,9 @@ class ModeSelectCard extends StatelessWidget {
   final bool radioLeading;
   final Widget? expanded;
 
+  /// Optional leading widget (e.g. a theme preview swatch) shown before the text.
+  final Widget? leading;
+
   const ModeSelectCard({
     super.key,
     required this.title,
@@ -23,6 +26,7 @@ class ModeSelectCard extends StatelessWidget {
     required this.onTap,
     this.radioLeading = false,
     this.expanded,
+    this.leading,
   });
 
   @override
@@ -63,9 +67,12 @@ class ModeSelectCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              children: radioLeading
-                  ? [dot, const SizedBox(width: 13), text]
-                  : [text, const SizedBox(width: 13), dot],
+              children: [
+                if (radioLeading) ...[dot, const SizedBox(width: 13)],
+                if (leading != null) ...[leading!, const SizedBox(width: 13)],
+                text,
+                if (!radioLeading) ...[const SizedBox(width: 13), dot],
+              ],
             ),
             if (selected && expanded != null) ...[const SizedBox(height: 14), expanded!],
           ],

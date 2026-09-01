@@ -592,7 +592,46 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsThemeDark => 'Escuro';
 
   @override
+  String get settingsThemeLightDesc => 'Papel quente, o padrão';
+
+  @override
+  String get settingsThemeDarkDesc => 'Fundo escuro, melhor à noite';
+
+  @override
+  String get settingsThemeSystemDesc => 'Segue o seu telefone, mudando ao anoitecer';
+
+  @override
+  String get settingsThemeSheetSubtitle =>
+      'As mudanças têm efeito imediato. As cores dos valores permanecem iguais nos dois.';
+
+  @override
   String get settingsLanguageLabel => 'Idioma';
+
+  @override
+  String get settingsLanguageSheetSubtitle => 'Valores e datas seguem o idioma escolhido.';
+
+  @override
+  String get settingsSeedPhraseLabel => 'Frase seed';
+
+  @override
+  String get revealSeedSubtitleCovered =>
+      'As mesmas quinze palavras com que esta carteira foi criada, na mesma ordem.';
+
+  @override
+  String get revealSeedSubtitleRevealed =>
+      'Qualquer pessoa com estas palavras tem a carteira. Nenhum atendente jamais vai pedi-las.';
+
+  @override
+  String get revealSeedBackButton => 'Voltar às configurações';
+
+  @override
+  String get revealSeedHideButton => 'Ocultar e voltar';
+
+  @override
+  String get revealSeedAuthReason => 'Confirme sua identidade para ver a frase seed';
+
+  @override
+  String get done => 'Concluir';
 
   @override
   String get settingsLwsViewKeysButton => 'Ver';

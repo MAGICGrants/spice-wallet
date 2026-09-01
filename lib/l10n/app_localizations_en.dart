@@ -591,7 +591,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsThemeDark => 'Dark';
 
   @override
+  String get settingsThemeLightDesc => 'Warm paper, the default';
+
+  @override
+  String get settingsThemeDarkDesc => 'Dark ground, easier at night';
+
+  @override
+  String get settingsThemeSystemDesc => 'Follows your phone, switching at sunset';
+
+  @override
+  String get settingsThemeSheetSubtitle =>
+      'Changes take effect straight away. Amount colours stay the same in both.';
+
+  @override
   String get settingsLanguageLabel => 'Language';
+
+  @override
+  String get settingsLanguageSheetSubtitle => 'Amounts and dates follow the language you pick.';
+
+  @override
+  String get settingsSeedPhraseLabel => 'Seed phrase';
+
+  @override
+  String get revealSeedSubtitleCovered =>
+      'The same fifteen words this wallet was created with, in the same order.';
+
+  @override
+  String get revealSeedSubtitleRevealed =>
+      'Anyone holding these words holds the wallet. No support agent will ever ask you for them.';
+
+  @override
+  String get revealSeedBackButton => 'Back to settings';
+
+  @override
+  String get revealSeedHideButton => 'Hide and go back';
+
+  @override
+  String get revealSeedAuthReason => 'Confirm it\'s you to view your seed phrase';
+
+  @override
+  String get done => 'Done';
 
   @override
   String get settingsLwsViewKeysButton => 'View';

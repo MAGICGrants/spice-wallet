@@ -18,6 +18,7 @@ import 'package:spice_wallet/services/notifications_service.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/widgets/settings_group.dart';
+import 'package:spice_wallet/widgets/theme_language_sheets.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
 import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
@@ -279,49 +280,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Bottom-sheet single-choice picker (theme / language).
-  void _showPicker(
-    String title,
-    List<(String value, String label)> options,
-    String current,
-    ValueChanged<String> onSelect,
-  ) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: BrandColors.paper,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(BrandRadii.sheet)),
-      ),
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 18, 24, 8),
-              child: Text(title, style: BrandText.sheetTitle),
-            ),
-            for (final (value, label) in options)
-              InkWell(
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  if (value != current) onSelect(value);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  child: Row(
-                    children: [
-                      Expanded(child: Text(label, style: BrandText.listTitle)),
-                      if (value == current)
-                        Icon(Icons.check, size: 20, color: BrandColors.cinnamon),
-                    ],
-                  ),
-                ),
-              ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
+  void _revealSeed() async {
+    final i18n = AppLocalizations.of(context)!;
+    // Gate the seed behind a device auth even though the app is already unlocked.
+    if (Platform.isAndroid || Platform.isIOS) {
+      final result = await BiometricAuth.authenticate(reason: i18n.revealSeedAuthReason);
+      if (result != BiometricAuthResult.authenticated) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(i18n.settingsAppLockUnableToAuthError)));
+        }
+        return;
+      }
+    }
+    if (mounted) Navigator.pushNamed(context, '/reveal_seed');
   }
 
   static const _languageNames = {'en': 'English', 'pt': 'Português'};
@@ -375,34 +348,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           SettingsNavTile(
                             title: i18n.settingsThemeLabel,
                             value: themeLabel,
-                            onTap: () => _showPicker(
-                              i18n.settingsThemeLabel,
-                              [
-                                ('system', i18n.settingsThemeSystem),
-                                ('light', i18n.settingsThemeLight),
-                                ('dark', i18n.settingsThemeDark),
-                              ],
-                              theme.theme,
-                              (v) => theme.setTheme(v),
-                            ),
+                            onTap: () => showThemeSheet(context),
                           ),
                           SettingsNavTile(
                             title: i18n.settingsLanguageLabel,
                             value:
                                 _languageNames[language.language] ??
                                 language.language.toUpperCase(),
-                            onTap: () => _showPicker(
-                              i18n.settingsLanguageLabel,
-                              [
-                                for (final l in AppLocalizations.supportedLocales)
-                                  (
-                                    l.languageCode,
-                                    _languageNames[l.languageCode] ?? l.languageCode.toUpperCase(),
-                                  ),
-                              ],
-                              language.language,
-                              (v) => language.setLanguage(v),
-                            ),
+                            onTap: () => showLanguageSheet(context),
                           ),
                           if (isMobile)
                             SettingsToggleTile(
@@ -411,6 +364,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               onChanged: _setAppLockEnabled,
                               animate: _animateToggles,
                             ),
+                          SettingsLinkTile(
+                            title: i18n.settingsSeedPhraseLabel,
+                            linkLabel: i18n.settingsLwsViewKeysButton,
+                            onTap: _revealSeed,
+                          ),
                           SettingsLinkTile(
                             title: i18n.settingsTorSettingsLabel,
                             subtitle: _torModeLabel(i18n),

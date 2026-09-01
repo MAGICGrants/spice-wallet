@@ -257,14 +257,16 @@ class _QrCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            // The QR sits on a fixed white card so it scans, so its modules must
+            // stay dark in both themes — the themed ink goes light in dark mode.
             child: QrImageView(
               data: address,
               size: 200,
               padding: EdgeInsets.zero,
-              eyeStyle: QrEyeStyle(eyeShape: QrEyeShape.square, color: BrandColors.ink),
+              eyeStyle: QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF2C170C)),
               dataModuleStyle: QrDataModuleStyle(
                 dataModuleShape: QrDataModuleShape.square,
-                color: BrandColors.ink,
+                color: Color(0xFF2C170C),
               ),
             ),
           ),
