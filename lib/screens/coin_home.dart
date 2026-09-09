@@ -204,6 +204,22 @@ String _amountText(CryptoWallet wallet) {
   return b is double ? formatAmount(b, wallet.decimals) : '—';
 }
 
+/// Incoming funds that have arrived but are not spendable yet, or null when
+/// there are none.
+///
+/// Monero locks a receipt for ten blocks, so its unlocked balance omits it. On
+/// coins that let you spend an unconfirmed receipt the two balances are equal
+/// and this is null.
+String? _pendingText(CryptoWallet wallet) {
+  final total = wallet.totalBalanceBaseUnits;
+  final unlocked = wallet.unlockedBalanceBaseUnits;
+  if (total == null || unlocked == null) return null;
+  final pending = total - unlocked;
+  if (pending <= BigInt.zero) return null;
+  final exact = baseUnitsToDecimalString(pending, wallet.baseUnitDecimals);
+  return formatAmount(double.parse(exact), wallet.decimals);
+}
+
 class _Header extends StatelessWidget {
   final CryptoWallet wallet;
   final VoidCallback onSettings;
@@ -274,6 +290,20 @@ class _BalanceHero extends StatelessWidget {
                 color: BrandColors.inkMuted,
               ),
             ),
+          // Funds that have arrived but are not spendable yet. Only Monero has
+          // these; elsewhere the balance above already counts them.
+          if (_pendingText(wallet) case final pending?) ...[
+            if (!hasTokens && showFiat) const SizedBox(height: 6),
+            Text(
+              '${i18n.pending}: +$pending ${wallet.coinSymbol}',
+              style: TextStyle(
+                fontFamily: 'Ubuntu Mono',
+                fontSize: 13.5,
+                height: 1,
+                color: BrandColors.inkMuted,
+              ),
+            ),
+          ],
           if (wallet.connectionAddress.isNotEmpty) ...[
             if (!hasTokens && showFiat) const SizedBox(height: 12),
             // While syncing (Monero node behind), compact the pills to icons and
