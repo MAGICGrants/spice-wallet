@@ -288,7 +288,7 @@ abstract class AppLocalizations {
   /// No description provided for @lwsSetupAddressHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g. 192.168.1.1:18090 or example.com:18090'**
+  /// **'lws.example.com:18090'**
   String get lwsSetupAddressHint;
 
   /// No description provided for @lwsSetupUseTorLabel.
