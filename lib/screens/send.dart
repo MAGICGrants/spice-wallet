@@ -54,7 +54,14 @@ class _SendScreenState extends State<SendScreen> {
   final _amountController = TextEditingController(text: '');
   bool _isSweepAll = false;
   Contact? _selectedContact;
-  List<PendingTransaction?>? _fees;
+
+  /// Fee per priority, for display. Filled from the coin's own estimate where it
+  /// has one, otherwise from a transaction built to find out.
+  List<BigInt?>? _fees;
+
+  /// Transactions built during fee calculation, kept so [_send] can reuse the
+  /// selected one. Null entries where the fee came from an estimate instead.
+  List<PendingTransaction?>? _feeTxs;
   int _selectedPriority = 1; // 0=Low, 1=Normal, 2=High
   int _feeCalculationCounter = 0;
   String _lastFeeFetchKey = '';
@@ -394,6 +401,8 @@ class _SendScreenState extends State<SendScreen> {
     _lastFeeFetchKey = feeFetchKey;
 
     final i18n = AppLocalizations.of(context)!;
+    final wallet = _wallet(context);
+    final amountUnits = _amountUnits(wallet) ?? BigInt.zero;
 
     _feeCalculationCounter++;
     final currentRequest = _feeCalculationCounter;
@@ -402,13 +411,15 @@ class _SendScreenState extends State<SendScreen> {
       _isLoadingFees = true;
       _feesInProgress = true;
       _fees = null;
+      _feeTxs = null;
     });
     _feeRevision.value++;
 
     final destinationAddress = await _resolveDestinationAddress();
 
     try {
-      final fees = List<PendingTransaction?>.filled(3, null);
+      final fees = List<BigInt?>.filled(3, null);
+      final builtTxs = List<PendingTransaction?>.filled(3, null);
       final priorityOrder = [
         _selectedPriority,
         for (var i = 0; i < 3; i++)
@@ -420,11 +431,34 @@ class _SendScreenState extends State<SendScreen> {
 
         await Future<void>.delayed(Duration.zero);
 
-        fees[idx] = await _createTxForPriority(destinationAddress, idx + 1);
+        // Ask the coin what the fee would be before building anything. Monero
+        // answers locally; a sweep has no fixed amount to price, so it still
+        // needs a real transaction. Coins with no estimate fall through to the
+        // build below, which is what they did before.
+        final estimate = _isSweepAll
+            ? null
+            : await wallet.estimateFee(destinationAddress, amountUnits, priority: idx + 1);
+
+        if (estimate != null) {
+          // Building the transaction used to be what discovered that a priority
+          // costs more than the wallet holds; an estimate has to check for
+          // itself, or an unaffordable priority would look selectable and fail
+          // at send. Only meaningful when the fee is paid in the coin being
+          // sent, which is the only case that reaches here.
+          final unlocked = wallet.unlockedBalanceBaseUnits;
+          final affordable =
+              wallet.feeIsForeign || unlocked == null || amountUnits + estimate <= unlocked;
+          fees[idx] = affordable ? estimate : null;
+        } else {
+          final tx = await _createTxForPriority(destinationAddress, idx + 1);
+          builtTxs[idx] = tx;
+          fees[idx] = tx?.feeBaseUnits;
+        }
 
         if (currentRequest == _feeCalculationCounter && mounted) {
           setState(() {
             _fees = List.from(fees);
+            _feeTxs = List.from(builtTxs);
             if (idx == _selectedPriority) {
               _isLoadingFees = false;
             }
@@ -499,8 +533,8 @@ class _SendScreenState extends State<SendScreen> {
       PendingTransaction tx;
 
       final currentFeeFetchKey = '${_destinationAddressController.text}-${_amountController.text}';
-      final cachedTx = _fees != null && _fees!.length > _selectedPriority
-          ? _fees![_selectedPriority]
+      final cachedTx = _feeTxs != null && _feeTxs!.length > _selectedPriority
+          ? _feeTxs![_selectedPriority]
           : null;
 
       if (currentFeeFetchKey == _lastFeeFetchKey && cachedTx != null) {
@@ -610,6 +644,7 @@ class _SendScreenState extends State<SendScreen> {
       _feeCalculationCounter++;
       setState(() {
         _fees = null;
+        _feeTxs = null;
         _isLoadingFees = false;
         _feesInProgress = false;
         _formValid = false;
@@ -661,6 +696,7 @@ class _SendScreenState extends State<SendScreen> {
           _isLoadingFees = false;
           _feesInProgress = false;
           _fees = null;
+          _feeTxs = null;
           _formValid = false;
         });
         _feeRevision.value++;
@@ -1017,6 +1053,7 @@ class _SendScreenState extends State<SendScreen> {
       _coinSymbol = coinSymbol;
       _isSweepAll = false;
       _fees = null;
+      _feeTxs = null;
       _isLoadingFees = false;
       _feesInProgress = false;
       _formValid = false;
@@ -1294,23 +1331,23 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   Widget _feeValue(CryptoWallet wallet, String fiatSymbol, double? coinRate) {
-    final feeTx = (_fees != null && _fees!.length > _selectedPriority)
+    final feeUnits = (_fees != null && _fees!.length > _selectedPriority)
         ? _fees![_selectedPriority]
         : null;
-    if (_isLoadingFees || (_feesInProgress && feeTx == null)) {
+    if (_isLoadingFees || (_feesInProgress && feeUnits == null)) {
       return SizedBox(
         width: 14,
         height: 14,
         child: CircularProgressIndicator(strokeWidth: 2, color: BrandColors.cinnamon),
       );
     }
-    if (feeTx == null) {
+    if (feeUnits == null) {
       return Text(
         '—',
         style: TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 12, color: BrandColors.inkMuted),
       );
     }
-    final fee = displayAmount(feeTx.feeBaseUnits, wallet.feeBaseUnitDecimals);
+    final fee = displayAmount(feeUnits, wallet.feeBaseUnitDecimals);
     final feeStr = formatAmount(fee, wallet.feeDecimals, symbol: wallet.feeCoinSymbol);
     final feeFiat = (coinRate != null && !wallet.feeIsForeign)
         ? ' · ${formatFiat(fee * coinRate, fiatSymbol)}'
