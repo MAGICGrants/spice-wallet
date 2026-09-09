@@ -147,6 +147,12 @@ abstract class AppLocalizations {
   /// **'Pending'**
   String get pending;
 
+  /// No description provided for @unconfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unconfirmed'**
+  String get unconfirmed;
+
   /// No description provided for @copy.
   ///
   /// In en, this message translates to:

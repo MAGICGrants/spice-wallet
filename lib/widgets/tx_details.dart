@@ -57,10 +57,14 @@ class _TxDetailsSheet extends StatelessWidget {
       wallet.feeDecimals,
       symbol: wallet.feeCoinSymbol,
     );
-    final heightText = NumberFormat('#,##0').format(tx.height == -1 ? 0 : tx.height);
+    // A transaction still in the mempool has no block, and no timestamp until a
+    // server gives it one. Shown raw, those read as a height of 0 and a date of
+    // 31 Dec 1969, which look like facts rather than "not yet".
+    final heightText = tx.height <= 0 ? i18n.unconfirmed : NumberFormat('#,##0').format(tx.height);
     // Default (en) date symbols: initializeDateFormatting isn't wired.
-    final dateText =
-        '${DateFormat('HH:mm').format(date)} · ${DateFormat('d MMM yyyy').format(date)}';
+    final dateText = tx.timestamp <= 0
+        ? i18n.unconfirmed
+        : '${DateFormat('HH:mm').format(date)} · ${DateFormat('d MMM yyyy').format(date)}';
 
     final recipients = tx.recipients.where((r) => !r.isChange).toList();
     final change = tx.recipients.where((r) => r.isChange).toList();
@@ -243,13 +247,16 @@ class _TxDetailsSheet extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 10),
                 child: Row(
                   children: [
-                    Expanded(
+                    Flexible(
                       child: Text(shortenMiddle(r.address, head: 6, tail: 4), style: _mutedMono),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 5),
+                    // Beside the address, not only at the end of the row: the
+                    // row's own icon sits past the amount and reads as if it
+                    // belongs to that.
+                    Icon(Icons.copy_outlined, size: 13, color: BrandColors.inkFaint),
+                    const Spacer(),
                     Text(_fmtAmount(r.amountBaseUnits), style: _valueStyle),
-                    const SizedBox(width: 10),
-                    Icon(Icons.copy_outlined, size: 15, color: BrandColors.inkFaint),
                   ],
                 ),
               ),

@@ -9,6 +9,7 @@
   "networkFee": "Taxa da Rede",
   "address": "Endereço",
   "pending": "Pendente",
+  "unconfirmed": "Não confirmado",
   "copy": "Copiar",
   "addressCopied": "Endereço copiado para a área de transferência",
   "copiedToClipboard": "Copiado para a área de transferência",

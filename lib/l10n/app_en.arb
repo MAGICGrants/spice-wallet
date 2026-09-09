@@ -9,6 +9,7 @@
   "networkFee": "Network Fee",
   "address": "Address",
   "pending": "Pending",
+  "unconfirmed": "Unconfirmed",
   "copy": "Copy",
   "addressCopied": "Address copied to clipboard",
   "copiedToClipboard": "Copied to clipboard",

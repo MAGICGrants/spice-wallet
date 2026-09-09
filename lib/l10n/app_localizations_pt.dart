@@ -36,6 +36,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pending => 'Pendente';
 
   @override
+  String get unconfirmed => 'Não confirmado';
+
+  @override
   String get copy => 'Copiar';
 
   @override
