@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_zxing/flutter_zxing.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 
 class ScanQrScreen extends StatefulWidget {
@@ -52,11 +53,23 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
     _torchBusy = true;
     final next = !_torchOn;
     try {
+      if (next) {
+        // camera_android_camerax keeps `torchEnabled` on its shared platform
+        // singleton and does not clear it in dispose() — which only calls
+        // unbindAll(). A camera flip therefore leaves it reading "on" while the
+        // light is physically out, and setFlashMode(torch) then early-returns
+        // without ever calling enableTorch: the icon flips, nothing lights.
+        // Setting `off` first clears that flag, so the enable always runs. It
+        // is a cheap no-op when the flag is already correct.
+        await cam.setFlashMode(FlashMode.off);
+      }
       await cam.setFlashMode(next ? FlashMode.torch : FlashMode.off);
       if (mounted) setState(() => _torchOn = next);
-    } catch (_) {
-      // Transient failure — leave the state unchanged so the icon keeps matching
-      // the actual torch.
+    } catch (error) {
+      // Leave the state unchanged so the icon keeps matching the actual torch,
+      // but record why — CameraX reports torch failures on an error stream the
+      // controller never surfaces, so a silent catch here loses the only trace.
+      log(LogLevel.error, 'Torch toggle to $next failed: $error');
     } finally {
       _torchBusy = false;
     }
@@ -69,7 +82,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
     // ReaderWidget centres its scan square using the full screen size, so it
     // must be full-bleed; the brand header floats over its dimmed top band.
     return Scaffold(
-      backgroundColor: BrandColors.ink,
+      backgroundColor: BrandColors.paper,
       body: Stack(
         children: [
           Positioned.fill(
@@ -116,9 +129,16 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
                 alignment: Alignment.topCenter,
                 child: BrandScreenHeader(
                   onBack: () => Navigator.pop(context),
-                  center: Text(
-                    i18n.scanQrTitle,
-                    style: BrandText.appBar.copyWith(fontSize: 16, color: BrandColors.paper),
+                  center: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: BrandColors.inverseSurface.withValues(alpha: 0.88),
+                      borderRadius: BrandRadii.rPill,
+                    ),
+                    child: Text(
+                      i18n.scanQrTitle,
+                      style: BrandText.appBar.copyWith(fontSize: 16, color: BrandColors.onCinnamon),
+                    ),
                   ),
                 ),
               ),

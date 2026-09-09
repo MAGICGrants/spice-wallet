@@ -326,7 +326,9 @@ class _ContactTile extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _sorted.map((e) => manager.wallets[e.key]?.coinName ?? e.key).join(' · '),
+                          _sorted
+                              .map((e) => manager.wallets[e.key]?.blockchainName ?? e.key)
+                              .join(' · '),
                           style: BrandText.caption.copyWith(fontSize: 11.5),
                         ),
                       ],
@@ -342,7 +344,9 @@ class _ContactTile extends StatelessWidget {
       );
     }
 
-    final coinNames = _sorted.map((e) => manager.wallets[e.key]?.coinName ?? e.key).join(' · ');
+    final blockchainNames = _sorted
+        .map((e) => manager.wallets[e.key]?.blockchainName ?? e.key)
+        .join(' · ');
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -372,7 +376,7 @@ class _ContactTile extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 3),
-                          Text(coinNames, style: BrandText.caption.copyWith(fontSize: 11.5)),
+                          Text(blockchainNames, style: BrandText.caption.copyWith(fontSize: 11.5)),
                         ],
                       ),
                     ),
@@ -382,7 +386,12 @@ class _ContactTile extends StatelessWidget {
               ),
             ),
             for (final e in _sorted)
-              _AddressRow(coinSymbol: e.key, address: e.value, wallet: manager.wallets[e.key]),
+              _AddressRow(
+                coinSymbol: e.key,
+                address: e.value,
+                wallet: manager.wallets[e.key],
+                contact: contact,
+              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(15, 6, 15, 15),
               child: Row(
@@ -417,8 +426,14 @@ class _AddressRow extends StatelessWidget {
   final String coinSymbol;
   final String address;
   final CryptoWallet? wallet;
+  final Contact contact;
 
-  const _AddressRow({required this.coinSymbol, required this.address, required this.wallet});
+  const _AddressRow({
+    required this.coinSymbol,
+    required this.address,
+    required this.wallet,
+    required this.contact,
+  });
 
   void _copy(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
@@ -444,7 +459,7 @@ class _AddressRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  wallet?.coinName ?? coinSymbol,
+                  wallet?.blockchainName ?? coinSymbol,
                   style: TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w500,
@@ -474,7 +489,11 @@ class _AddressRow extends StatelessWidget {
             onPressed: () => Navigator.pushNamed(
               context,
               '/send',
-              arguments: SendScreenArgs(coinSymbol: coinSymbol, destinationAddress: address),
+              arguments: SendScreenArgs(
+                coinSymbol: coinSymbol,
+                destinationAddress: address,
+                contact: contact,
+              ),
             ),
           ),
         ],
@@ -785,7 +804,7 @@ class _ContactSheetState extends State<_ContactSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    wallet.coinName,
+                    wallet.blockchainName,
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w500,
@@ -841,7 +860,7 @@ class _ContactSheetState extends State<_ContactSheet> {
               const SizedBox(width: 11),
               Expanded(
                 child: Text(
-                  wallet.coinName,
+                  wallet.blockchainName,
                   style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w500,
@@ -870,7 +889,7 @@ class _ContactSheetState extends State<_ContactSheet> {
           if (invalid) ...[
             const SizedBox(height: 8),
             Text(
-              i18n.invalidAddressForCoin(wallet.coinName),
+              i18n.invalidAddressForChain(wallet.blockchainName),
               style: BrandText.caption.copyWith(color: BrandColors.error),
             ),
           ],
