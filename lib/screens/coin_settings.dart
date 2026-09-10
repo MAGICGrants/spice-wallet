@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
 import 'package:spice_wallet/screens/explorer_setup.dart';
-import 'package:spice_wallet/widgets/settings_group.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 

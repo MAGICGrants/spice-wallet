@@ -47,7 +47,7 @@ class _TorSettingsSheetState extends State<_TorSettingsSheet> {
       final affected = context.read<WalletManager>().allWallets.where((w) => w.usingTor).toList();
       if (affected.isNotEmpty) {
         final confirmed = await _confirmDisableTor();
-        if (confirmed != true) return;
+        if (!confirmed) return;
         for (final wallet in affected) {
           wallet.onGlobalTorDisabled();
         }
@@ -82,35 +82,17 @@ class _TorSettingsSheetState extends State<_TorSettingsSheet> {
     Navigator.of(context).pop(true);
   }
 
-  Future<bool?> _confirmDisableTor() {
+  Future<bool> _confirmDisableTor() {
     final i18n = AppLocalizations.of(context)!;
-    return showDialog<bool>(
+    return showConfirmSheet(
       context: context,
-      builder: (dialogContext) => Dialog(
-        backgroundColor: BrandColors.card,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 28),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        child: Padding(
-          padding: const EdgeInsets.all(22),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(i18n.torDisabledWalletsWarningTitle, style: BrandText.sheetTitle),
-              const SizedBox(height: 12),
-              Text(i18n.torDisabledWalletsWarningBody, style: BrandText.bodyMuted),
-              const SizedBox(height: 22),
-              BrandButton(label: i18n.cancel, onPressed: () => Navigator.pop(dialogContext, false)),
-              const SizedBox(height: 4),
-              BrandButton.ghost(
-                label: i18n.torDisabledWalletsWarningConfirm,
-                color: BrandColors.error,
-                onPressed: () => Navigator.pop(dialogContext, true),
-              ),
-            ],
-          ),
-        ),
-      ),
+      icon: Icons.warning_amber_rounded,
+      iconBg: BrandColors.errorBg,
+      iconColor: BrandColors.error,
+      title: i18n.torDisabledWalletsWarningTitle,
+      body: i18n.torDisabledWalletsWarningBody,
+      confirmLabel: i18n.torDisabledWalletsWarningConfirm,
+      cancelLabel: i18n.cancel,
     );
   }
 

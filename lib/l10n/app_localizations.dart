@@ -501,6 +501,42 @@ abstract class AppLocalizations {
   /// **'Spice Wallet generates a 15-word BIP39 seed'**
   String get createWalletCreateNewDesc;
 
+  /// No description provided for @createWalletPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Wallet Password'**
+  String get createWalletPasswordTitle;
+
+  /// No description provided for @createWalletPasswordDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a password to protect your wallet. This password will be required to unlock your wallet.'**
+  String get createWalletPasswordDescription;
+
+  /// No description provided for @createWalletPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get createWalletPasswordHint;
+
+  /// No description provided for @createWalletConfirmPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your password'**
+  String get createWalletConfirmPasswordHint;
+
+  /// No description provided for @passwordTooShortError.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters long.'**
+  String get passwordTooShortError;
+
+  /// No description provided for @passwordsDoNotMatchError.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get passwordsDoNotMatchError;
+
   /// No description provided for @generateSeedTitle.
   ///
   /// In en, this message translates to:
@@ -1376,6 +1412,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change Recipient'**
   String get txDetailsChangeRecipientLabel;
+
+  /// No description provided for @txDetailsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'This transaction failed. The funds were not sent.'**
+  String get txDetailsFailed;
+
+  /// No description provided for @txDetailsUnknownStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'This transaction was not confirmed as sent. Check before sending again.'**
+  String get txDetailsUnknownStatus;
 
   /// No description provided for @lwsKeysTitle.
   ///

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -97,77 +96,22 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     final ready = address != null;
     final warning = _warning(i18n, monero, subSupported, unusedIndexSupported);
 
-    return Scaffold(
-      backgroundColor: BrandColors.paper,
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  child: BrandScreenHeader(
-                    onBack: () => Navigator.pop(context),
-                    center: Text(i18n.receiveTitle, style: BrandText.appBar.copyWith(fontSize: 16)),
-                    action: _isMobile
-                        ? IconCircleButton(
-                            icon: Icons.ios_share,
-                            onPressed: ready
-                                ? () => SharePlus.instance.share(ShareParams(text: address!))
-                                : null,
-                          )
-                        : null,
-                  ),
-                ),
-                Expanded(
-                  child: !ready
-                      ? Center(child: CircularProgressIndicator(color: BrandColors.cinnamon))
-                      : ListView(
-                          padding: const EdgeInsets.fromLTRB(16, 22, 16, 24),
-                          children: [
-                            _CoinCard(wallet: wallet),
-                            if (canToggle) ...[
-                              const SizedBox(height: 14),
-                              BrandSegmented(
-                                dense: true,
-                                labels: [i18n.receiveSubaddressTab, i18n.receivePrimaryTab],
-                                selectedIndex: _showSubaddress ? 0 : 1,
-                                onSelect: (i) => setState(() => _showSubaddress = i == 0),
-                              ),
-                            ],
-                            const SizedBox(height: 14),
-                            _QrCard(
-                              address: address,
-                              heading: _heading(i18n, wallet, monero, showingSubaddress),
-                              onTap: () => _copyAddress(address!),
-                            ),
-                            if (warning != null) ...[
-                              const SizedBox(height: 14),
-                              Text(
-                                warning,
-                                textAlign: TextAlign.center,
-                                style: BrandText.caption.copyWith(
-                                  color: BrandColors.warning,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 14),
-                            BrandButton(
-                              label: i18n.receiveCopyAddress,
-                              icon: Icons.copy_outlined,
-                              onPressed: () => _copyAddress(address!),
-                            ),
-                          ],
-                        ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return ReceiveView(
+      labels: ReceiveLabels(title: i18n.receiveTitle, copyAddress: i18n.receiveCopyAddress),
+      onBack: () => Navigator.pop(context),
+      onShare: _isMobile ? () => SharePlus.instance.share(ShareParams(text: address!)) : null,
+      ready: ready,
+      coinSymbol: wallet.coinSymbol,
+      iconAsset: wallet.iconAsset,
+      coinName: wallet.blockchainName,
+      blockchainSubtitle: i18n.receiveBlockchainSubtitle(wallet.blockchainName),
+      tabLabels: canToggle ? [i18n.receiveSubaddressTab, i18n.receivePrimaryTab] : null,
+      selectedTab: _showSubaddress ? 0 : 1,
+      onSelectTab: (i) => setState(() => _showSubaddress = i == 0),
+      address: address ?? '',
+      qrHeading: ready ? _heading(i18n, wallet, monero, showingSubaddress) : '',
+      warning: warning,
+      onCopy: () => _copyAddress(address!),
     );
   }
 
@@ -197,98 +141,5 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
       return i18n.receiveMaxSubaddressesReachedWarn;
     }
     return null;
-  }
-}
-
-class _CoinCard extends StatelessWidget {
-  final CryptoWallet wallet;
-  const _CoinCard({required this.wallet});
-
-  @override
-  Widget build(BuildContext context) {
-    final i18n = AppLocalizations.of(context)!;
-    return BrandCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Row(
-        children: [
-          CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 32),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // The chain, not the asset: one address here receives every
-                // asset on it (an Ethereum address takes both Ether and Dai).
-                Text(
-                  wallet.blockchainName,
-                  style: TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w500,
-                    height: 1.25,
-                    color: BrandColors.ink,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  i18n.receiveBlockchainSubtitle(wallet.blockchainName),
-                  style: BrandText.caption.copyWith(fontSize: 11.5, color: BrandColors.inkMuted),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QrCard extends StatelessWidget {
-  final String address;
-  final String heading;
-  final VoidCallback onTap;
-
-  const _QrCard({required this.address, required this.heading, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return BrandCard(
-      radius: 22,
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-            // The QR sits on a fixed white card so it scans, so its modules must
-            // stay dark in both themes — the themed ink goes light in dark mode.
-            child: QrImageView(
-              data: address,
-              size: 200,
-              padding: EdgeInsets.zero,
-              eyeStyle: QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF2C170C)),
-              dataModuleStyle: QrDataModuleStyle(
-                dataModuleShape: QrDataModuleShape.square,
-                color: Color(0xFF2C170C),
-              ),
-            ),
-          ),
-          const SizedBox(height: 18),
-          SectionHeader(label: heading, padding: const EdgeInsets.only(bottom: 9)),
-          GestureDetector(
-            onTap: onTap,
-            child: Text(
-              address,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Ubuntu Mono',
-                fontSize: 12.5,
-                height: 1.7,
-                color: BrandColors.ink,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

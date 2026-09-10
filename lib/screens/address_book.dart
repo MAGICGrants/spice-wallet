@@ -134,10 +134,10 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                           height: 52,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: BrandColors.cinnamon,
+                            color: BrandColors.primary,
                             borderRadius: BorderRadius.circular(BrandRadii.field),
                           ),
-                          child: const Icon(Icons.add, size: 24, color: BrandColors.onCinnamon),
+                          child: const Icon(Icons.add, size: 24, color: BrandColors.onPrimary),
                         ),
                       ),
                     ],
@@ -264,13 +264,13 @@ class _Avatar extends StatelessWidget {
       width: 44,
       height: 44,
       alignment: Alignment.center,
-      decoration: BoxDecoration(color: BrandColors.cinnamonDeep, shape: BoxShape.circle),
+      decoration: BoxDecoration(color: BrandColors.primaryDeep, shape: BoxShape.circle),
       child: Text(
         name.isNotEmpty ? name[0].toUpperCase() : '?',
         style: const TextStyle(
           fontSize: 17,
           fontWeight: FontWeight.w700,
-          color: BrandColors.onCinnamon,
+          color: BrandColors.onPrimary,
         ),
       ),
     );
@@ -521,7 +521,7 @@ class _IconSquare extends StatelessWidget {
           border: Border.all(color: BrandColors.border),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, size: 18, color: BrandColors.cinnamonDeep),
+        child: Icon(icon, size: 18, color: BrandColors.primaryDeep),
       ),
     );
   }
@@ -669,7 +669,7 @@ class _ContactSheetState extends State<_ContactSheet> {
                           // reads as a button, and a plus reinforces that.
                           icon: _isEditing ? Icons.edit_outlined : Icons.person_outline,
                           bg: BrandColors.surfaceAccent,
-                          color: BrandColors.cinnamonDeep,
+                          color: BrandColors.primaryDeep,
                         ),
                         const SizedBox(width: 11),
                         Text(
@@ -753,7 +753,7 @@ class _ContactSheetState extends State<_ContactSheet> {
             height: 34,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: filled ? BrandColors.cinnamonDeep : BrandColors.surfaceTinted,
+              color: filled ? BrandColors.primaryDeep : BrandColors.surfaceTinted,
               shape: BoxShape.circle,
             ),
             child: filled
@@ -762,7 +762,7 @@ class _ContactSheetState extends State<_ContactSheet> {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: BrandColors.onCinnamon,
+                      color: BrandColors.onPrimary,
                     ),
                   )
                 : Icon(Icons.person_outline, size: 17, color: BrandColors.inkDisabled),

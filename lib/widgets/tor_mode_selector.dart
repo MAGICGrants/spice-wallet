@@ -199,7 +199,7 @@ class _TorModeSelectorState extends State<TorModeSelector> {
         child: SizedBox(
           width: 16,
           height: 16,
-          child: CircularProgressIndicator(strokeWidth: 2, color: BrandColors.cinnamon),
+          child: CircularProgressIndicator(strokeWidth: 2, color: BrandColors.primary),
         ),
       );
     }
@@ -272,7 +272,7 @@ class _PortField extends StatelessWidget {
             controller: controller,
             keyboardType: TextInputType.number,
             style: TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 14, color: BrandColors.ink),
-            cursorColor: BrandColors.cinnamon,
+            cursorColor: BrandColors.primary,
             decoration: const InputDecoration.collapsed(hintText: '9050'),
             onChanged: (_) => onChanged(),
           ),
@@ -310,7 +310,7 @@ class _TestChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w500,
-                color: BrandColors.cinnamonDeep,
+                color: BrandColors.primaryDeep,
               ),
             ),
           ),
@@ -337,7 +337,7 @@ class _OrbotCheck extends StatelessWidget {
           children: [
             Icon(
               value ? Icons.check_box : Icons.check_box_outline_blank,
-              color: value ? BrandColors.cinnamon : BrandColors.inkFaint,
+              color: value ? BrandColors.primary : BrandColors.inkFaint,
               size: 22,
             ),
             const SizedBox(width: BrandSpacing.sm),

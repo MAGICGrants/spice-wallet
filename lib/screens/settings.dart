@@ -17,12 +17,10 @@ import 'package:spice_wallet/services/foreground_sync_service.dart';
 import 'package:spice_wallet/services/notifications_service.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
-import 'package:spice_wallet/widgets/settings_group.dart';
 import 'package:spice_wallet/widgets/theme_language_sheets.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
 import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
-import 'package:wallet_ui/wallet_ui.dart' show ExportLogsDialog, ExportLogsLabels;
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -187,48 +185,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showDeleteWalletDialog() {
     final i18n = AppLocalizations.of(context)!;
-    showDialog<void>(
+    showConfirmSheet(
       context: context,
-      builder: (dialogContext) => Dialog(
-        backgroundColor: BrandColors.card,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 28),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        child: Padding(
-          padding: const EdgeInsets.all(22),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: BrandColors.errorBg, shape: BoxShape.circle),
-                    child: Icon(Icons.delete_outline, size: 20, color: BrandColors.error),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(i18n.settingsDeleteWalletButton, style: BrandText.sheetTitle),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(i18n.settingsDeleteWalletDialogText, style: BrandText.bodyMuted),
-              const SizedBox(height: 22),
-              BrandButton(label: i18n.cancel, onPressed: () => Navigator.pop(dialogContext)),
-              const SizedBox(height: 4),
-              BrandButton.ghost(
-                label: i18n.settingsDeleteWalletDialogDeleteButton,
-                color: BrandColors.error,
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                  _deleteWallet();
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
+      icon: Icons.delete_outline,
+      iconBg: BrandColors.errorBg,
+      iconColor: BrandColors.error,
+      title: i18n.settingsDeleteWalletButton,
+      body: i18n.settingsDeleteWalletDialogText,
+      confirmLabel: i18n.settingsDeleteWalletDialogDeleteButton,
+      cancelLabel: i18n.cancel,
+      onConfirm: _deleteWallet,
     );
   }
 

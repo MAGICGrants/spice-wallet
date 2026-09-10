@@ -32,8 +32,8 @@ import 'package:spice_wallet/screens/restore_wallet.dart';
 import 'package:spice_wallet/screens/reveal_seed.dart';
 import 'package:spice_wallet/screens/wallet_home.dart';
 import 'package:spice_wallet/screens/welcome.dart';
-import 'package:spice_wallet/screens/dev/brand_gallery.dart';
 import 'package:spice_wallet/theme/brand.dart';
+import 'package:spice_wallet/theme/palette.dart';
 import 'package:spice_wallet/screens/tor_settings.dart';
 import 'package:spice_wallet/screens/address_book.dart';
 import 'package:spice_wallet/screens/privacy_policy.dart';
@@ -56,6 +56,8 @@ void main() async {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+
+      BrandColors.install(spicePalette);
 
       installWalletCore();
 
@@ -285,7 +287,6 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
 
   Map<String, WidgetBuilder> get _routes => {
     '/welcome': (context) => WelcomeScreen(),
-    '/brand_gallery': (context) => const BrandGalleryScreen(),
     '/tor_settings': (context) => TorSettingsScreen(),
     '/connection_setup': (context) => ConnectionSetupScreen(),
     '/explorer_setup': (context) => ExplorerSetupScreen(),

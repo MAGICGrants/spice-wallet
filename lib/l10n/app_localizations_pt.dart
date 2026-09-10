@@ -224,6 +224,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get createWalletCreateNewDesc => 'A Spice Wallet gera uma seed BIP39 de 15 palavras';
 
   @override
+  String get createWalletPasswordTitle => 'Criar senha da carteira';
+
+  @override
+  String get createWalletPasswordDescription =>
+      'Crie uma senha para proteger sua carteira. Esta senha será necessária para desbloquear sua carteira.';
+
+  @override
+  String get createWalletPasswordHint => 'Digite sua senha';
+
+  @override
+  String get createWalletConfirmPasswordHint => 'Confirme sua senha';
+
+  @override
+  String get passwordTooShortError => 'A senha deve ter pelo menos 8 caracteres.';
+
+  @override
+  String get passwordsDoNotMatchError => 'As senhas não coincidem.';
+
+  @override
   String get generateSeedTitle => 'Anote estas palavras, em ordem';
 
   @override
@@ -700,6 +719,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get txDetailsChangeRecipientLabel => 'Destinatário de troco';
+
+  @override
+  String get txDetailsFailed => 'Esta transação falhou. Os fundos não foram enviados.';
+
+  @override
+  String get txDetailsUnknownStatus =>
+      'Esta transação não foi confirmada como enviada. Verifique antes de enviar novamente.';
 
   @override
   String get lwsKeysTitle => 'Chaves do LWS';

@@ -8,7 +8,6 @@ import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
-import 'package:spice_wallet/widgets/fiat_controls.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 
@@ -54,76 +53,31 @@ class _FiatApiSetupScreenState extends State<FiatApiSetupScreen> {
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: BrandColors.paper,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: BrandSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: BrandSpacing.sm),
-              BrandScreenHeader(
-                onBack: () => Navigator.maybePop(context),
-                center: const StepDots(count: 4, index: 1),
-              ),
-              const SizedBox(height: BrandSpacing.lg),
-              Text(i18n.fiatApiSetupTitle, style: BrandText.title),
-              const SizedBox(height: BrandSpacing.sm),
-              Text(i18n.fiatApiSetupDescription, style: BrandText.bodyMuted),
-              const SizedBox(height: BrandSpacing.xl),
-              Expanded(
-                child: ListView(
-                  children: [
-                    if (!_globalTorDisabled) ...[
-                      ModeSelectCard(
-                        title: i18n.fiatApiSettingsModeTorOnly,
-                        description: i18n.fiatModeTorOnlyDesc,
-                        selected: _fiatMode == FiatApiMode.torOnly,
-                        onTap: () => setState(() => _fiatMode = FiatApiMode.torOnly),
-                      ),
-                      const SizedBox(height: BrandSpacing.md),
-                    ],
-                    ModeSelectCard(
-                      title: i18n.fiatApiSettingsModeClearnet,
-                      description: i18n.fiatModeClearnetDesc,
-                      selected: _fiatMode == FiatApiMode.clearnet,
-                      onTap: () => setState(() => _fiatMode = FiatApiMode.clearnet),
-                    ),
-                    const SizedBox(height: BrandSpacing.md),
-                    ModeSelectCard(
-                      title: i18n.fiatApiSettingsModeDisabled,
-                      description: i18n.fiatModeDisabledDesc,
-                      selected: _fiatMode == FiatApiMode.disabled,
-                      onTap: () => setState(() => _fiatMode = FiatApiMode.disabled),
-                    ),
-                    if (_fiatMode != FiatApiMode.disabled) ...[
-                      const SizedBox(height: BrandSpacing.xl),
-                      SectionHeader(label: i18n.fiatApiSettingsDisplayCurrencyLabel),
-                      const SizedBox(height: BrandSpacing.md),
-                      Wrap(
-                        spacing: BrandSpacing.sm,
-                        runSpacing: BrandSpacing.sm,
-                        children: [
-                          for (final code in supportedFiatCurrencies)
-                            FiatCurrencyChip(
-                              code: code,
-                              symbol: currencySymbols[code] ?? '',
-                              selected: _fiatCurrency == code,
-                              onTap: () => setState(() => _fiatCurrency = code),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              BrandButton(label: i18n.lwsSetupContinueButton, onPressed: _onContinue),
-              const SizedBox(height: BrandSpacing.sm),
-            ],
-          ),
-        ),
+    return FiatSetupView(
+      labels: FiatSetupLabels(
+        title: i18n.fiatApiSetupTitle,
+        subtitle: i18n.fiatApiSetupDescription,
+        torOnly: i18n.fiatApiSettingsModeTorOnly,
+        torOnlyDesc: i18n.fiatModeTorOnlyDesc,
+        clearnet: i18n.fiatApiSettingsModeClearnet,
+        clearnetDesc: i18n.fiatModeClearnetDesc,
+        disabled: i18n.fiatApiSettingsModeDisabled,
+        disabledDesc: i18n.fiatModeDisabledDesc,
+        currencyLabel: i18n.fiatApiSettingsDisplayCurrencyLabel,
+        continueText: i18n.lwsSetupContinueButton,
       ),
+      currencies: [
+        for (final code in supportedFiatCurrencies)
+          FiatCurrencyOption(code: code, symbol: currencySymbols[code] ?? ''),
+      ],
+      modeIndex: _fiatMode.index,
+      currency: _fiatCurrency,
+      offerTorOnly: !_globalTorDisabled,
+      onModeChanged: (i) => setState(() => _fiatMode = FiatApiMode.values[i]),
+      onCurrencyChanged: (code) => setState(() => _fiatCurrency = code),
+      onContinue: _onContinue,
+      stepCount: 4,
+      stepIndex: 1,
     );
   }
 }

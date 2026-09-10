@@ -76,7 +76,7 @@ class _NavTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? BrandColors.cinnamonDeep : BrandColors.inkMuted;
+    final color = selected ? BrandColors.primaryDeep : BrandColors.inkMuted;
     return InkWell(
       // Navigate on touch-down, not release: a very light (or slightly rolling)
       // tap can drift past the tap recognizer's slop before the finger lifts and

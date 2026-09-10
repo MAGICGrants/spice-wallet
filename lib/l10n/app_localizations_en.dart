@@ -223,6 +223,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createWalletCreateNewDesc => 'Spice Wallet generates a 15-word BIP39 seed';
 
   @override
+  String get createWalletPasswordTitle => 'Create Wallet Password';
+
+  @override
+  String get createWalletPasswordDescription =>
+      'Create a password to protect your wallet. This password will be required to unlock your wallet.';
+
+  @override
+  String get createWalletPasswordHint => 'Enter your password';
+
+  @override
+  String get createWalletConfirmPasswordHint => 'Confirm your password';
+
+  @override
+  String get passwordTooShortError => 'Password must be at least 8 characters long.';
+
+  @override
+  String get passwordsDoNotMatchError => 'Passwords do not match.';
+
+  @override
   String get generateSeedTitle => 'Write these down, in order';
 
   @override
@@ -699,6 +718,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get txDetailsChangeRecipientLabel => 'Change Recipient';
+
+  @override
+  String get txDetailsFailed => 'This transaction failed. The funds were not sent.';
+
+  @override
+  String get txDetailsUnknownStatus =>
+      'This transaction was not confirmed as sent. Check before sending again.';
 
   @override
   String get lwsKeysTitle => 'LWS Keys';

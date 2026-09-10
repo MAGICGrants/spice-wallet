@@ -127,61 +127,25 @@ class _UnlockScreenState extends State<UnlockScreen> {
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
 
-    // Block the system back button: this screen sits over the previous stack on
-    // a relock, and backing out of it would reveal that screen unauthenticated.
+    // The view blocks the system back button: this screen sits over the previous
+    // stack on a relock, and backing out would reveal it unauthenticated.
     // Unlocking still pops programmatically from _unlockDone.
-    return PopScope(
-      canPop: false,
-      child: Scaffold(
-        backgroundColor: BrandColors.paper,
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: BrandSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Spacer(flex: 3),
-                Center(child: SvgPicture.asset('assets/spice-mark.svg', width: 84, height: 84)),
-                const SizedBox(height: BrandSpacing.xl),
-                Text(i18n.unlockLockedTitle, textAlign: TextAlign.center, style: BrandText.title),
-                if (_isDesktop) ...[
-                  const SizedBox(height: BrandSpacing.xl),
-                  BrandTextField(
-                    controller: _passwordController,
-                    hint: i18n.unlockPasswordHint,
-                    obscureText: _obscure,
-                    suffix: IconButton(
-                      icon: Icon(
-                        _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                        color: BrandColors.inkMuted,
-                      ),
-                      onPressed: () => setState(() => _obscure = !_obscure),
-                    ),
-                  ),
-                  if (_error != null) ...[
-                    const SizedBox(height: BrandSpacing.sm),
-                    Text(_error!, style: BrandText.caption.copyWith(color: BrandColors.error)),
-                  ],
-                ],
-                const Spacer(flex: 4),
-                if (_isDesktop)
-                  BrandButton(
-                    label: i18n.unlockButton,
-                    loading: _isLoading,
-                    onPressed: _unlockWithPassword,
-                  )
-                else
-                  BrandButton(
-                    label: _biometricLabel ?? i18n.unlockButton,
-                    icon: Icons.lock_outline,
-                    onPressed: _promptUnlock,
-                  ),
-                const SizedBox(height: BrandSpacing.sm),
-              ],
-            ),
-          ),
-        ),
+    return UnlockView(
+      logo: SvgPicture.asset('assets/spice-mark.svg', width: 84, height: 84),
+      labels: UnlockLabels(
+        title: i18n.unlockLockedTitle,
+        passwordHint: i18n.unlockPasswordHint,
+        unlockButton: i18n.unlockButton,
       ),
+      isDesktop: _isDesktop,
+      passwordController: _passwordController,
+      obscure: _obscure,
+      onToggleObscure: () => setState(() => _obscure = !_obscure),
+      error: _error,
+      loading: _isLoading,
+      biometricLabel: _biometricLabel,
+      onUnlockPassword: _unlockWithPassword,
+      onUnlockBiometric: _promptUnlock,
     );
   }
 }

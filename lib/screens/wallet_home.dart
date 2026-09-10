@@ -137,7 +137,7 @@ class _Header extends StatelessWidget {
               fontWeight: FontWeight.w700,
               fontSize: 17,
               height: 1,
-              color: BrandColors.cinnamonDeep,
+              color: BrandColors.primaryDeep,
             ),
           ),
         ],

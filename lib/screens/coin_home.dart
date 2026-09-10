@@ -12,9 +12,7 @@ import 'package:spice_wallet/screens/receive.dart';
 import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/format.dart';
-import 'package:spice_wallet/widgets/tx_activity_row.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
-import 'package:spice_wallet/widgets/route_pill.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
@@ -560,7 +558,7 @@ class _ActivitySliver extends StatelessWidget {
           return TxActivityRow(
             tx: e.tx,
             asset: e.asset,
-            i18n: i18n,
+            labels: TxActivityLabels(received: i18n.coinHomeReceived, sent: i18n.coinHomeSent),
             fiatRate: fiatRate,
             fiatSymbol: fiatSymbol,
             showDivider: next is TxEntry,
@@ -597,7 +595,7 @@ class _AddExplorerNudge extends StatelessWidget {
             children: [
               Padding(
                 padding: EdgeInsets.only(top: 1),
-                child: Icon(Icons.search, size: 19, color: BrandColors.cinnamon),
+                child: Icon(Icons.search, size: 19, color: BrandColors.primary),
               ),
               const SizedBox(width: 11),
               Expanded(
@@ -621,7 +619,7 @@ class _AddExplorerNudge extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 16),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: BrandColors.cinnamonDeep,
+                color: BrandColors.primaryDeep,
                 borderRadius: BorderRadius.circular(11),
               ),
               child: Text(
@@ -630,7 +628,7 @@ class _AddExplorerNudge extends StatelessWidget {
                   fontSize: 13,
                   height: 1,
                   fontWeight: FontWeight.w500,
-                  color: BrandColors.onCinnamon,
+                  color: BrandColors.onPrimary,
                 ),
               ),
             ),

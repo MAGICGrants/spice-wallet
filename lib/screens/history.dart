@@ -6,7 +6,6 @@ import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
-import 'package:spice_wallet/widgets/tx_activity_row.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
@@ -111,7 +110,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       _Option(
         '${consts.txDirectionOutgoing}',
         i18n.coinHomeSent,
-        _typeIcon(Icons.north, BrandColors.cinnamon, BrandColors.surfaceAccent),
+        _typeIcon(Icons.north, BrandColors.primary, BrandColors.surfaceAccent),
         typeCount(consts.txDirectionOutgoing),
       ),
       // Liquidity-pool / swap types (Serai) — no data yet, so these list ahead of
@@ -137,7 +136,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       _Option(
         '${consts.txTypeRemove}',
         i18n.historyTypeRemove,
-        _typeIcon(Icons.remove, BrandColors.cinnamon, BrandColors.surfaceAccent),
+        _typeIcon(Icons.remove, BrandColors.primary, BrandColors.surfaceAccent),
         typeCount(consts.txTypeRemove),
       ),
     ]..sort((a, b) => b.count.compareTo(a.count));
@@ -197,7 +196,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       const SizedBox(width: 7),
                       _FilterPill(
                         label: i18n.historyFilterType,
-                        count: selectedCount(typeOptions, (v) => _typesHidden.contains(int.parse(v))),
+                        count: selectedCount(
+                          typeOptions,
+                          (v) => _typesHidden.contains(int.parse(v)),
+                        ),
                         open: _open == _Filter.type,
                         onTap: () => _toggleOpen(_Filter.type),
                       ),
@@ -324,7 +326,7 @@ class _Timeline extends StatelessWidget {
         return TxActivityRow(
           tx: e.tx,
           asset: e.asset,
-          i18n: i18n,
+          labels: TxActivityLabels(received: i18n.coinHomeReceived, sent: i18n.coinHomeSent),
           fiatRate: fiatRate,
           fiatSymbol: fiatSymbol,
           showDivider: next is TxEntry,
@@ -353,7 +355,7 @@ class _FilterPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final active = open || count != null;
-    final fg = active ? BrandColors.onCinnamon : BrandColors.ink;
+    final fg = active ? BrandColors.onPrimary : BrandColors.ink;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -373,7 +375,7 @@ class _FilterPill extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2.5),
                 decoration: BoxDecoration(
-                  color: BrandColors.onCinnamon.withValues(alpha: 0.22),
+                  color: BrandColors.onPrimary.withValues(alpha: 0.22),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -473,7 +475,7 @@ class _FilterPanel extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 5),
                       child: Text(
                         i18n.historyFilterReset,
-                        style: TextStyle(fontSize: 13, color: BrandColors.cinnamon),
+                        style: TextStyle(fontSize: 13, color: BrandColors.primary),
                       ),
                     ),
                   ),
@@ -541,11 +543,11 @@ class _Check extends StatelessWidget {
       height: 20,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: selected ? BrandColors.cinnamonDeep : null,
+        color: selected ? BrandColors.primaryDeep : null,
         borderRadius: BorderRadius.circular(6),
         border: selected ? null : Border.all(color: BrandColors.inputBorder, width: 1.5),
       ),
-      child: selected ? const Icon(Icons.check, size: 13, color: BrandColors.onCinnamon) : null,
+      child: selected ? const Icon(Icons.check, size: 13, color: BrandColors.onPrimary) : null,
     );
   }
 }
