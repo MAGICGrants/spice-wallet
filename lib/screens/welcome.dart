@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/widgets/theme_language_sheets.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 
@@ -48,6 +49,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       onGetStarted: () => Navigator.pushNamed(context, '/tor_settings'),
       onTerms: () => Navigator.pushNamed(context, '/terms_of_service'),
       onPrivacy: () => Navigator.pushNamed(context, '/privacy_policy'),
+      onLanguage: () => showLanguageSheet(context),
     );
   }
 }
