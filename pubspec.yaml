@@ -35,7 +35,7 @@ dependencies:
   monero:
     git:
       url: https://github.com/magicgrants/monero_c
-      ref: 757bf8ef3874953a076b07a2407b17bf9eeef5c0
+      ref: 1b073ce7c6f74944474d26bd0f1dc4c9d89253ac
       path: impls/monero.dart
 
   # wallet-core packages; SHA-pinned for release, redirected to the local
@@ -43,47 +43,47 @@ dependencies:
   wallet_infra:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
+      ref: cf9c5946905ad37f4043e7c06e421b1f4c6fa4e4
       path: packages/wallet_infra
   wallet_domain:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
+      ref: cf9c5946905ad37f4043e7c06e421b1f4c6fa4e4
       path: packages/wallet_domain
   wallet_monero:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
+      ref: cf9c5946905ad37f4043e7c06e421b1f4c6fa4e4
       path: packages/wallet_monero
   wallet_bitcoin:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
+      ref: cf9c5946905ad37f4043e7c06e421b1f4c6fa4e4
       path: packages/wallet_bitcoin
   wallet_ethereum:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
+      ref: cf9c5946905ad37f4043e7c06e421b1f4c6fa4e4
       path: packages/wallet_ethereum
   wallet_openalias:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
+      ref: cf9c5946905ad37f4043e7c06e421b1f4c6fa4e4
       path: packages/wallet_openalias
   wallet_background:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
+      ref: cf9c5946905ad37f4043e7c06e421b1f4c6fa4e4
       path: packages/wallet_background
   wallet_fiat:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
+      ref: cf9c5946905ad37f4043e7c06e421b1f4c6fa4e4
       path: packages/wallet_fiat
   wallet_ui:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 5ac976d5aeeeafeaa151acc226ffe8df3dd69e27
+      ref: cf9c5946905ad37f4043e7c06e421b1f4c6fa4e4
       path: packages/wallet_ui
   cupertino_icons: 1.0.8
   path: 1.9.1
