@@ -695,6 +695,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txDetailsRecipientsLabel => 'Recipients';
 
   @override
+  String get txDetailsReceivedAtLabel => 'Received At';
+
+  @override
   String get txDetailsChangeRecipientLabel => 'Change Recipient';
 
   @override

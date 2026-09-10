@@ -71,6 +71,38 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  TxDetails txWithRecipient(int direction) => TxDetails(
+    index: 0,
+    direction: direction,
+    hash: 'deadbeefcafe',
+    amountBaseUnits: BigInt.from(1500000000000),
+    feeBaseUnits: BigInt.zero,
+    recipients: [TxRecipient('4someaddress', BigInt.from(1500000000000))],
+    accountIndex: 0,
+    subaddrIndexList: const [],
+    timestamp: 1600000000,
+    height: 100,
+    confirmations: 5,
+    key: '',
+  );
+
+  testWidgets('an outgoing transaction lists who it paid', (tester) async {
+    await pumpDialog(tester, _FakeWallet(), txWithRecipient(1));
+
+    expect(find.text('Recipients'), findsOneWidget);
+    expect(find.text('Received At'), findsNothing);
+  });
+
+  testWidgets('an incoming transaction says where it landed, not who was paid', (tester) async {
+    // The list only ever holds our own addresses on an incoming transaction:
+    // Bitcoin omits the other outputs and Monero cannot see them. "Recipients"
+    // claimed nobody else was paid.
+    await pumpDialog(tester, _FakeWallet(), txWithRecipient(0));
+
+    expect(find.text('Received At'), findsOneWidget);
+    expect(find.text('Recipients'), findsNothing);
+  });
+
   testWidgets('tapping the amount copies it and shows feedback', (tester) async {
     // Capture what lands on the clipboard (SecureClipboard falls back to the
     // platform clipboard off-device).

@@ -104,7 +104,7 @@ class _TxDetailsSheet extends StatelessWidget {
                         shortenMiddle(tx.key, head: 6, tail: 4),
                         copyText: tx.key,
                       ),
-                    if (recipients.isNotEmpty) _recipients(context, i18n, recipients),
+                    if (recipients.isNotEmpty) _recipients(context, i18n, recipients, incoming),
                     for (final c in change)
                       _row(
                         context,
@@ -226,7 +226,19 @@ class _TxDetailsSheet extends StatelessWidget {
     );
   }
 
-  Widget _recipients(BuildContext context, AppLocalizations i18n, List<TxRecipient> recipients) {
+  /// The addresses in this transaction, labelled for what they actually are.
+  ///
+  /// On an outgoing transaction these are who the money went to. On an incoming
+  /// one they are our own addresses that received it, never the full set of
+  /// people paid: Bitcoin does not list the other outputs here, and Monero
+  /// cannot see them at all. Calling both "Recipients" implied nobody else was
+  /// paid.
+  Widget _recipients(
+    BuildContext context,
+    AppLocalizations i18n,
+    List<TxRecipient> recipients,
+    bool incoming,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
@@ -234,7 +246,10 @@ class _TxDetailsSheet extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(i18n.txDetailsRecipientsLabel, style: _labelStyle),
+              Text(
+                incoming ? i18n.txDetailsReceivedAtLabel : i18n.txDetailsRecipientsLabel,
+                style: _labelStyle,
+              ),
               const Spacer(),
               Text('${recipients.length}', style: _mutedMono),
             ],

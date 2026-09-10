@@ -1365,6 +1365,12 @@ abstract class AppLocalizations {
   /// **'Recipients'**
   String get txDetailsRecipientsLabel;
 
+  /// No description provided for @txDetailsReceivedAtLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Received At'**
+  String get txDetailsReceivedAtLabel;
+
   /// No description provided for @txDetailsChangeRecipientLabel.
   ///
   /// In en, this message translates to:

@@ -696,6 +696,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get txDetailsRecipientsLabel => 'Destinatários';
 
   @override
+  String get txDetailsReceivedAtLabel => 'Recebido em';
+
+  @override
   String get txDetailsChangeRecipientLabel => 'Destinatário de troco';
 
   @override
