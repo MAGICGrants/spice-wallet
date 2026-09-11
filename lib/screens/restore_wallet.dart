@@ -69,7 +69,7 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
       log(LogLevel.error, error.toString());
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(i18n.unknownError)));
+        showBrandToast(context, i18n.unknownError);
       }
       return;
     }
