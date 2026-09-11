@@ -150,7 +150,7 @@ jobs:
             -w /tmp/spice \
             -e SOURCE_DATE_EPOCH \
             ghcr.io/magicgrants/spice-wallet-builder:latest \
-            bash -c "cp -a /opt/cargo /tmp/spice-cargo && export CARGO_HOME=/tmp/spice-cargo && export PUB_CACHE=/tmp/spice/.pub-cache && flutter pub get && bash scripts/pin-rust-toolchain.sh && flutter build apk --dart-define=DEMO_MODE=true --release --split-per-abi && flutter build appbundle --dart-define=DEMO_MODE=true --release"
+            bash -c "cp -a /opt/cargo /tmp/spice-cargo && export CARGO_HOME=/tmp/spice-cargo && export PUB_CACHE=/tmp/spice/.pub-cache && flutter pub get --enforce-lockfile && bash scripts/pin-rust-toolchain.sh && flutter build apk --dart-define=DEMO_MODE=true --release --split-per-abi && flutter build appbundle --dart-define=DEMO_MODE=true --release"
 
           mkdir -p dist
           cp -v build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "dist/spice-wallet-${VERSION}-arm64-v8a.apk"
@@ -188,7 +188,7 @@ jobs:
             -v "$PWD:/workspace" \
             -w /workspace \
             ghcr.io/magicgrants/spice-wallet-builder:latest \
-            bash -c "flutter pub get && flutter build linux --release && ./deb/build_deb.sh --version ${VERSION} && ./appimage/build_appimage.sh --version ${VERSION}"
+            bash -c "flutter pub get --enforce-lockfile && flutter build linux --release && ./deb/build_deb.sh --version ${VERSION} && ./appimage/build_appimage.sh --version ${VERSION}"
 
           mkdir -p dist
           cp -v deb/spice-wallet-*.deb dist/
@@ -221,7 +221,7 @@ jobs:
           flutter-version: ${{ needs.version.outputs.flutter_version }}
 
       - name: Install dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Install Inno Setup
         run: choco install innosetup -y
@@ -325,7 +325,7 @@ jobs:
 
       - name: Build IPA
         run: |
-          flutter pub get
+          flutter pub get --enforce-lockfile
           flutter build ipa --dart-define=DEMO_MODE=true --release --export-options-plist=ios/ExportOptions.plist
 
       - name: Prepare artifact
