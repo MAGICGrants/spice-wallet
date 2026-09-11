@@ -142,11 +142,15 @@ jobs:
       - name: Build APKs and AAB
         run: |
           VERSION='${{ needs.version.outputs.version }}'
+          # Deterministic timestamp for reproducible builds
+          export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
+          # Fixed build path for reproducibility (must match scripts/fdroid-build.sh)
           docker run --rm \
-            -v "$PWD:/workspace" \
-            -w /workspace \
+            -v "$PWD:/tmp/spice" \
+            -w /tmp/spice \
+            -e SOURCE_DATE_EPOCH \
             ghcr.io/magicgrants/spice-wallet-builder:latest \
-            bash -c "flutter pub get && flutter build apk --dart-define=DEMO_MODE=true --release --split-per-abi && flutter build appbundle --dart-define=DEMO_MODE=true --release"
+            bash -c "cp -a /opt/cargo /tmp/spice-cargo && export CARGO_HOME=/tmp/spice-cargo && export PUB_CACHE=/tmp/spice/.pub-cache && flutter pub get && bash scripts/pin-rust-toolchain.sh && flutter build apk --dart-define=DEMO_MODE=true --release --split-per-abi && flutter build appbundle --dart-define=DEMO_MODE=true --release"
 
           mkdir -p dist
           cp -v build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "dist/spice-wallet-${VERSION}-arm64-v8a.apk"

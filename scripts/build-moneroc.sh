@@ -1,21 +1,39 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+#
+# Build monero_c's wallet2_api_c library for one target, at the FIXED
+# path /tmp/monero_c.
+#
+# Args:
+#   $1  target (e.g. aarch64-linux-android, x86_64-linux-gnu, x86_64-w64-mingw32)
+#   $2  clone source (default: the local ./monero_c submodule; CI passes the remote URL)
+#
+# Run from the app repo root (needs pubspec.lock + scripts/reproducible.patch).
+# Output: /tmp/monero_c/monero_libwallet2_api_c/build/<target>/libwallet2_api_c.{so,dll}
+#
+set -euo pipefail
 
-apt update
-apt upgrade -y
-apt install -y build-essential pkg-config autoconf libtool ccache make cmake gcc g++ git curl \
-  lbzip2 libtinfo5 gperf unzip python-is-python3 llvm gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64
+TARGET="${1:?usage: build-moneroc.sh <target> [clone-source]}"
+SRC="${2:-monero_c}"
+REPO="$(pwd)"
+COMMIT=$(awk '/^  monero:/{f=1} f&&/resolved-ref:/{gsub(/"/,"",$2);print $2;exit}' pubspec.lock)
+[ -n "$COMMIT" ] || { echo "no monero resolved-ref in pubspec.lock" >&2; exit 1; }
 
-update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
-update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
-
+# never create $HOME/.gitconfig (fdroiddata CI symlinks it per build)
+export GIT_CONFIG_GLOBAL=/tmp/spice-gitconfig
 git config --global --add safe.directory '*'
-git config --global user.email "info@magicgrants.org"
-git config --global user.name "MAGIC Grants"
+git config --global user.name 'MAGIC Grants'
+git config --global user.email 'info@magicgrants.org'
 
-git clone https://github.com/vtnerd/monero_c.git
-cd monero_c
-git checkout lwsf
-git submodule update --init
+rm -rf /tmp/monero_c
+git clone "$SRC" /tmp/monero_c
+git -C /tmp/monero_c checkout "$COMMIT"
+git -C /tmp/monero_c submodule update --init --recursive --force
+
+cd /tmp/monero_c
+# Pin the git-am committer date (baked into Monero's version string) + __DATE__/__TIME__.
+export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
+export GIT_COMMITTER_DATE="@$SOURCE_DATE_EPOCH"
 ./apply_patches.sh monero
-./build_single.sh monero $TARGET_ARCH -j$(nproc)
+patch -p1 < "$REPO/scripts/reproducible.patch"
+unset MAKEFLAGS   # use make's classic pipe jobserver (from reproducible.patch), not the fifo one
+./build_single.sh monero "$TARGET" -j"$(nproc)"
