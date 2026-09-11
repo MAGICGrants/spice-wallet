@@ -10,8 +10,13 @@ ARG ANDROID_BUILD_TOOLS_VERSION=36.0.0
 ARG ANDROID_PLATFORM_VERSION=36
 ARG ANDROID_NDK_VERSION=28.1.13356709
 
-# Install system dependencies with pinned versions
-RUN apt-get update && \
+# Install system dependencies with pinned versions.
+# bullseye LTS has lapsed, so bullseye-security's Release file is now expired;
+# several packages (openjdk-17, unzip, ...) still live only in that frozen repo.
+# The base image is digest-pinned, so accept the stale-but-fixed indices rather
+# than failing apt on Valid-Until.
+RUN echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
     wget \
