@@ -43,47 +43,47 @@ dependencies:
   wallet_infra:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      ref: 90e22b953f2f7aafb3d022f9bc2113efd4f00d79
       path: packages/wallet_infra
   wallet_domain:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      ref: 90e22b953f2f7aafb3d022f9bc2113efd4f00d79
       path: packages/wallet_domain
   wallet_monero:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      ref: 90e22b953f2f7aafb3d022f9bc2113efd4f00d79
       path: packages/wallet_monero
   wallet_bitcoin:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      ref: 90e22b953f2f7aafb3d022f9bc2113efd4f00d79
       path: packages/wallet_bitcoin
   wallet_ethereum:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      ref: 90e22b953f2f7aafb3d022f9bc2113efd4f00d79
       path: packages/wallet_ethereum
   wallet_openalias:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      ref: 90e22b953f2f7aafb3d022f9bc2113efd4f00d79
       path: packages/wallet_openalias
   wallet_background:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      ref: 90e22b953f2f7aafb3d022f9bc2113efd4f00d79
       path: packages/wallet_background
   wallet_fiat:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      ref: 90e22b953f2f7aafb3d022f9bc2113efd4f00d79
       path: packages/wallet_fiat
   wallet_ui:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      ref: 90e22b953f2f7aafb3d022f9bc2113efd4f00d79
       path: packages/wallet_ui
 
   bip39:
