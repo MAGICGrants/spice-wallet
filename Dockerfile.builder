@@ -1,5 +1,4 @@
-# Using Debian Bullseye for maximum AppImage compatibility (GLIBC 2.31)
-FROM debian:bullseye-20251117@sha256:ee239c601913c0d3962208299eef70dcffcb7aac1787f7a02f6d3e2b518755e6
+FROM debian:trixie@sha256:6788062a1b42ac281f053ac876170b79a3eaed5d61383b8ed7eaca6c6965f3b1
 
 ARG FLUTTER_VERSION
 
@@ -10,13 +9,7 @@ ARG ANDROID_BUILD_TOOLS_VERSION=36.0.0
 ARG ANDROID_PLATFORM_VERSION=36
 ARG ANDROID_NDK_VERSION=28.1.13356709
 
-# Install system dependencies with pinned versions.
-# bullseye LTS has lapsed, so bullseye-security's Release file is now expired;
-# several packages (openjdk-17, unzip, ...) still live only in that frozen repo.
-# The base image is digest-pinned, so accept the stale-but-fixed indices rather
-# than failing apt on Valid-Until.
-RUN echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
     wget \
@@ -31,8 +24,8 @@ RUN echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-
     pkg-config \
     libgtk-3-dev \
     liblzma-dev \
-    libstdc++-10-dev \
-    openjdk-17-jdk-headless \
+    libstdc++-14-dev \
+    openjdk-21-jdk-headless \
     ca-certificates \
     build-essential \
     make \
