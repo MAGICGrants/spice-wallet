@@ -111,8 +111,8 @@ chmod +x AppDir/AppRun
 # Expected SHA256 hash - update this when updating appimagetool
 # Verify from: https://github.com/probonopd/go-appimage/releases
 # Run: sha256sum appimagetool-x86_64.AppImage
-EXPECTED_SHA256="f9cd2ea644b4a6a8fdd6966642511f0f3c76aa4a81f58c07f102f369d50a5292"
-APPIMAGETOOL_FILENAME="appimagetool-940-x86_64.AppImage"
+EXPECTED_SHA256="376998aba63bb3a35a02ea3196f77268f8543a35a3b6b7db0dc2181365119b62"
+APPIMAGETOOL_FILENAME="appimagetool-947-x86_64.AppImage"
 
 # Download appimagetool from go-appimage if not present
 if [ ! -f "$APPIMAGETOOL_FILENAME" ]; then
