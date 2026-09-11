@@ -1,22 +1,7 @@
-name: skylight_wallet
-description: "A light Monero wallet."
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: "none" # Remove this line if you wish to publish to pub.dev
-
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-# In Windows, build-name is used as the major, minor, and patch parts
-# of the product and file versions while build-number is used as the build suffix.
-version: 1.0.11+402
+name: spice_wallet
+description: "A light multicoin wallet."
+publish_to: "none"
+version: 1.0.0+1
 
 environment:
   sdk: 3.11.5
@@ -30,35 +15,81 @@ flutter_launcher_icons:
     image_path: "assets/launcher_icon.png"
     icon_size: 48
   image_path: "assets/launcher_icon.png"
-  adaptive_icon_background: "#263F5F"
-  adaptive_icon_foreground: "assets/launcher_icon.png"
+  remove_alpha_ios: true
+  adaptive_icon_background: "#F6E8D2"
+  adaptive_icon_foreground: "assets/launcher_icon_foreground.png"
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
     sdk: flutter
-
   flutter_localizations:
     sdk: flutter
-
+  # SHA-pinned (not `main`) to unify with wallet_infra's tor pin and keep
+  # rebuilds reproducible.
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor
-      ref: main
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-
+      ref: c2706eeb66174273a4a98113d7a8cd910ba124e6
+  # magicgrants/monero_c (not vtnerd/lwsf) to match wallet_monero — its pin
+  # carries Wallet_estimateTransactionFee and lwsf armv7/mingw fixes (D1).
   monero:
     git:
-      url: https://github.com/vtnerd/monero_c
-      ref: 8de1614734007782bb2701ab16c49adf0df8e850
+      url: https://github.com/magicgrants/monero_c
+      ref: 4595fb7bdabb5a99bd4ef29fc6d9f169cb600a64
       path: impls/monero.dart
+
+  # wallet-core packages; SHA-pinned for release, redirected to the local
+  # sibling clone by the gitignored pubspec_overrides.yaml for dev.
+  wallet_infra:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      path: packages/wallet_infra
+  wallet_domain:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      path: packages/wallet_domain
+  wallet_monero:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      path: packages/wallet_monero
+  wallet_bitcoin:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      path: packages/wallet_bitcoin
+  wallet_ethereum:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      path: packages/wallet_ethereum
+  wallet_openalias:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      path: packages/wallet_openalias
+  wallet_background:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      path: packages/wallet_background
+  wallet_fiat:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      path: packages/wallet_fiat
+  wallet_ui:
+    git:
+      url: https://github.com/MAGICGrants/wallet-core
+      ref: 79498ef294fc54271727f96b881beb204f2b09cc
+      path: packages/wallet_ui
+
+  bip39:
+    git:
+      url: https://github.com/cypherstack/stack-bip39
+      ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
   cupertino_icons: 1.0.8
   path: 1.9.1
   provider: 6.1.5+1
@@ -70,11 +101,13 @@ dependencies:
   shared_preferences: 2.5.3
   http: 1.6.0
   workmanager: 0.9.0+3
+  flutter_foreground_task: 8.17.0
   flutter_local_notifications: 19.5.0
   timeago: 3.7.1
   flutter_riverpod: 2.6.1
   screen_brightness: 2.1.7
   flutter_zxing: 2.3.0
+  camera: 0.12.0
   permission_handler: 12.0.1
   flutter_svg: 2.2.3
   skeletonizer: 2.1.1
@@ -83,12 +116,23 @@ dependencies:
   flutter_launcher_icons: 0.14.4
   gpt_markdown: 1.1.4
   polyseed: 0.0.7
-  bip39: 1.0.6
   bip32: 2.0.0
   package_info_plus: 8.3.0
+  pointycastle: 3.9.1
+  webcrypto: 0.6.0
+  screen_protector: 1.5.2
 
 dependency_overrides:
   hashlib: 1.19.2
+  intl: any
+  web3dart:
+    git:
+      url: https://github.com/cake-tech/web3dart.git
+      ref: aa3f932dbf54eda651b7bd01ad00204acf998bd0
+  blockchain_utils:
+    git:
+      url: https://github.com/cake-tech/blockchain_utils
+      ref: 59fdf29d72068e0522a96a8953ed7272833a9f57
 
 dev_dependencies:
   flutter_test:
@@ -115,6 +159,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/icons/
+    - assets/spice-mark.svg
+    - assets/spice-icon.svg
     - assets/cacert.pem
     - assets/app_icon.ico
 
@@ -124,22 +170,23 @@ flutter:
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
 
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
+  # Brand fonts (bundled, not runtime-fetched — a privacy wallet must not phone
+  # home for fonts). Ubuntu for UI, Ubuntu Mono for addresses/amounts/seed.
+  # Ubuntu Font Licence 1.0 (fonts/UFL.txt).
+  fonts:
+    - family: Ubuntu
+      fonts:
+        - asset: fonts/Ubuntu-Regular.ttf
+          weight: 400
+        - asset: fonts/Ubuntu-Medium.ttf
+          weight: 500
+        - asset: fonts/Ubuntu-Bold.ttf
+          weight: 700
+    - family: Ubuntu Mono
+      fonts:
+        - asset: fonts/UbuntuMono-Regular.ttf
+          weight: 400
+        - asset: fonts/UbuntuMono-Bold.ttf
+          weight: 700
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

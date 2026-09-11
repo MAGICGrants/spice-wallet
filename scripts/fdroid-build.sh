@@ -9,7 +9,7 @@
 # What it does (all deterministic):
 #   - builds monero_c at a FIXED path (/tmp/monero_c) so openssl's baked prefix matches
 #   - pins the git-am committer date (Monero version hash) via GIT_COMMITTER_DATE
-#   - builds the Flutter app at a FIXED path (/tmp/skylight) so AOT/tor/zxing don't
+#   - builds the Flutter app at a FIXED path (/tmp/spice) so AOT/tor/zxing don't
 #     bake the build dir in; copies the APK back for fdroid's output:
 #
 set -euo pipefail
@@ -29,7 +29,7 @@ FLUTTER_VERSION=$(grep -E '^\s+flutter:\s+' pubspec.yaml | head -1 | sed 's/.*fl
 [ -n "$FLUTTER_VERSION" ] || { echo "could not read flutter version from pubspec.yaml" >&2; exit 1; }
 
 # never create $HOME/.gitconfig (fdroiddata CI symlinks it per build)
-export GIT_CONFIG_GLOBAL=/tmp/skylight-gitconfig
+export GIT_CONFIG_GLOBAL=/tmp/spice-gitconfig
 git config --global --add safe.directory '*'
 git config --global user.name 'MAGIC Grants'
 git config --global user.email 'info@magicgrants.org'
@@ -42,26 +42,27 @@ git -C "$FLUTTER" checkout -f "$FLUTTER_VERSION"
 bash scripts/build-moneroc.sh "$ARCH"
 
 # 2) Flutter app at a FIXED path (AOT/tor/zxing bake the build dir -> must be identical).
-rm -rf /tmp/skylight
-cp -a "$REPO" /tmp/skylight
-rm -rf /tmp/skylight/build /tmp/skylight/.dart_tool /tmp/skylight/.pub-cache
-mkdir -p "/tmp/skylight/android/app/src/main/jniLibs/$ABI"
+rm -rf /tmp/spice
+cp -a "$REPO" /tmp/spice
+rm -rf /tmp/spice/build /tmp/spice/.dart_tool /tmp/spice/.pub-cache
+mkdir -p "/tmp/spice/android/app/src/main/jniLibs/$ABI"
 cp "/tmp/monero_c/monero_libwallet2_api_c/build/$ARCH/libwallet2_api_c.so" \
-   "/tmp/skylight/android/app/src/main/jniLibs/$ABI/libmonero_libwallet2_api_c.so"
+   "/tmp/spice/android/app/src/main/jniLibs/$ABI/libmonero_libwallet2_api_c.so"
 rm -rf /tmp/monero_c
-cd /tmp/skylight
+cd /tmp/spice
 export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
-rustup default 1.83.0
+RUST_TOOLCHAIN=$(sed -n 's/^[[:space:]]*channel[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' rust-toolchain.toml | head -1)
+rustup default "$RUST_TOOLCHAIN"
 rustup target add "$RUST"
-export PUB_CACHE=/tmp/skylight/.pub-cache
-export CARGO_HOME=/tmp/skylight-cargo
+export PUB_CACHE=/tmp/spice/.pub-cache
+export CARGO_HOME=/tmp/spice-cargo
 # cargokit requires an NDK package.xml (absent in unzipped NDKs)
 [ -f "$ANDROID_HOME/ndk/$NDK/package.xml" ] || touch "$ANDROID_HOME/ndk/$NDK/package.xml"
 "$FLUTTER/bin/flutter" pub get
-bash scripts/pin-tor-rust-toolchain.sh
+bash scripts/pin-rust-toolchain.sh
 "$FLUTTER/bin/flutter" build apk --dart-define=DEMO_MODE=true --release --split-per-abi --target-platform="$PLATFORM"
 
 # 3) Hand the APK to the builddir where fdroid's output: expects it.
 mkdir -p "$REPO/build/app/outputs/flutter-apk"
-cp "/tmp/skylight/build/app/outputs/flutter-apk/app-$ABI-release.apk" \
+cp "/tmp/spice/build/app/outputs/flutter-apk/app-$ABI-release.apk" \
    "$REPO/build/app/outputs/flutter-apk/app-$ABI-release.apk"

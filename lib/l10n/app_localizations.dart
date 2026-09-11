@@ -147,6 +147,12 @@ abstract class AppLocalizations {
   /// **'Pending'**
   String get pending;
 
+  /// No description provided for @unconfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unconfirmed'**
+  String get unconfirmed;
+
   /// No description provided for @copy.
   ///
   /// In en, this message translates to:
@@ -159,22 +165,22 @@ abstract class AppLocalizations {
   /// **'Address copied to clipboard'**
   String get addressCopied;
 
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
+
   /// No description provided for @fieldEmptyError.
   ///
   /// In en, this message translates to:
   /// **'This field cannot be empty.'**
   String get fieldEmptyError;
 
-  /// No description provided for @welcomeTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Welcome!'**
-  String get welcomeTitle;
-
   /// No description provided for @welcomeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Skylight is one of the simplest Monero wallets. We will help you set up a wallet and connect to a server.'**
+  /// **'A simple, open-source, and modern self-custody wallet for Serai and the blockchain networks that Serai supports: Bitcoin, Ethereum, and Monero. You are in total control. Maintained by MAGIC Grants, a public charity.'**
   String get welcomeDescription;
 
   /// No description provided for @welcomeGetStarted.
@@ -183,53 +189,113 @@ abstract class AppLocalizations {
   /// **'Get Started'**
   String get welcomeGetStarted;
 
-  /// No description provided for @restoreWarningTitle.
+  /// No description provided for @welcomeAgreePrefix.
   ///
   /// In en, this message translates to:
-  /// **'Restore Warning'**
-  String get restoreWarningTitle;
+  /// **'By continuing you agree to the '**
+  String get welcomeAgreePrefix;
 
-  /// No description provided for @restoreWarningDescription.
+  /// No description provided for @welcomeTermsLink.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure? The server that you connect to will be able to see your past and future Monero transaction history.'**
-  String get restoreWarningDescription;
+  /// **'Terms of Service'**
+  String get welcomeTermsLink;
 
-  /// No description provided for @restoreWarningContinueButton.
+  /// No description provided for @welcomeAgreeMiddle.
   ///
   /// In en, this message translates to:
-  /// **'Continue'**
-  String get restoreWarningContinueButton;
+  /// **' and '**
+  String get welcomeAgreeMiddle;
 
-  /// No description provided for @lwsSetupTitle.
+  /// No description provided for @welcomePrivacyLink.
   ///
   /// In en, this message translates to:
-  /// **'LWS Setup'**
-  String get lwsSetupTitle;
+  /// **'Privacy Policy'**
+  String get welcomePrivacyLink;
 
-  /// No description provided for @lwsSetupDescription.
+  /// No description provided for @torChoiceTitle.
   ///
   /// In en, this message translates to:
-  /// **'Enter the address of your Monero light-wallet server (LWS).'**
-  String get lwsSetupDescription;
+  /// **'Tor Connection Setup'**
+  String get torChoiceTitle;
+
+  /// No description provided for @torChoiceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tor can hide your IP address from servers you connect to. This does not reduce the information that is stored on public blockchains. You can enable or disable Tor for each connection individually. In general, how do you want Spice Wallet to handle Tor connections?'**
+  String get torChoiceSubtitle;
+
+  /// No description provided for @torChoiceBuiltInDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundled with Spice Wallet · recommended'**
+  String get torChoiceBuiltInDesc;
+
+  /// No description provided for @torChoiceExternalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Orbot, or a daemon you run yourself'**
+  String get torChoiceExternalDesc;
+
+  /// No description provided for @torChoiceNoTorDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Servers you connect to can see your IP address'**
+  String get torChoiceNoTorDesc;
+
+  /// No description provided for @torChoiceOrbot.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Orbot (port 9050)'**
+  String get torChoiceOrbot;
+
+  /// No description provided for @torChoiceTestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Test failed'**
+  String get torChoiceTestFailed;
+
+  /// No description provided for @torChoiceConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected to Tor'**
+  String get torChoiceConnected;
+
+  /// No description provided for @connectionSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection Setup'**
+  String get connectionSetupTitle;
+
+  /// No description provided for @connectionSetupDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the address of your {type}. Only select a server you trust. Even if you use Tor, this server can learn information about you.'**
+  String connectionSetupDescription(String type);
+
+  /// No description provided for @connectionSetupDescriptionLws.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the address of your {type}. Only select a server you trust. Even if you use Tor, this server can learn information about you. Your private view key and primary address will be shared with this server.'**
+  String connectionSetupDescriptionLws(String type);
+
+  /// No description provided for @connectionTypeLws.
+  ///
+  /// In en, this message translates to:
+  /// **'Light Wallet Server'**
+  String get connectionTypeLws;
+
+  /// No description provided for @connectionTypeNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Monero Node'**
+  String get connectionTypeNode;
 
   /// No description provided for @lwsSetupAddressHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g. 192.168.1.1:18090 or example.com:18090'**
+  /// **'lws.example.com:18090'**
   String get lwsSetupAddressHint;
-
-  /// No description provided for @lwsSetupProxyPortLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'HTTP Proxy Port (optional)'**
-  String get lwsSetupProxyPortLabel;
-
-  /// No description provided for @lwsSetupProxyPortHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. 4444 for I2P'**
-  String get lwsSetupProxyPortHint;
 
   /// No description provided for @lwsSetupUseTorLabel.
   ///
@@ -237,17 +303,83 @@ abstract class AppLocalizations {
   /// **'Use Tor'**
   String get lwsSetupUseTorLabel;
 
-  /// No description provided for @lwsSetupUseSslLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Use SSL'**
-  String get lwsSetupUseSslLabel;
-
   /// No description provided for @lwsSetupTestConnectionButton.
   ///
   /// In en, this message translates to:
   /// **'Test Connection'**
   String get lwsSetupTestConnectionButton;
+
+  /// No description provided for @connectionProxyPortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'HTTP Proxy Port'**
+  String get connectionProxyPortLabel;
+
+  /// No description provided for @connectionProxyPortHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get connectionProxyPortHint;
+
+  /// No description provided for @connectionTestingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing connection'**
+  String get connectionTestingTitle;
+
+  /// No description provided for @connectionTestingDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking whether the server answers.'**
+  String get connectionTestingDetail;
+
+  /// No description provided for @connectionTestStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get connectionTestStop;
+
+  /// No description provided for @connectionResultWorksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection works'**
+  String get connectionResultWorksTitle;
+
+  /// No description provided for @connectionReachedOverTor.
+  ///
+  /// In en, this message translates to:
+  /// **'Reached over Tor'**
+  String get connectionReachedOverTor;
+
+  /// No description provided for @connectionReachedViaProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'Reached through your proxy'**
+  String get connectionReachedViaProxy;
+
+  /// No description provided for @connectionReachedDirect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reached directly'**
+  String get connectionReachedDirect;
+
+  /// No description provided for @connectionResultFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach this server'**
+  String get connectionResultFailedTitle;
+
+  /// No description provided for @connectionResultFailedDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing answered. Check the address and port, and whether the server accepts your connection.'**
+  String get connectionResultFailedDetail;
+
+  /// No description provided for @connectionTestAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Test again'**
+  String get connectionTestAgain;
 
   /// No description provided for @lwsSetupStartingTor.
   ///
@@ -264,13 +396,13 @@ abstract class AppLocalizations {
   /// No description provided for @fiatApiSetupTitle.
   ///
   /// In en, this message translates to:
-  /// **'Fiat Display Setup'**
+  /// **'Price Display Setup'**
   String get fiatApiSetupTitle;
 
   /// No description provided for @fiatApiSetupDescription.
   ///
   /// In en, this message translates to:
-  /// **'Optional reference price for your XMR balance.'**
+  /// **'Spice Wallet can automatically fetch the latest asset prices. Your balances are not sent to the server. How do you want to fetch this price data?'**
   String get fiatApiSetupDescription;
 
   /// No description provided for @fiatApiSettingsModeLabel.
@@ -288,7 +420,7 @@ abstract class AppLocalizations {
   /// No description provided for @fiatApiSettingsModeClearnet.
   ///
   /// In en, this message translates to:
-  /// **'Clearnet-Only (not private)'**
+  /// **'Clearnet-Only'**
   String get fiatApiSettingsModeClearnet;
 
   /// No description provided for @fiatApiSettingsModeDisabled.
@@ -297,107 +429,281 @@ abstract class AppLocalizations {
   /// **'Disabled'**
   String get fiatApiSettingsModeDisabled;
 
+  /// No description provided for @fiatModeTorOnlyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Prices fetched over Tor · recommended'**
+  String get fiatModeTorOnlyDesc;
+
+  /// No description provided for @fiatModeClearnetDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Not private, the price server sees your IP address'**
+  String get fiatModeClearnetDesc;
+
+  /// No description provided for @fiatModeDisabledDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'No prices fetched, balances shown in crypto only'**
+  String get fiatModeDisabledDesc;
+
   /// No description provided for @fiatApiSettingsDisplayCurrencyLabel.
   ///
   /// In en, this message translates to:
   /// **'Display Currency'**
   String get fiatApiSettingsDisplayCurrencyLabel;
 
+  /// No description provided for @settingsFiatApiSettingsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Display Settings'**
+  String get settingsFiatApiSettingsLabel;
+
+  /// No description provided for @fiatApiSettingsSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How prices are fetched, and the currency they are shown in.'**
+  String get fiatApiSettingsSheetSubtitle;
+
   /// No description provided for @createWalletTitle.
   ///
   /// In en, this message translates to:
-  /// **'Create Wallet'**
+  /// **'Wallet Setup'**
   String get createWalletTitle;
 
   /// No description provided for @createWalletDescription.
   ///
   /// In en, this message translates to:
-  /// **'Do you already have a Monero wallet seed, or do you need to make a new one?'**
+  /// **'A single seed phrase secures access to your wallet across all blockchain networks. Would you like to create a new wallet or restore an existing wallet?'**
   String get createWalletDescription;
 
   /// No description provided for @createWalletRestoreExistingButton.
   ///
   /// In en, this message translates to:
-  /// **'Restore Existing'**
+  /// **'Restore from a seed'**
   String get createWalletRestoreExistingButton;
+
+  /// No description provided for @createWalletRestoreExistingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Any BIP39 phrase'**
+  String get createWalletRestoreExistingDesc;
 
   /// No description provided for @createWalletCreateNewButton.
   ///
   /// In en, this message translates to:
-  /// **'Create New'**
+  /// **'Create a new wallet'**
   String get createWalletCreateNewButton;
+
+  /// No description provided for @createWalletCreateNewDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Spice Wallet generates a 15-word BIP39 seed'**
+  String get createWalletCreateNewDesc;
+
+  /// No description provided for @createWalletPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Wallet Password'**
+  String get createWalletPasswordTitle;
+
+  /// No description provided for @createWalletPasswordDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a password to protect your wallet. This password will be required to unlock your wallet.'**
+  String get createWalletPasswordDescription;
+
+  /// No description provided for @createWalletPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get createWalletPasswordHint;
+
+  /// No description provided for @createWalletConfirmPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your password'**
+  String get createWalletConfirmPasswordHint;
+
+  /// No description provided for @passwordTooShortError.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters long.'**
+  String get passwordTooShortError;
+
+  /// No description provided for @passwordsDoNotMatchError.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get passwordsDoNotMatchError;
 
   /// No description provided for @generateSeedTitle.
   ///
   /// In en, this message translates to:
-  /// **'New Wallet'**
+  /// **'Write these down, in order'**
   String get generateSeedTitle;
 
-  /// No description provided for @generateSeedDescription.
+  /// No description provided for @generateSeedTitleCovered.
   ///
   /// In en, this message translates to:
-  /// **'This is your polyseed. Write it down and keep it in a safe place.'**
-  String get generateSeedDescription;
+  /// **'Seed Phrase'**
+  String get generateSeedTitleCovered;
+
+  /// No description provided for @generateSeedSubtitleCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'These fifteen words, in this order, are your wallet. Write them down and keep them in a physical safe. If you lose these words or if you share them with anyone else, you will lose your money permanently. Careful planning now avoids a potential disaster later.'**
+  String get generateSeedSubtitleCovered;
+
+  /// No description provided for @generateSeedSubtitleRevealed.
+  ///
+  /// In en, this message translates to:
+  /// **'Securely save these. Do not share them.'**
+  String get generateSeedSubtitleRevealed;
+
+  /// No description provided for @generateSeedScreenshotNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshots are blocked on this screen. Make sure nobody is looking over your shoulder.'**
+  String get generateSeedScreenshotNote;
+
+  /// No description provided for @generateSeedReveal.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to reveal'**
+  String get generateSeedReveal;
+
+  /// No description provided for @generateSeedBirthdayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet birthday'**
+  String get generateSeedBirthdayLabel;
+
+  /// No description provided for @generateSeedBirthdayReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Where a future restore starts scanning'**
+  String get generateSeedBirthdayReason;
+
+  /// No description provided for @generateSeedConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'I have written down all 15 words and stored them somewhere only I can reach.'**
+  String get generateSeedConfirm;
 
   /// No description provided for @generateSeedContinueButton.
   ///
   /// In en, this message translates to:
-  /// **'I wrote it down'**
+  /// **'Continue'**
   String get generateSeedContinueButton;
-
-  /// No description provided for @lwsDetailsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Wallet Details'**
-  String get lwsDetailsTitle;
 
   /// No description provided for @lwsDetailsDescription.
   ///
   /// In en, this message translates to:
-  /// **'You can use these details to whitelist this wallet on the light wallet server if needed.'**
+  /// **'If your Monero light wallet server (LWS) requires registration, you can use these details to add this wallet to that server. Not all servers require registration.'**
   String get lwsDetailsDescription;
-
-  /// No description provided for @lwsDetailsPrimaryAddressLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Primary Address'**
-  String get lwsDetailsPrimaryAddressLabel;
-
-  /// No description provided for @lwsDetailsSecretViewKeyLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Secret View Key'**
-  String get lwsDetailsSecretViewKeyLabel;
-
-  /// No description provided for @lwsDetailsRestoreHeightLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Restore Height'**
-  String get lwsDetailsRestoreHeightLabel;
 
   /// No description provided for @restoreWalletTitle.
   ///
   /// In en, this message translates to:
-  /// **'Restore Wallet'**
+  /// **'Restore wallet'**
   String get restoreWalletTitle;
 
-  /// No description provided for @restoreWalletDescription.
+  /// No description provided for @restoreWalletSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Input your Monero seed below. We will check common formats.'**
-  String get restoreWalletDescription;
+  /// **'Any BIP39 phrase, from Spice Wallet or another wallet.'**
+  String get restoreWalletSubtitle;
 
-  /// No description provided for @restoreWalletSeedLabel.
+  /// No description provided for @restoreWalletSeedLength.
   ///
   /// In en, this message translates to:
-  /// **'Seed'**
-  String get restoreWalletSeedLabel;
+  /// **'Seed length'**
+  String get restoreWalletSeedLength;
 
-  /// No description provided for @restoreWalletRestoreHeightLabel.
+  /// No description provided for @restoreWalletPaste.
   ///
   /// In en, this message translates to:
-  /// **'Restore Height (optional)'**
-  String get restoreWalletRestoreHeightLabel;
+  /// **'Paste'**
+  String get restoreWalletPaste;
+
+  /// No description provided for @restoreWalletScanFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan from'**
+  String get restoreWalletScanFrom;
+
+  /// No description provided for @restoreWalletScanFromReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip irrelevant history to save time'**
+  String get restoreWalletScanFromReason;
+
+  /// No description provided for @restoreWalletNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get restoreWalletNotSet;
+
+  /// No description provided for @restoreScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When did this wallet first receive funds?'**
+  String get restoreScanTitle;
+
+  /// No description provided for @restoreScanDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'For some assets, Spice Wallet can skip irrelevant history to save you time. Either pick the first month that you used the wallet or select I\'m not sure to check everything. It\'s okay to pick a month that is too early, but it\'s bad to pick a month that is too late.'**
+  String get restoreScanDescription;
+
+  /// No description provided for @restoreScanPickMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a month'**
+  String get restoreScanPickMonth;
+
+  /// No description provided for @restoreScanNotSure.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m not sure'**
+  String get restoreScanNotSure;
+
+  /// No description provided for @restoreScanNotSureDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan everything. Slower this first setup but not any slower later. Always complete.'**
+  String get restoreScanNotSureDesc;
+
+  /// No description provided for @restoreScanFromStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Genesis'**
+  String get restoreScanFromStart;
+
+  /// No description provided for @restoreScanDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get restoreScanDone;
+
+  /// No description provided for @restoreWalletBadWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Word {position} isn\'t a BIP39 word.'**
+  String restoreWalletBadWord(int position);
+
+  /// No description provided for @restoreWalletDidYouMean.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you mean {word}?'**
+  String restoreWalletDidYouMean(String word);
+
+  /// No description provided for @restoreWalletChecksumError.
+  ///
+  /// In en, this message translates to:
+  /// **'This isn\'t a valid seed phrase — check the words and their order.'**
+  String get restoreWalletChecksumError;
 
   /// No description provided for @restoreWalletRestoreButton.
   ///
@@ -405,23 +711,77 @@ abstract class AppLocalizations {
   /// **'Restore'**
   String get restoreWalletRestoreButton;
 
-  /// No description provided for @restoreWalletInvalidMnemonic.
+  /// No description provided for @navigationBarHome.
   ///
   /// In en, this message translates to:
-  /// **'Invalid seed.'**
-  String get restoreWalletInvalidMnemonic;
-
-  /// No description provided for @navigationBarWallet.
-  ///
-  /// In en, this message translates to:
-  /// **'Wallet'**
-  String get navigationBarWallet;
+  /// **'Home'**
+  String get navigationBarHome;
 
   /// No description provided for @navigationBarSettings.
   ///
   /// In en, this message translates to:
   /// **'Settings'**
   String get navigationBarSettings;
+
+  /// No description provided for @navigationBarHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get navigationBarHistory;
+
+  /// No description provided for @historyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get historyTitle;
+
+  /// No description provided for @historyFilterBlockchain.
+  ///
+  /// In en, this message translates to:
+  /// **'Blockchain'**
+  String get historyFilterBlockchain;
+
+  /// No description provided for @historyFilterAsset.
+  ///
+  /// In en, this message translates to:
+  /// **'Asset'**
+  String get historyFilterAsset;
+
+  /// No description provided for @historyFilterType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get historyFilterType;
+
+  /// No description provided for @historyTypeBridge.
+  ///
+  /// In en, this message translates to:
+  /// **'Bridge'**
+  String get historyTypeBridge;
+
+  /// No description provided for @historyTypeSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap'**
+  String get historyTypeSwap;
+
+  /// No description provided for @historyTypeAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get historyTypeAdd;
+
+  /// No description provided for @historyTypeRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get historyTypeRemove;
+
+  /// No description provided for @historyFilterReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get historyFilterReset;
 
   /// No description provided for @unlockButton.
   ///
@@ -441,17 +801,23 @@ abstract class AppLocalizations {
   /// **'Unable to authenticate.'**
   String get unlockUnableToAuthError;
 
-  /// No description provided for @unlockTitle.
+  /// No description provided for @unlockLockedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlock Wallet'**
-  String get unlockTitle;
+  /// **'Spice Wallet is locked'**
+  String get unlockLockedTitle;
 
-  /// No description provided for @unlockDescription.
+  /// No description provided for @unlockWithFaceId.
   ///
   /// In en, this message translates to:
-  /// **'Enter your wallet password to unlock'**
-  String get unlockDescription;
+  /// **'Unlock with Face ID'**
+  String get unlockWithFaceId;
+
+  /// No description provided for @unlockWithTouchId.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with Touch ID'**
+  String get unlockWithTouchId;
 
   /// No description provided for @unlockPasswordLabel.
   ///
@@ -471,23 +837,95 @@ abstract class AppLocalizations {
   /// **'Incorrect password. Please try again.'**
   String get unlockIncorrectPasswordError;
 
-  /// No description provided for @homeConnecting.
-  ///
-  /// In en, this message translates to:
-  /// **'Connecting'**
-  String get homeConnecting;
-
   /// No description provided for @homeSyncing.
   ///
   /// In en, this message translates to:
   /// **'Syncing'**
   String get homeSyncing;
 
-  /// No description provided for @homeHeight.
+  /// No description provided for @homeSynced.
   ///
   /// In en, this message translates to:
-  /// **'Height'**
-  String get homeHeight;
+  /// **'Synced'**
+  String get homeSynced;
+
+  /// No description provided for @homeBlocksRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} blocks left'**
+  String homeBlocksRemaining(String count);
+
+  /// No description provided for @homeNoConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection'**
+  String get homeNoConnection;
+
+  /// No description provided for @homeCoinNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Not configured'**
+  String get homeCoinNotConfigured;
+
+  /// No description provided for @homeAssetsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 asset} other{{count} assets}}'**
+  String homeAssetsCount(int count);
+
+  /// No description provided for @coinHomeAssetsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Assets'**
+  String get coinHomeAssetsTitle;
+
+  /// No description provided for @coinHomeActivityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get coinHomeActivityTitle;
+
+  /// No description provided for @coinHomeSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap'**
+  String get coinHomeSwap;
+
+  /// No description provided for @coinHomeSwapComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon!'**
+  String get coinHomeSwapComingSoon;
+
+  /// No description provided for @coinHomeReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get coinHomeReceived;
+
+  /// No description provided for @coinHomeSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get coinHomeSent;
+
+  /// No description provided for @coinHomeAddExplorerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an explorer to see history'**
+  String get coinHomeAddExplorerTitle;
+
+  /// No description provided for @coinHomeAddExplorerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add explorer'**
+  String get coinHomeAddExplorerButton;
+
+  /// No description provided for @homeFiatSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Kraken over Tor'**
+  String get homeFiatSource;
 
   /// No description provided for @homeReceive.
   ///
@@ -501,36 +939,6 @@ abstract class AppLocalizations {
   /// **'Send'**
   String get homeSend;
 
-  /// No description provided for @homeBalanceLocked.
-  ///
-  /// In en, this message translates to:
-  /// **'locked'**
-  String get homeBalanceLocked;
-
-  /// No description provided for @homeTransactionsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Transactions'**
-  String get homeTransactionsTitle;
-
-  /// No description provided for @homeOutgoingTxSemanticLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Outgoing Transaction'**
-  String get homeOutgoingTxSemanticLabel;
-
-  /// No description provided for @homeIncomingTxSemanticLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Incoming Transaction'**
-  String get homeIncomingTxSemanticLabel;
-
-  /// No description provided for @homeTransactionConfirmed.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirmed'**
-  String get homeTransactionConfirmed;
-
   /// No description provided for @homeNoTransactions.
   ///
   /// In en, this message translates to:
@@ -540,8 +948,14 @@ abstract class AppLocalizations {
   /// No description provided for @homeFiatApiError.
   ///
   /// In en, this message translates to:
-  /// **'Error connecting to fiat API'**
+  /// **'Error connecting to price server'**
   String get homeFiatApiError;
+
+  /// No description provided for @homeTotalBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Balance'**
+  String get homeTotalBalanceLabel;
 
   /// No description provided for @receiveTitle.
   ///
@@ -552,26 +966,8 @@ abstract class AppLocalizations {
   /// No description provided for @receivePrimaryAddressWarn.
   ///
   /// In en, this message translates to:
-  /// **'Warning: Unless you know what you\'re doing, please consider using subaddresses for better privacy.'**
+  /// **'Warning: Unless you know what you\'re doing, please use subaddresses for better privacy.'**
   String get receivePrimaryAddressWarn;
-
-  /// No description provided for @receiveShareButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Share'**
-  String get receiveShareButton;
-
-  /// No description provided for @receiveShowSubaddressButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Show Subaddress'**
-  String get receiveShowSubaddressButton;
-
-  /// No description provided for @receiveShowPrimaryAddressButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Show Primary Address'**
-  String get receiveShowPrimaryAddressButton;
 
   /// No description provided for @receiveServerNoSubaddressesWarn.
   ///
@@ -584,6 +980,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You have reached the maximum number of subaddresses supported by this server. This is a used address.'**
   String get receiveMaxSubaddressesReachedWarn;
+
+  /// No description provided for @receiveSubaddressTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Subaddress'**
+  String get receiveSubaddressTab;
+
+  /// No description provided for @receivePrimaryTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary address'**
+  String get receivePrimaryTab;
+
+  /// No description provided for @receiveCopyAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy address'**
+  String get receiveCopyAddress;
+
+  /// No description provided for @receiveAddressHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {coin} address'**
+  String receiveAddressHeading(String coin);
+
+  /// No description provided for @receiveBlockchainSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{coin} blockchain'**
+  String receiveBlockchainSubtitle(String coin);
 
   /// No description provided for @sendTitle.
   ///
@@ -609,11 +1035,11 @@ abstract class AppLocalizations {
   /// **'Invalid OpenAlias.'**
   String get sendOpenAliasResolveError;
 
-  /// No description provided for @sendInvalidAddressError.
+  /// No description provided for @sendContactsButton.
   ///
   /// In en, this message translates to:
-  /// **'Invalid address.'**
-  String get sendInvalidAddressError;
+  /// **'Contacts'**
+  String get sendContactsButton;
 
   /// No description provided for @sendInsufficientBalanceError.
   ///
@@ -627,17 +1053,113 @@ abstract class AppLocalizations {
   /// **'Insufficient balance to cover the network fee.'**
   String get sendInsufficientBalanceToCoverFeeError;
 
+  /// No description provided for @sendInsufficientGasError.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient ETH to cover the network fee.'**
+  String get sendInsufficientGasError;
+
   /// No description provided for @settingsTitle.
   ///
   /// In en, this message translates to:
   /// **'Settings'**
   String get settingsTitle;
 
+  /// No description provided for @settingsSectionGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get settingsSectionGeneral;
+
+  /// No description provided for @settingsSectionBehaviour.
+  ///
+  /// In en, this message translates to:
+  /// **'Behaviour'**
+  String get settingsSectionBehaviour;
+
+  /// No description provided for @settingsSectionAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsSectionAbout;
+
+  /// No description provided for @settingsSectionWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get settingsSectionWallet;
+
+  /// No description provided for @settingsCoinConnectionSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get settingsCoinConnectionSection;
+
+  /// No description provided for @settingsCoinKeysSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Keys'**
+  String get settingsCoinKeysSection;
+
+  /// No description provided for @settingsCoinConnectionSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection Setup'**
+  String get settingsCoinConnectionSetup;
+
+  /// No description provided for @settingsCoinExplorer.
+  ///
+  /// In en, this message translates to:
+  /// **'Explorer'**
+  String get settingsCoinExplorer;
+
+  /// No description provided for @settingsCoinNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Not configured'**
+  String get settingsCoinNotConfigured;
+
   /// No description provided for @settingsNotifyNewTxsLabel.
   ///
   /// In en, this message translates to:
-  /// **'Notify New Transactions'**
+  /// **'Transaction Notifications'**
   String get settingsNotifyNewTxsLabel;
+
+  /// No description provided for @settingsNotifyNewTxsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a notification when you receive a transaction. When connected to a Monero node, Background Sync must also be enabled.'**
+  String get settingsNotifyNewTxsDescription;
+
+  /// No description provided for @settingsNotifyNewTxsDescriptionIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a notification when you receive a transaction.'**
+  String get settingsNotifyNewTxsDescriptionIos;
+
+  /// No description provided for @settingsBackgroundSyncLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Background Sync'**
+  String get settingsBackgroundSyncLabel;
+
+  /// No description provided for @settingsBackgroundSyncDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Periodically sync your wallets in the background so they\'re up to date when you open the app.'**
+  String get settingsBackgroundSyncDescription;
+
+  /// No description provided for @settingsForegroundSyncLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Continuous Sync'**
+  String get settingsForegroundSyncLabel;
+
+  /// No description provided for @settingsForegroundSyncDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your wallets syncing continuously while the app runs in the background, with a persistent notification. Uses more battery.'**
+  String get settingsForegroundSyncDescription;
 
   /// No description provided for @settingsAppLockLabel.
   ///
@@ -660,19 +1182,31 @@ abstract class AppLocalizations {
   /// No description provided for @settingsVerboseLoggingLabel.
   ///
   /// In en, this message translates to:
-  /// **'Verbose Logging'**
+  /// **'Diagnostic Logs'**
   String get settingsVerboseLoggingLabel;
+
+  /// No description provided for @settingsTestnetCoinsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Testnet Coins'**
+  String get settingsTestnetCoinsLabel;
+
+  /// No description provided for @settingsTestnetCoinsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Show testnet coins (e.g. Bitcoin Testnet) in your coin list.'**
+  String get settingsTestnetCoinsDescription;
 
   /// No description provided for @settingsVerboseLoggingDescription.
   ///
   /// In en, this message translates to:
-  /// **'Logs wallet operations to a text file in the app\'s data folder for debugging purposes.'**
+  /// **'Log wallet operations to a text file in the app\'s data folder for debugging purposes.'**
   String get settingsVerboseLoggingDescription;
 
   /// No description provided for @settingsVerboseLoggingDescriptionIos.
   ///
   /// In en, this message translates to:
-  /// **'Logs wallet operations and allows the logs to be exported to a text file.'**
+  /// **'Log wallet operations and allow the logs to be exported to a text file.'**
   String get settingsVerboseLoggingDescriptionIos;
 
   /// No description provided for @settingsExportLogsLabel.
@@ -717,65 +1251,89 @@ abstract class AppLocalizations {
   /// **'Dark'**
   String get settingsThemeDark;
 
+  /// No description provided for @settingsThemeLightDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm paper, the default'**
+  String get settingsThemeLightDesc;
+
+  /// No description provided for @settingsThemeDarkDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark ground, easier at night'**
+  String get settingsThemeDarkDesc;
+
+  /// No description provided for @settingsThemeSystemDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows your phone'**
+  String get settingsThemeSystemDesc;
+
+  /// No description provided for @settingsThemeSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a theme to match your style.'**
+  String get settingsThemeSheetSubtitle;
+
   /// No description provided for @settingsLanguageLabel.
   ///
   /// In en, this message translates to:
   /// **'Language'**
   String get settingsLanguageLabel;
 
-  /// No description provided for @settingsFiatApiSettingsLabel.
+  /// No description provided for @settingsLanguageSheetSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Fiat API Settings'**
-  String get settingsFiatApiSettingsLabel;
+  /// **'Pick your language and localization.'**
+  String get settingsLanguageSheetSubtitle;
 
-  /// No description provided for @settingsLwsViewKeysLabel.
+  /// No description provided for @settingsSeedPhraseLabel.
   ///
   /// In en, this message translates to:
-  /// **'LWS View Keys'**
-  String get settingsLwsViewKeysLabel;
+  /// **'Seed Phrase'**
+  String get settingsSeedPhraseLabel;
+
+  /// No description provided for @revealSeedSubtitleCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'The same fifteen words this wallet was created with, in the same order.'**
+  String get revealSeedSubtitleCovered;
+
+  /// No description provided for @revealSeedSubtitleRevealed.
+  ///
+  /// In en, this message translates to:
+  /// **'Securely save these. Do not share them. If you lose these words or if you share them with anyone else, you will lose your money permanently.'**
+  String get revealSeedSubtitleRevealed;
+
+  /// No description provided for @revealSeedBackButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to settings'**
+  String get revealSeedBackButton;
+
+  /// No description provided for @revealSeedHideButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide and go back'**
+  String get revealSeedHideButton;
+
+  /// No description provided for @revealSeedAuthReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you to view your seed phrase'**
+  String get revealSeedAuthReason;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
 
   /// No description provided for @settingsLwsViewKeysButton.
   ///
   /// In en, this message translates to:
   /// **'View'**
   String get settingsLwsViewKeysButton;
-
-  /// No description provided for @settingsSecretKeysLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Secret Restore Keys'**
-  String get settingsSecretKeysLabel;
-
-  /// No description provided for @settingsSecretKeysButton.
-  ///
-  /// In en, this message translates to:
-  /// **'View'**
-  String get settingsSecretKeysButton;
-
-  /// No description provided for @settingsViewLwsKeysDialogText.
-  ///
-  /// In en, this message translates to:
-  /// **'Only share this information with your light-wallet server. These keys allow the holder to permanently see all transactions related to your wallets. Sharing these with an untrusted person will significantly harm your privacy.'**
-  String get settingsViewLwsKeysDialogText;
-
-  /// No description provided for @settingsViewLwsKeysDialogRevealButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Reveal'**
-  String get settingsViewLwsKeysDialogRevealButton;
-
-  /// No description provided for @settingsViewSecretKeysDialogText.
-  ///
-  /// In en, this message translates to:
-  /// **'Do not share these keys with anyone, including anyone claiming to be support. If you receive a request to provide these, you are being scammed. If you provide this information to another person, you will lose your money and it cannot be recovered.'**
-  String get settingsViewSecretKeysDialogText;
-
-  /// No description provided for @settingsViewSecretKeysDialogRevealButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Reveal'**
-  String get settingsViewSecretKeysDialogRevealButton;
 
   /// No description provided for @settingsDeleteWalletButton.
   ///
@@ -798,8 +1356,14 @@ abstract class AppLocalizations {
   /// No description provided for @txDetailsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Transaction'**
+  /// **'Transaction Details'**
   String get txDetailsTitle;
+
+  /// No description provided for @txDetailsCopyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'tap any value to copy'**
+  String get txDetailsCopyHint;
 
   /// No description provided for @txDetailsHashLabel.
   ///
@@ -837,6 +1401,30 @@ abstract class AppLocalizations {
   /// **'Recipients'**
   String get txDetailsRecipientsLabel;
 
+  /// No description provided for @txDetailsReceivedAtLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Received At'**
+  String get txDetailsReceivedAtLabel;
+
+  /// No description provided for @txDetailsChangeRecipientLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Recipient'**
+  String get txDetailsChangeRecipientLabel;
+
+  /// No description provided for @txDetailsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'This transaction failed. The funds were not sent.'**
+  String get txDetailsFailed;
+
+  /// No description provided for @txDetailsUnknownStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'This transaction was not confirmed as sent. Check before sending again.'**
+  String get txDetailsUnknownStatus;
+
   /// No description provided for @lwsKeysTitle.
   ///
   /// In en, this message translates to:
@@ -861,35 +1449,11 @@ abstract class AppLocalizations {
   /// **'Secret View Key'**
   String get lwsKeysSecretViewKey;
 
-  /// No description provided for @secretKeysTitle.
+  /// No description provided for @lwsKeysWarning.
   ///
   /// In en, this message translates to:
-  /// **'Secret Restore Keys'**
-  String get secretKeysTitle;
-
-  /// No description provided for @secretKeysMnemonic.
-  ///
-  /// In en, this message translates to:
-  /// **'Seed'**
-  String get secretKeysMnemonic;
-
-  /// No description provided for @secretKeysPublicSpendKey.
-  ///
-  /// In en, this message translates to:
-  /// **'Public Spend Key'**
-  String get secretKeysPublicSpendKey;
-
-  /// No description provided for @secretKeysSecretSpendKey.
-  ///
-  /// In en, this message translates to:
-  /// **'Secret Spend Key'**
-  String get secretKeysSecretSpendKey;
-
-  /// No description provided for @secretKeysPublicViewKey.
-  ///
-  /// In en, this message translates to:
-  /// **'Public View Key'**
-  String get secretKeysPublicViewKey;
+  /// **'Screenshots are blocked on this screen. Make sure nobody is looking over your shoulder.'**
+  String get lwsKeysWarning;
 
   /// No description provided for @scanQrTitle.
   ///
@@ -908,6 +1472,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transactions are irreversible, so make sure that these details match exactly.'**
   String get confirmSendDescription;
+
+  /// No description provided for @confirmSendHighFeeWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'The network fee is {percent} of the amount you are sending.'**
+  String confirmSendHighFeeWarning(String percent);
 
   /// No description provided for @addressBookTitle.
   ///
@@ -969,12 +1539,6 @@ abstract class AppLocalizations {
   /// **'No contacts found'**
   String get addressBookNoSearchResults;
 
-  /// No description provided for @addressBookCopyAddress.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy Address'**
-  String get addressBookCopyAddress;
-
   /// No description provided for @addressBookEdit.
   ///
   /// In en, this message translates to:
@@ -986,6 +1550,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Contact Name'**
   String get addressBookContactName;
+
+  /// No description provided for @addressBookNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get addressBookNameHint;
+
+  /// No description provided for @addressBookAddDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A name and at least one address to pay them.'**
+  String get addressBookAddDescription;
+
+  /// No description provided for @addressBookEditDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A name and at least one address to pay them.'**
+  String get addressBookEditDescription;
+
+  /// No description provided for @addressBookAddressesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Addresses'**
+  String get addressBookAddressesLabel;
+
+  /// No description provided for @addressBookAddressesNoneYet.
+  ///
+  /// In en, this message translates to:
+  /// **'none yet'**
+  String get addressBookAddressesNoneYet;
 
   /// No description provided for @addressBookUpdate.
   ///
@@ -999,17 +1593,23 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get addressBookSave;
 
-  /// No description provided for @sendSelectedContact.
+  /// No description provided for @addressBookAtLeastOneAddressError.
   ///
   /// In en, this message translates to:
-  /// **'Selected contact'**
-  String get sendSelectedContact;
+  /// **'Enter at least one address'**
+  String get addressBookAtLeastOneAddressError;
 
-  /// No description provided for @sendClearSelectedContact.
+  /// No description provided for @addressBookNoContactsForCoin.
   ///
   /// In en, this message translates to:
-  /// **'Clear selected contact'**
-  String get sendClearSelectedContact;
+  /// **'No contacts with a {coinSymbol} address'**
+  String addressBookNoContactsForCoin(String coinSymbol);
+
+  /// No description provided for @invalidAddressForChain.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid {chain} address'**
+  String invalidAddressForChain(String chain);
 
   /// No description provided for @sendPriorityLow.
   ///
@@ -1029,29 +1629,77 @@ abstract class AppLocalizations {
   /// **'High'**
   String get sendPriorityHigh;
 
-  /// No description provided for @sendPriorityLabel.
+  /// No description provided for @sendFromLabel.
   ///
   /// In en, this message translates to:
-  /// **'priority'**
-  String get sendPriorityLabel;
+  /// **'From'**
+  String get sendFromLabel;
 
-  /// No description provided for @sendTransactionPriority.
+  /// No description provided for @sendToLabel.
   ///
   /// In en, this message translates to:
-  /// **'Transaction Priority'**
-  String get sendTransactionPriority;
+  /// **'To'**
+  String get sendToLabel;
 
-  /// No description provided for @sendFeeLabel.
+  /// No description provided for @sendPriorityHeading.
   ///
   /// In en, this message translates to:
-  /// **'Fee'**
-  String get sendFeeLabel;
+  /// **'Priority'**
+  String get sendPriorityHeading;
 
-  /// No description provided for @sendBalanceLabel.
+  /// No description provided for @sendAvailableSuffix.
   ///
   /// In en, this message translates to:
-  /// **'Balance'**
-  String get sendBalanceLabel;
+  /// **'available'**
+  String get sendAvailableSuffix;
+
+  /// No description provided for @sendNetworkFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Network fee'**
+  String get sendNetworkFee;
+
+  /// No description provided for @sendMaxButton.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX'**
+  String get sendMaxButton;
+
+  /// No description provided for @sendPasteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get sendPasteButton;
+
+  /// No description provided for @sendScanButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get sendScanButton;
+
+  /// No description provided for @sendAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{coin} address'**
+  String sendAddressHint(String coin);
+
+  /// No description provided for @sendPickContactTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to a contact'**
+  String get sendPickContactTitle;
+
+  /// No description provided for @sendPickContactSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a contact with a {coin} address.'**
+  String sendPickContactSubtitle(String coin);
+
+  /// No description provided for @sendContactNoAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'No {coin} address'**
+  String sendContactNoAddress(String coin);
 
   /// No description provided for @sendFailedToGetFeesError.
   ///
@@ -1059,41 +1707,17 @@ abstract class AppLocalizations {
   /// **'Failed to get fees.'**
   String get sendFailedToGetFeesError;
 
-  /// No description provided for @torInfoTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Tor Built-in'**
-  String get torInfoTitle;
-
-  /// No description provided for @torInfoDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Skylight Wallet automatically uses built-in Tor to protect your internet connections.'**
-  String get torInfoDescription;
-
-  /// No description provided for @torInfoContinueButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue'**
-  String get torInfoContinueButton;
-
-  /// No description provided for @torInfoConfigureButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Configure'**
-  String get torInfoConfigureButton;
-
   /// No description provided for @torSettingsTitle.
   ///
   /// In en, this message translates to:
   /// **'Tor Settings'**
   String get torSettingsTitle;
 
-  /// No description provided for @torSettingsModeLabel.
+  /// No description provided for @torSettingsSheetSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Tor Mode'**
-  String get torSettingsModeLabel;
+  /// **'Tor can hide your IP address from servers you connect to. This does not reduce the information that is stored on public blockchains. Changing this reconnects every chain.'**
+  String get torSettingsSheetSubtitle;
 
   /// No description provided for @torSettingsModeBuiltIn.
   ///
@@ -1119,59 +1743,53 @@ abstract class AppLocalizations {
   /// **'SOCKS Port'**
   String get torSettingsSocksPortLabel;
 
-  /// No description provided for @torSettingsSocksPortHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. 9050'**
-  String get torSettingsSocksPortHint;
-
-  /// No description provided for @torSettingsUseOrbotLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Use Orbot/InviZible'**
-  String get torSettingsUseOrbotLabel;
-
-  /// No description provided for @torSettingsUseOrbotLabelIos.
-  ///
-  /// In en, this message translates to:
-  /// **'Use Orbot'**
-  String get torSettingsUseOrbotLabelIos;
-
-  /// No description provided for @torSettingsSaveButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get torSettingsSaveButton;
-
   /// No description provided for @torSettingsTestConnectionButton.
   ///
   /// In en, this message translates to:
   /// **'Test Connection'**
   String get torSettingsTestConnectionButton;
 
-  /// No description provided for @settingsLwsSettingsLabel.
+  /// No description provided for @torDisabledWalletsWarningTitle.
   ///
   /// In en, this message translates to:
-  /// **'LWS Settings'**
-  String get settingsLwsSettingsLabel;
+  /// **'Disable Tor?'**
+  String get torDisabledWalletsWarningTitle;
+
+  /// No description provided for @torDisabledWalletsWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Some wallets are set to connect over Tor. Disabling Tor will disconnect them, and they will stay disconnected until you reconfigure their connection.'**
+  String get torDisabledWalletsWarningBody;
+
+  /// No description provided for @torDisabledWalletsWarningConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable Tor'**
+  String get torDisabledWalletsWarningConfirm;
+
+  /// No description provided for @connectionRemoteIpNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections to remote IP addresses aren\'t allowed. Use a domain name or a local IP address.'**
+  String get connectionRemoteIpNotAllowed;
+
+  /// No description provided for @connectionProtocolHttps.
+  ///
+  /// In en, this message translates to:
+  /// **'Removing protocol. Using HTTPS for domains.'**
+  String get connectionProtocolHttps;
+
+  /// No description provided for @connectionProtocolHttp.
+  ///
+  /// In en, this message translates to:
+  /// **'Removing protocol. Using HTTP for local addresses.'**
+  String get connectionProtocolHttp;
 
   /// No description provided for @settingsTorSettingsLabel.
   ///
   /// In en, this message translates to:
   /// **'Tor Settings'**
   String get settingsTorSettingsLabel;
-
-  /// No description provided for @lwsSetupUsingInternalTor.
-  ///
-  /// In en, this message translates to:
-  /// **'Using internal Tor'**
-  String get lwsSetupUsingInternalTor;
-
-  /// No description provided for @lwsSetupUsingExternalTor.
-  ///
-  /// In en, this message translates to:
-  /// **'Using external Tor proxy at {address}'**
-  String lwsSetupUsingExternalTor(String address);
 
   /// No description provided for @lwsSetupTorDisabledError.
   ///
@@ -1184,6 +1802,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invalid connection address.'**
   String get lwsSetupInvalidQrCode;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @explorerSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Block Explorer Setup'**
+  String get explorerSetupTitle;
+
+  /// No description provided for @explorerSetupDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Optionally set a Blockscout explorer instance to load full transaction history. Only select a server you trust. Even if you use Tor, this server can learn information about you.'**
+  String get explorerSetupDescription;
+
+  /// No description provided for @explorerAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Explorer Address'**
+  String get explorerAddressLabel;
+
+  /// No description provided for @explorerRemovedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Explorer removed.'**
+  String get explorerRemovedMessage;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

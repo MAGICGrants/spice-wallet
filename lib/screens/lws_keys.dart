@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import 'package:skylight_wallet/l10n/app_localizations.dart';
-import 'package:skylight_wallet/models/wallet_model.dart';
+import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/secure_clipboard.dart';
+import 'package:spice_wallet/util/secure_screen.dart';
+import 'package:spice_wallet/widgets/ui/ui.dart';
+import 'package:wallet_monero/wallet_monero.dart' show MoneroWallet;
+import 'package:wallet_domain/wallet_domain.dart';
 
+/// Shows the Monero wallet's LWS details (primary address, secret view key,
+/// restore height) so the user can whitelist the wallet on a light-wallet
+/// server. Read-only with copy buttons; the view key is hidden until tapped.
 class LwsKeysScreen extends StatefulWidget {
   const LwsKeysScreen({super.key});
 
@@ -12,132 +19,60 @@ class LwsKeysScreen extends StatefulWidget {
   State<LwsKeysScreen> createState() => _LwsKeysScreenState();
 }
 
-class _LwsKeysScreenState extends State<LwsKeysScreen> {
+class _LwsKeysScreenState extends State<LwsKeysScreen> with SecureScreenMixin {
   var _restoreHeight = 0;
+  var _secretViewKey = '';
 
   @override
   void initState() {
     super.initState();
-    _loadRestoreHeight();
+    _loadDetails();
   }
 
-  Future<void> _loadRestoreHeight() async {
-    final wallet = Provider.of<WalletModel>(context, listen: false);
+  Future<void> _loadDetails() async {
+    final wallet = Provider.of<WalletManager>(context, listen: false).getWallet('XMR');
+    if (wallet is! MoneroWallet) return;
     final restoreHeight = await wallet.getRestoreHeight();
-
+    final secretViewKey = await wallet.readSecretViewKey();
+    if (!mounted) return;
     setState(() {
       _restoreHeight = restoreHeight;
+      _secretViewKey = secretViewKey;
     });
+  }
+
+  void _copy(String value, {required bool sensitive}) {
+    if (value.isEmpty) return;
+    if (sensitive) {
+      SecureClipboard.copy(value);
+    } else {
+      Clipboard.setData(ClipboardData(text: value));
+    }
+    final i18n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(i18n.copiedToClipboard)));
   }
 
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final wallet = context.watch<WalletModel>();
-    final primaryAddress = wallet.getPrimaryAddress();
-    final secretViewKey = wallet.w2Wallet!.secretViewKey();
+    final wallet = context.watch<WalletManager>().getWallet('XMR') as MoneroWallet?;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(i18n.lwsKeysTitle)),
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            spacing: 20,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            labelText: i18n.lwsKeysPrimaryAddress,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            suffixIcon: IconButton(
-                              onPressed: () => Clipboard.setData(
-                                ClipboardData(text: primaryAddress),
-                              ),
-                              icon: Icon(Icons.copy),
-                            ),
-                          ),
-                          controller: TextEditingController(
-                            text: primaryAddress,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            labelText: i18n.lwsKeysSecretViewKey,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            suffixIcon: IconButton(
-                              onPressed: () => Clipboard.setData(
-                                ClipboardData(text: secretViewKey),
-                              ),
-                              icon: Icon(Icons.copy),
-                            ),
-                          ),
-                          controller: TextEditingController(
-                            text: secretViewKey,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            labelText: i18n.lwsKeysRestoreHeight,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            suffixIcon: IconButton(
-                              onPressed: () => Clipboard.setData(
-                                ClipboardData(text: _restoreHeight.toString()),
-                              ),
-                              icon: Icon(Icons.copy),
-                            ),
-                          ),
-                          controller: TextEditingController(
-                            text: _restoreHeight.toString(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+    return LwsKeysView(
+      labels: LwsKeysLabels(
+        title: i18n.lwsKeysTitle,
+        description: i18n.lwsDetailsDescription,
+        primaryAddressLabel: i18n.lwsKeysPrimaryAddress,
+        viewKeyLabel: i18n.lwsKeysSecretViewKey,
+        restoreHeightLabel: i18n.lwsKeysRestoreHeight,
+        reveal: i18n.generateSeedReveal,
+        warning: i18n.lwsKeysWarning,
       ),
+      headerIcon: CoinMark(coinSymbol: 'XMR', iconAsset: wallet?.iconAsset ?? '', size: 22),
+      primaryAddress: wallet?.getPrimaryAddress() ?? '',
+      secretViewKey: _secretViewKey,
+      restoreHeight: _restoreHeight.toString(),
+      onCopy: _copy,
+      onBack: () => Navigator.pop(context),
     );
   }
 }

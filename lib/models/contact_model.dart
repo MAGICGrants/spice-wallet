@@ -1,30 +1,53 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:skylight_wallet/services/shared_preferences_service.dart';
-import 'package:skylight_wallet/util/logging.dart';
+import 'package:spice_wallet/util/logging.dart';
+import 'package:spice_wallet/util/secure_storage.dart';
 
 class Contact {
   final String id;
   final String name;
-  final String address;
+  final Map<String, String> addresses;
 
-  Contact({required this.id, required this.name, required this.address});
+  Contact({required this.id, required this.name, required this.addresses});
 
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'address': address};
+  String? addressFor(String coinSymbol) => addresses[coinSymbol.toUpperCase()];
 
-  factory Contact.fromJson(Map<String, dynamic> json) => Contact(
-    id: json['id'] as String,
-    name: json['name'] as String,
-    address: json['address'] as String,
-  );
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'addresses': addresses};
 
-  Contact copyWith({String? id, String? name, String? address}) {
-    return Contact(id: id ?? this.id, name: name ?? this.name, address: address ?? this.address);
+  factory Contact.fromJson(Map<String, dynamic> json) {
+    if (json.containsKey('addresses')) {
+      final raw = json['addresses'] as Map<dynamic, dynamic>;
+      return Contact(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        addresses: raw.map((k, v) => MapEntry(k.toString().toUpperCase(), v.toString())),
+      );
+    }
+
+    // Legacy single-address contacts were Monero-only.
+    return Contact(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      addresses: {'XMR': json['address'] as String},
+    );
+  }
+
+  Contact copyWith({String? id, String? name, Map<String, String>? addresses}) {
+    return Contact(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      addresses: addresses ?? this.addresses,
+    );
+  }
+
+  String addressesForClipboard() {
+    return addresses.entries.map((e) => '${e.key}: ${e.value}').join('\n');
   }
 }
 
 class ContactModel with ChangeNotifier {
+  static const _storageKey = 'contacts';
+
   List<Contact> _contacts = [];
 
   List<Contact> get contacts => List.unmodifiable(_contacts);
@@ -33,16 +56,17 @@ class ContactModel with ChangeNotifier {
     _loadContacts();
   }
 
+  List<Contact> _decode(List<String> entries) => entries
+      .map((jsonString) => Contact.fromJson(json.decode(jsonString) as Map<String, dynamic>))
+      .toList();
+
   Future<void> _loadContacts() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final contactsJson = prefs.getStringList(SharedPreferencesKeys.contacts) ?? [];
-
-      _contacts = contactsJson
-          .map((jsonString) => Contact.fromJson(json.decode(jsonString) as Map<String, dynamic>))
-          .toList();
-
-      notifyListeners();
+      final stored = await secureStorage.read(key: _storageKey);
+      if (stored != null) {
+        _contacts = _decode((json.decode(stored) as List<dynamic>).cast<String>());
+        notifyListeners();
+      }
     } catch (e) {
       log(LogLevel.error, 'Error loading contacts: $e');
     }
@@ -50,28 +74,30 @@ class ContactModel with ChangeNotifier {
 
   Future<void> _saveContacts() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final contactsJson = _contacts.map((contact) => json.encode(contact.toJson())).toList();
-
-      await prefs.setStringList(SharedPreferencesKeys.contacts, contactsJson);
+      await secureStorage.write(key: _storageKey, value: json.encode(contactsJson));
     } catch (e) {
       log(LogLevel.error, 'Error saving contacts: $e');
     }
   }
 
-  Future<void> addContact(String name, String address) async {
+  Future<void> addContact(String name, Map<String, String> addresses) async {
     final id = DateTime.now().millisecondsSinceEpoch.toString();
-    final contact = Contact(id: id, name: name.trim(), address: address.trim());
+    final normalized = _normalizeAddresses(addresses);
+    final contact = Contact(id: id, name: name.trim(), addresses: normalized);
 
     _contacts.add(contact);
     await _saveContacts();
     notifyListeners();
   }
 
-  Future<void> updateContact(String id, String name, String address) async {
+  Future<void> updateContact(String id, String name, Map<String, String> addresses) async {
     final index = _contacts.indexWhere((contact) => contact.id == id);
     if (index != -1) {
-      _contacts[index] = _contacts[index].copyWith(name: name.trim(), address: address.trim());
+      _contacts[index] = _contacts[index].copyWith(
+        name: name.trim(),
+        addresses: _normalizeAddresses(addresses),
+      );
       await _saveContacts();
       notifyListeners();
     }
@@ -91,13 +117,30 @@ class ContactModel with ChangeNotifier {
     }
   }
 
-  List<Contact> searchContacts(String query) {
-    if (query.isEmpty) return _contacts;
+  List<Contact> searchContacts(String query, {String? coinSymbol}) {
+    var results = _contacts.toList();
 
-    final lowercaseQuery = query.toLowerCase();
-    return _contacts.where((contact) {
-      return contact.name.toLowerCase().contains(lowercaseQuery) ||
-          contact.address.toLowerCase().contains(lowercaseQuery);
-    }).toList();
+    if (coinSymbol != null) {
+      final symbol = coinSymbol.toUpperCase();
+      results = results.where((c) => c.addressFor(symbol) != null).toList();
+    }
+
+    if (query.isNotEmpty) {
+      final lowercaseQuery = query.toLowerCase();
+      results = results.where((contact) {
+        if (contact.name.toLowerCase().contains(lowercaseQuery)) return true;
+        return contact.addresses.values.any((a) => a.toLowerCase().contains(lowercaseQuery));
+      }).toList();
+    }
+
+    results.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return results;
+  }
+
+  Map<String, String> _normalizeAddresses(Map<String, String> addresses) {
+    return {
+      for (final entry in addresses.entries)
+        if (entry.value.trim().isNotEmpty) entry.key.toUpperCase(): entry.value.trim(),
+    };
   }
 }

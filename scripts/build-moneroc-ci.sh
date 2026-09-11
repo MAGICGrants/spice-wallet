@@ -11,7 +11,7 @@ apt install -y libtinfo5 2>/dev/null || echo "libtinfo5 unavailable (trixie) —
 update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
 update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
 
-export GIT_CONFIG_GLOBAL=/tmp/skylight-gitconfig # never create $HOME/.gitconfig (fdroiddata CI symlinks it per build)
+export GIT_CONFIG_GLOBAL=/tmp/spice-gitconfig # never create $HOME/.gitconfig (fdroiddata CI symlinks it per build)
 git config --global --add safe.directory '*'
 git config --global user.email "info@magicgrants.org"
 git config --global user.name "MAGIC Grants"
@@ -21,5 +21,5 @@ REPO="$PWD"
 # committed .so matches F-Droid's rebuild. Clones from the remote (this CI checkout has no
 # populated submodule); then symlink output where build-monero-c.yml's cp step expects it.
 rm -rf "$REPO/monero_c"
-bash scripts/build-moneroc.sh "$TARGET_ARCH" https://github.com/vtnerd/monero_c.git
+bash scripts/build-moneroc.sh "$TARGET_ARCH" https://github.com/magicgrants/monero_c
 ln -s /tmp/monero_c "$REPO/monero_c"
