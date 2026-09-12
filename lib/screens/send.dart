@@ -505,9 +505,7 @@ class _SendScreenState extends State<SendScreen> {
         });
         _feeRevision.value++;
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(i18n.sendFailedToGetFeesError)));
+        showBrandToast(context, i18n.sendFailedToGetFeesError);
       }
     }
   }
@@ -604,7 +602,7 @@ class _SendScreenState extends State<SendScreen> {
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(i18n.unknownError)));
+          showBrandToast(context, i18n.unknownError);
         }
       }
     }
