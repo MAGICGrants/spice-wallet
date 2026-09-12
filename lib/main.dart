@@ -215,13 +215,11 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
   }
 
   /// On background: if app lock is on and a wallet exists, clear the in-memory
-  /// password and arm a re-lock so resume returns to the unlock screen.
+  /// password and arm a re-lock so resume returns to the unlock screen. The
+  /// decision itself lives in [WalletManager.armAppLockRelock], shared with
+  /// Skylight so the two cannot drift.
   Future<void> _maybeArmRelock() async {
-    if (!_walletExists) return;
-    final prefs = await SharedPreferences.getInstance();
-    if (!(prefs.getBool(SharedPreferencesKeys.appLockEnabled) ?? false)) return;
-    _relockPending = true;
-    if (mounted) context.read<WalletManager>().clearPassword();
+    _relockPending = await context.read<WalletManager>().armAppLockRelock();
   }
 
   Future<void> _bootstrap() async {
