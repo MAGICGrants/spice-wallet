@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bip39/bip39.dart' as bip39;
 // ignore: implementation_imports — the BIP39 English wordlist for per-word checks.
 import 'package:bip39/src/wordlists/english.dart' show WORDLIST;
@@ -22,11 +24,29 @@ class RestoreWalletScreen extends StatefulWidget {
 class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureScreenMixin {
   static final Set<String> _wordSet = WORDLIST.toSet();
 
+  final _restoreWalletController = RestoreWalletController();
+
   DateTime? _restoreDate; // null once chosen = "I'm not sure" (scan from genesis)
   bool _scanChosen = false;
   bool _isLoading = false;
 
   bool _valid(String w) => _wordSet.contains(w);
+
+  /// Fills the seed fields from a scanned QR.
+  ///
+  /// Any `height` in the payload is ignored on purpose: Spice restores from a
+  /// month, not a block, and there is no height-to-date inverse here. The user
+  /// still picks the scan-from, which this screen already requires before the
+  /// restore button enables.
+  Future<void> _scanQrCode() async {
+    final result = await Navigator.pushNamed(context, '/scan_qr');
+    if (result is! String) return;
+
+    final parsed = parseRestoreQr(result);
+    if (parsed == null) return;
+
+    _restoreWalletController.setWords(parsed.seed.trim().split(RegExp(r'\s+')));
+  }
 
   Future<void> _openScanFrom() async {
     final i18n = AppLocalizations.of(context)!;
@@ -99,6 +119,7 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
     }
 
     return RestoreWalletView(
+      controller: _restoreWalletController,
       labels: RestoreWalletLabels(
         title: i18n.restoreWalletTitle,
         subtitle: i18n.restoreWalletSubtitle,
@@ -122,6 +143,7 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
         ),
       ],
       restoring: _isLoading,
+      onScan: (Platform.isAndroid || Platform.isIOS) ? _scanQrCode : null,
       canRestore: () => _scanChosen,
       onRestore: _restore,
       restorePointFields: ScanFromCard(
