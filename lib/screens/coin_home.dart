@@ -61,9 +61,7 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
 
   void _showTxSuccessToast() {
     final i18n = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(i18n.sendTransactionSuccessfullySent)));
+    showBrandToast(context, i18n.sendTransactionSuccessfullySent);
   }
 
   void _openReceive(String coinSymbol) => Navigator.pushNamed(
@@ -143,9 +141,7 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
                                 enabled: wallet.connectionAddress.isNotEmpty,
                                 onReceive: () => _openReceive(chainSymbol),
                                 onSend: () => _openSend(chainSymbol),
-                                onSwap: () => ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(i18n.coinHomeSwapComingSoon)),
-                                ),
+                                onSwap: () => showBrandToast(context, i18n.coinHomeSwapComingSoon),
                               ),
                             ),
                             if (hasTokens)

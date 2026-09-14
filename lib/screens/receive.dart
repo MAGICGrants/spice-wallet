@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/secure_clipboard.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 import 'package:wallet_monero/wallet_monero.dart' show MoneroWallet;
@@ -53,8 +53,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
 
   void _copyAddress(String address) {
     final i18n = AppLocalizations.of(context)!;
-    Clipboard.setData(ClipboardData(text: address));
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(i18n.addressCopied)));
+    SecureClipboard.copy(address);
+    showCopyToast(context, i18n.addressCopied);
   }
 
   @override

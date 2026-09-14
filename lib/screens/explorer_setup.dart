@@ -39,9 +39,10 @@ class ExplorerSetupScreen extends StatelessWidget {
       wallet?.setExplorerConnection(address: '', proxyPort: '', useTor: false);
       unawaited(wallet?.persistExplorerConnection());
       unawaited(wallet?.loadTxHistory());
-      final messenger = ScaffoldMessenger.of(context);
+      // Captured before the pop: this context is defunct afterward.
+      final toast = BrandToast.of(context);
       Navigator.pop(context);
-      messenger.showSnackBar(SnackBar(content: Text(i18n.explorerRemovedMessage)));
+      toast.show(i18n.explorerRemovedMessage);
     }
 
     return Scaffold(

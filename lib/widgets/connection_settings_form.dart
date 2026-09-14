@@ -212,9 +212,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
               _errorMessage = i18n.lwsSetupInvalidQrCode;
             });
           } else {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(i18n.lwsSetupInvalidQrCode)));
+            showBrandToast(context, i18n.lwsSetupInvalidQrCode);
           }
         }
       }
@@ -245,15 +243,10 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     });
 
     if (hadProtocol) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              addressUsesSsl(value) ? i18n.connectionProtocolHttps : i18n.connectionProtocolHttp,
-            ),
-          ),
-        );
+      showBrandToast(
+        context,
+        addressUsesSsl(value) ? i18n.connectionProtocolHttps : i18n.connectionProtocolHttp,
+      );
     }
   }
 
@@ -360,9 +353,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     }
 
     if (_useTor && TorSettingsService.sharedInstance.torMode == TorMode.disabled) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(i18n.lwsSetupTorDisabledError)));
+      showBrandToast(context, i18n.lwsSetupTorDisabledError);
       return;
     }
 

@@ -119,7 +119,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
 
   void _showError(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      showBrandToast(context, message);
     }
   }
 
