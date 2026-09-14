@@ -628,6 +628,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsExportLogsError => 'Nenhum log encontrado para exportar.';
 
   @override
+  String get settingsExportLogsFailed => 'Não foi possível exportar o arquivo de log';
+
+  @override
   String get settingsThemeLabel => 'Tema';
 
   @override
