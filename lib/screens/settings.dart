@@ -241,12 +241,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  /// Bottom-sheet single-choice picker (theme / language).
+  /// Opens the seed screen, behind a device auth on mobile.
+  ///
+  /// Only when app lock is on: the prompt re-checks who is holding an already
+  /// unlocked phone, and with app lock off the user has said this app does not
+  /// do that.
   void _revealSeed() async {
     final i18n = AppLocalizations.of(context)!;
-    // Gate the seed behind a device auth even though the app is already unlocked.
     if (Platform.isAndroid || Platform.isIOS) {
-      final result = await BiometricAuth.authenticate(reason: i18n.revealSeedAuthReason);
+      final result = await BiometricAuth.authenticateIfAppLockEnabled(
+        reason: i18n.revealSeedAuthReason,
+      );
       if (result != BiometricAuthResult.authenticated) {
         if (mounted) {
           showBrandToast(context, i18n.settingsAppLockUnableToAuthError);
