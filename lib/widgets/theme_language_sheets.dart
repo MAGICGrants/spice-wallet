@@ -64,15 +64,21 @@ Future<void> showThemeSheet(BuildContext context) {
 
 /// Language picker — the app's supported locales, native + English name.
 Future<void> showLanguageSheet(BuildContext context) {
-  final i18n = AppLocalizations.of(context)!;
   final language = context.read<LanguageModel>();
   return showLanguagePickerSheet(
     context,
-    labels: SettingsPickerLabels(
-      title: i18n.settingsLanguageLabel,
-      subtitle: i18n.settingsLanguageSheetSubtitle,
-      done: i18n.done,
-    ),
+    // Resolved per build from the sheet's own context rather than captured
+    // here: picking a language re-localizes the app while this sheet is still
+    // the thing on screen, and a snapshot would leave it in the old language --
+    // looking for all the world like the setting did not take.
+    labels: (context) {
+      final i18n = AppLocalizations.of(context)!;
+      return SettingsPickerLabels(
+        title: i18n.settingsLanguageLabel,
+        subtitle: i18n.settingsLanguageSheetSubtitle,
+        done: i18n.done,
+      );
+    },
     options: [
       for (final locale in AppLocalizations.supportedLocales)
         LanguagePickerOption(
