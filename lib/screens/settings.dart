@@ -196,16 +196,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _deleteWallet() async {
     final manager = Provider.of<WalletManager>(context, listen: false);
-    // Tear down background sync first so its isolate can't re-create wallet
-    // files right after we delete them, and clear the settings so it doesn't
-    // re-register on next launch.
-    await stopForegroundSync();
-    await SharedPreferencesService.set<bool>(SharedPreferencesKeys.backgroundSyncEnabled, false);
-    await SharedPreferencesService.set<bool>(SharedPreferencesKeys.foregroundSyncEnabled, false);
-    await SharedPreferencesService.set<bool>(SharedPreferencesKeys.notificationsEnabled, false);
-    await applyBackgroundTaskRegistration();
-
-    await manager.deleteAll();
+    // Tears down background sync *before* the files go, so the foreground
+    // service's isolate can't keep syncing (and rewriting) a deleted wallet.
+    // The order lives in wallet-core so both apps cannot drift on it.
+    await stopSyncAndDeleteWallets(manager);
     if (mounted) {
       Navigator.pushNamedAndRemoveUntil(context, '/welcome', (Route<dynamic> route) => false);
     }
