@@ -59,6 +59,42 @@ void main() {
     expect(txPaysRecipient(_tx(recipients: const []), alice), isFalse);
   });
 
+  group('EVM addresses match across their three spellings', () {
+    // `isAddressValid` accepts all-lower, all-upper and EIP-55 mixed case, and
+    // all three name the same account. Comparing with `==` reported "no
+    // transactions" for an address that had been paid.
+    const lower = '0xab5801a7d398351b8be11c439e05c5b3259aec9b';
+    const upper = '0xAB5801A7D398351B8BE11C439E05C5B3259AEC9B';
+    const mixed = '0xAb5801a7D398351b8bE11C439e05C5B3259aec9B';
+
+    for (final paid in [lower, upper, mixed]) {
+      for (final searched in [lower, upper, mixed]) {
+        test('paid ${paid.substring(0, 6)}…, searched ${searched.substring(0, 6)}…', () {
+          final tx = _tx(recipients: [TxRecipient(paid, BigInt.one)]);
+          expect(txPaysRecipient(tx, searched), isTrue);
+        });
+      }
+    }
+
+    test('a different EVM address still does not match', () {
+      final tx = _tx(recipients: [TxRecipient(lower, BigInt.one)]);
+      expect(txPaysRecipient(tx, '0x0000000000000000000000000000000000000001'), isFalse);
+    });
+
+    test('base58 stays case-significant, so two Monero addresses cannot collide', () {
+      // Lowering base58 would fold distinct characters together. `4Ab…` and
+      // `4aB…` are different addresses, and must stay different.
+      final tx = _tx(recipients: [TxRecipient('4AbCdEfGh', BigInt.one)]);
+      expect(txPaysRecipient(tx, '4abcdefgh'), isFalse);
+      expect(canonicalAddress('4AbCdEfGh'), '4AbCdEfGh');
+    });
+
+    test('a 0x string that is not 20 bytes of hex is left alone', () {
+      expect(canonicalAddress('0xNOTHEX'), '0xNOTHEX');
+      expect(canonicalAddress('0xAB'), '0xAB');
+    });
+  });
+
   test('matching is exact, not a prefix or a substring', () {
     final tx = _tx(recipients: [TxRecipient('${alice}Extra', BigInt.one)]);
     expect(txPaysRecipient(tx, alice), isFalse);

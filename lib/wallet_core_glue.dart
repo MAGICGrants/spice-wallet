@@ -83,7 +83,7 @@ void installWalletCore() {
 
   FiatRates.install(getTorProxy: TorSettingsService.sharedInstance.getProxy);
 
-  // The whole logger lives in wallet-core now (D25): console + file sinks fan out
+  // The whole logger lives in wallet-core now: console + file sinks fan out
   // from one installed sink; the file sink is verbose-gated internally.
   wcore.WalletLog.sink = wcore.CompositeLogSink([
     const wcore.DebugPrintLogSink(),
@@ -117,6 +117,12 @@ void installWalletCore() {
 /// `wallet_background` uses so a background isolate starts the *same* Tor the
 /// wallet connects through.
 Future<bool> _ensureTorConnected() async {
+  final settings = TorSettingsService.sharedInstance;
+  await settings.ensureLoaded();
+  if (settings.torMode != TorMode.builtIn) {
+    return settings.torMode == TorMode.external;
+  }
+
   await TorService.sharedInstance.start();
   // The wait is bounded by the service itself and reports whether Tor came up,
   // so there is no outer `.timeout()` and no status read afterwards.

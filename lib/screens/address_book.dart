@@ -436,7 +436,7 @@ class _AddressRow extends StatelessWidget {
 
   void _copy(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    // Treat as sensitive (auto-cleared) like other address/key copies (D10).
+    // Treat as sensitive (auto-cleared) like other address/key copies.
     SecureClipboard.copy(address);
     showCopyToast(context, i18n.addressCopied);
   }

@@ -31,7 +31,7 @@ dependencies:
       url: https://github.com/cypherstack/tor
       ref: c2706eeb66174273a4a98113d7a8cd910ba124e6
   # magicgrants/monero_c (not vtnerd/lwsf) to match wallet_monero — its pin
-  # carries Wallet_estimateTransactionFee and lwsf armv7/mingw fixes (D1).
+  # carries Wallet_estimateTransactionFee and lwsf armv7/mingw fixes.
   monero:
     git:
       url: https://github.com/magicgrants/monero_c

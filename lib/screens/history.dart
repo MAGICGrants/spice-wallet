@@ -26,10 +26,27 @@ class HistoryScreen extends StatefulWidget {
 
 enum _Filter { blockchain, asset, type, recipient }
 
-/// Whether [tx] paid [address].
+/// An address reduced to the form two spellings of it can be compared in.
 @visibleForTesting
-bool txPaysRecipient(TxDetails tx, String address) =>
-    tx.recipients.any((r) => r.address == address);
+String canonicalAddress(String address) {
+  final a = address.trim();
+  final isEvmHex =
+      a.length == 42 && a.startsWith('0x') && !a.substring(2).contains(RegExp(r'[^0-9a-fA-F]'));
+  return isEvmHex ? a.toLowerCase() : a;
+}
+
+/// Whether [tx] paid [address].
+///
+/// One list serves both directions: on an incoming transaction `recipients`
+/// holds the wallet's own addresses (the details sheet labels them "received
+/// at"), and on an outgoing one it holds who was paid. Change is included
+/// deliberately — a spend that returned change to the searched address did
+/// involve it.
+@visibleForTesting
+bool txPaysRecipient(TxDetails tx, String address) {
+  final wanted = canonicalAddress(address);
+  return tx.recipients.any((r) => canonicalAddress(r.address) == wanted);
+}
 
 class _HistoryScreenState extends State<HistoryScreen> {
   // Unchecked (hidden) values per filter; empty = everything checked (default).
