@@ -138,6 +138,9 @@
   "historyFilterBlockchain": "Blockchain",
   "historyFilterAsset": "Asset",
   "historyFilterType": "Type",
+  "historyFilterRecipient": "Recipient",
+  "historyFilterRecipientAny": "Any blockchain",
+  "historyFilterRecipientInvalid": "Invalid address for supported blockchains",
   "historyTypeBridge": "Bridge",
   "historyTypeSwap": "Swap",
   "historyTypeAdd": "Add",
@@ -193,6 +196,7 @@
   "receiveSubaddressTab": "Subaddress",
   "receivePrimaryTab": "Primary address",
   "receiveCopyAddress": "Copy address",
+  "receiveShareError": "Could not open the share sheet",
   "receiveAddressHeading": "Your {coin} address",
   "@receiveAddressHeading": {
     "placeholders": {
@@ -245,6 +249,7 @@
   "settingsExportLogsLabel": "Export Logs",
   "settingsExportLogsButton": "Export",
   "settingsExportLogsError": "No logs found to export.",
+  "settingsExportLogsFailed": "Could not export the log file",
   "settingsThemeLabel": "Theme",
   "settingsThemeSystem": "System",
   "settingsThemeLight": "Light",

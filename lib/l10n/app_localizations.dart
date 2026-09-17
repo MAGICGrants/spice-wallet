@@ -753,6 +753,24 @@ abstract class AppLocalizations {
   /// **'Type'**
   String get historyFilterType;
 
+  /// No description provided for @historyFilterRecipient.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipient'**
+  String get historyFilterRecipient;
+
+  /// No description provided for @historyFilterRecipientAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any blockchain'**
+  String get historyFilterRecipientAny;
+
+  /// No description provided for @historyFilterRecipientInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid address for supported blockchains'**
+  String get historyFilterRecipientInvalid;
+
   /// No description provided for @historyTypeBridge.
   ///
   /// In en, this message translates to:
@@ -999,6 +1017,12 @@ abstract class AppLocalizations {
   /// **'Copy address'**
   String get receiveCopyAddress;
 
+  /// No description provided for @receiveShareError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the share sheet'**
+  String get receiveShareError;
+
   /// No description provided for @receiveAddressHeading.
   ///
   /// In en, this message translates to:
@@ -1226,6 +1250,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No logs found to export.'**
   String get settingsExportLogsError;
+
+  /// No description provided for @settingsExportLogsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export the log file'**
+  String get settingsExportLogsFailed;
 
   /// No description provided for @settingsThemeLabel.
   ///

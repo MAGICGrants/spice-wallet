@@ -362,6 +362,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get historyFilterType => 'Tipo';
 
   @override
+  String get historyFilterRecipient => 'Destinatário';
+
+  @override
+  String get historyFilterRecipientAny => 'Qualquer blockchain';
+
+  @override
+  String get historyFilterRecipientInvalid => 'Endereço inválido para as blockchains suportadas';
+
+  @override
   String get historyTypeBridge => 'Ponte';
 
   @override
@@ -498,6 +507,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get receiveCopyAddress => 'Copiar endereço';
 
   @override
+  String get receiveShareError => 'Não foi possível abrir a janela de compartilhamento';
+
+  @override
   String receiveAddressHeading(String coin) {
     return 'Seu endereço $coin';
   }
@@ -623,6 +635,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settingsExportLogsError => 'Nenhum log encontrado para exportar.';
+
+  @override
+  String get settingsExportLogsFailed => 'Não foi possível exportar o arquivo de log';
 
   @override
   String get settingsThemeLabel => 'Tema';

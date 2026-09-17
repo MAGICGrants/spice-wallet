@@ -166,13 +166,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ExportLogsLabels(
             title: i18n.settingsExportLogsLabel,
             cancel: i18n.cancel,
-            exportError: i18n.settingsExportLogsError,
+            exportError: i18n.settingsExportLogsFailed,
           ),
         );
       }
     } catch (e) {
+      // Not "no logs found": the listing itself failed, which is a different
+      // thing to tell the user than an empty list.
       if (mounted) {
-        showBrandToast(context, i18n.settingsExportLogsError);
+        showBrandToast(context, i18n.settingsExportLogsFailed);
       }
     }
   }
@@ -194,16 +196,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _deleteWallet() async {
     final manager = Provider.of<WalletManager>(context, listen: false);
-    // Tear down background sync first so its isolate can't re-create wallet
-    // files right after we delete them, and clear the settings so it doesn't
-    // re-register on next launch.
-    await stopForegroundSync();
-    await SharedPreferencesService.set<bool>(SharedPreferencesKeys.backgroundSyncEnabled, false);
-    await SharedPreferencesService.set<bool>(SharedPreferencesKeys.foregroundSyncEnabled, false);
-    await SharedPreferencesService.set<bool>(SharedPreferencesKeys.notificationsEnabled, false);
-    await applyBackgroundTaskRegistration();
-
-    await manager.deleteAll();
+    // Tears down background sync *before* the files go, so the foreground
+    // service's isolate can't keep syncing (and rewriting) a deleted wallet.
+    // The order lives in wallet-core so both apps cannot drift on it.
+    await stopSyncAndDeleteWallets(manager);
     if (mounted) {
       Navigator.pushNamedAndRemoveUntil(context, '/welcome', (Route<dynamic> route) => false);
     }
@@ -239,12 +235,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  /// Bottom-sheet single-choice picker (theme / language).
+  /// Opens the seed screen, behind a device auth on mobile.
+  ///
+  /// Only when app lock is on: the prompt re-checks who is holding an already
+  /// unlocked phone, and with app lock off the user has said this app does not
+  /// do that.
   void _revealSeed() async {
     final i18n = AppLocalizations.of(context)!;
-    // Gate the seed behind a device auth even though the app is already unlocked.
     if (Platform.isAndroid || Platform.isIOS) {
-      final result = await BiometricAuth.authenticate(reason: i18n.revealSeedAuthReason);
+      final result = await BiometricAuth.authenticateIfAppLockEnabled(
+        reason: i18n.revealSeedAuthReason,
+      );
       if (result != BiometricAuthResult.authenticated) {
         if (mounted) {
           showBrandToast(context, i18n.settingsAppLockUnableToAuthError);

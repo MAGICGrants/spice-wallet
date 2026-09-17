@@ -5,7 +5,7 @@ import 'package:spice_wallet/wallet_core_glue.dart';
 
 /// Guards spice's wallet-core wiring: the full coin registry and the on-disk
 /// naming that must never migrate (`xmr_`-prefixed prefs, `mywallet_<coin>`
-/// files). See wallet-core docs/decisions.md D6.
+/// files).
 void main() {
   setUp(() => WalletAppConfig.install(WalletAppConfig.spice));
   tearDown(WalletAppConfig.resetForTesting);

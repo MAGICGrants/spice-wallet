@@ -10,7 +10,6 @@ import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/util/logging.dart';
-import 'package:spice_wallet/models/contact_model.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/confirm_send.dart';
@@ -22,7 +21,9 @@ import 'package:wallet_domain/wallet_domain.dart';
 class SendScreenArgs {
   final String coinSymbol;
   final String destinationAddress;
-  final double? amount;
+
+  /// Exact decimal text, never a double: this is a spend amount.
+  final String? amount;
 
   /// Set when the address came from a contact (e.g. Send in the address book),
   /// so Send opens showing the contact card rather than a bare address.
@@ -204,7 +205,7 @@ class _SendScreenState extends State<SendScreen> {
     if (args != null) {
       _coinSymbol = args.coinSymbol;
       _destinationAddressController.text = args.destinationAddress;
-      _amountController.text = args.amount != null ? args.amount.toString() : '';
+      _amountController.text = args.amount ?? '';
       // Same pair the in-send picker sets, so the contact card renders here too.
       _selectedContact = args.contact;
     }
@@ -246,7 +247,7 @@ class _SendScreenState extends State<SendScreen> {
     if (result == null || result is! String) return;
 
     String address = '';
-    double? amount;
+    String? amount;
     final uri = Uri.tryParse(result);
 
     if (uri != null && uri.scheme.toLowerCase() == wallet.coinSymbol.toLowerCase()) {
@@ -260,9 +261,7 @@ class _SendScreenState extends State<SendScreen> {
 
       address = uri.path;
 
-      if (uri.queryParameters.containsKey('tx_amount')) {
-        amount = double.tryParse(uri.queryParameters['tx_amount']!);
-      }
+      amount = uri.queryParameters['tx_amount'];
     } else if (wallet.isAddressValid(result)) {
       address = result;
     } else {
@@ -275,7 +274,25 @@ class _SendScreenState extends State<SendScreen> {
 
     _destinationAddressController.text = address;
     if (amount != null) {
-      _amountController.text = amount.toString();
+      _amountController.text = _asExactAmount(amount, wallet);
+    }
+  }
+
+  /// A scanned amount as this asset can actually express it.
+  ///
+  /// Text the whole way. Parsing to a double and back is what used to change
+  /// the value; base units are exact, so the round trip here can only drop
+  /// digits finer than one base unit — and it shows the user the amount that
+  /// will really be spent instead of one that gets truncated later.
+  ///
+  /// Unparseable input is put in the field verbatim so the form's own
+  /// validation rejects it and the user can see what was scanned.
+  String _asExactAmount(String raw, CryptoWallet wallet) {
+    try {
+      final units = decimalToBaseUnits(raw, wallet.baseUnitDecimals);
+      return baseUnitsToDecimalString(units, wallet.baseUnitDecimals);
+    } on FormatException {
+      return raw;
     }
   }
 

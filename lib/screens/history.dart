@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -6,6 +9,7 @@ import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
+import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
@@ -20,16 +24,100 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-enum _Filter { blockchain, asset, type }
+enum _Filter { blockchain, asset, type, recipient }
+
+/// An address reduced to the form two spellings of it can be compared in.
+@visibleForTesting
+String canonicalAddress(String address) {
+  final a = address.trim();
+  final isEvmHex =
+      a.length == 42 && a.startsWith('0x') && !a.substring(2).contains(RegExp(r'[^0-9a-fA-F]'));
+  return isEvmHex ? a.toLowerCase() : a;
+}
+
+/// Whether [tx] paid [address].
+///
+/// One list serves both directions: on an incoming transaction `recipients`
+/// holds the wallet's own addresses (the details sheet labels them "received
+/// at"), and on an outgoing one it holds who was paid. Change is included
+/// deliberately — a spend that returned change to the searched address did
+/// involve it.
+@visibleForTesting
+bool txPaysRecipient(TxDetails tx, String address) {
+  final wanted = canonicalAddress(address);
+  return tx.recipients.any((r) => canonicalAddress(r.address) == wanted);
+}
 
 class _HistoryScreenState extends State<HistoryScreen> {
   // Unchecked (hidden) values per filter; empty = everything checked (default).
   final Set<String> _chainsHidden = {}; // chain symbols
   final Set<String> _assetsHidden = {}; // asset coin symbols
   final Set<int> _typesHidden = {}; // consts.txDirection*
+
+  /// The one address the recipient filter matches on, or null for no filter.
+  String? _recipient;
+
+  /// Coin the current [_recipient] belongs to, for the row's coin mark.
+  String? _recipientCoin;
+
+  /// Last paste or scan was not an address any wallet accepts. Cleared by the
+  /// next attempt or a reset.
+  bool _recipientInvalid = false;
+
   _Filter? _open;
 
   void _toggleOpen(_Filter f) => setState(() => _open = _open == f ? null : f);
+
+  /// The address in [raw], and the coin that accepts it, or null.
+  ({String address, String coinSymbol})? _extractRecipient(
+    String raw,
+    Iterable<CryptoWallet> wallets,
+  ) {
+    final value = raw.trim();
+    if (value.isEmpty) return null;
+    final uri = Uri.tryParse(value);
+
+    for (final wallet in wallets) {
+      if (uri != null &&
+          uri.scheme.toLowerCase() == wallet.coinSymbol.toLowerCase() &&
+          wallet.isAddressValid(uri.path)) {
+        return (address: uri.path, coinSymbol: wallet.coinSymbol);
+      }
+      if (wallet.isAddressValid(value)) {
+        return (address: value, coinSymbol: wallet.coinSymbol);
+      }
+    }
+    return null;
+  }
+
+  void _setRecipient(String? raw, Iterable<CryptoWallet> wallets) {
+    final found = raw == null ? null : _extractRecipient(raw, wallets);
+    setState(() {
+      if (found == null) {
+        _recipientInvalid = true;
+        return;
+      }
+      _recipient = found.address;
+      _recipientCoin = found.coinSymbol;
+      _recipientInvalid = false;
+    });
+  }
+
+  Future<void> _pasteRecipient(Iterable<CryptoWallet> wallets) async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (mounted) _setRecipient(data?.text, wallets);
+  }
+
+  Future<void> _scanRecipient(Iterable<CryptoWallet> wallets) async {
+    final result = await Navigator.pushNamed(context, '/scan_qr');
+    if (mounted && result is String) _setRecipient(result, wallets);
+  }
+
+  void _clearRecipient() => setState(() {
+    _recipient = null;
+    _recipientCoin = null;
+    _recipientInvalid = false;
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +136,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
       if (_chainsHidden.contains(chainSymbolOf(e.asset))) return false;
       if (_assetsHidden.contains(e.asset.coinSymbol)) return false;
       if (_typesHidden.contains(e.tx.direction)) return false;
+      final recipient = _recipient;
+      if (recipient != null && !txPaysRecipient(e.tx, recipient)) return false;
       return true;
     }).toList();
 
@@ -176,7 +266,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Padding(
+                // Scrolls to allow extending off the screen
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                   child: Row(
                     children: [
@@ -202,6 +294,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
                         open: _open == _Filter.type,
                         onTap: () => _toggleOpen(_Filter.type),
+                      ),
+                      const SizedBox(width: 7),
+                      _FilterPill(
+                        label: i18n.historyFilterRecipient,
+                        count: _recipient == null ? null : 1,
+                        open: _open == _Filter.recipient,
+                        onTap: () => _toggleOpen(_Filter.recipient),
                       ),
                     ],
                   ),
@@ -236,6 +335,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     isSelected: (v) => !_typesHidden.contains(int.parse(v)),
                     onToggle: (v) => setState(() => _typesHidden.toggle(int.parse(v))),
                     onReset: () => setState(_typesHidden.clear),
+                    onDone: () => setState(() => _open = null),
+                  ),
+                if (_open == _Filter.recipient)
+                  _RecipientPanel(
+                    address: _recipient,
+                    coinSymbol: _recipientCoin,
+                    iconAsset: _recipientCoin == null
+                        ? ''
+                        : manager.getWallet(_recipientCoin!)?.iconAsset ?? '',
+                    blockchainName: _recipientCoin == null ? null : blockchainName(_recipientCoin!),
+                    invalid: _recipientInvalid,
+                    onPaste: () => _pasteRecipient(manager.allWallets),
+                    onScan: () => _scanRecipient(manager.allWallets),
+                    onClear: _clearRecipient,
                     onDone: () => setState(() => _open = null),
                   ),
                 Expanded(
@@ -339,6 +452,205 @@ class _Timeline extends StatelessWidget {
 
 /// A rounded filter chip: category name + a count badge + up/down chevron.
 /// Goes dark (like the design's ink pill) once it's open or has a selection.
+/// The recipient filter's panel: one address, set by paste or scan.
+///
+/// Same chrome as [_FilterPanel] — card, shadow, sunken footer — over the
+/// address book's entry row, so setting an address here looks like setting one
+/// on a contact.
+class _RecipientPanel extends StatelessWidget {
+  final String? address;
+  final String? coinSymbol;
+  final String iconAsset;
+  final String? blockchainName;
+  final bool invalid;
+  final VoidCallback onPaste;
+  final VoidCallback onScan;
+  final VoidCallback onClear;
+  final VoidCallback onDone;
+
+  const _RecipientPanel({
+    required this.address,
+    required this.coinSymbol,
+    required this.iconAsset,
+    required this.blockchainName,
+    required this.invalid,
+    required this.onPaste,
+    required this.onScan,
+    required this.onClear,
+    required this.onDone,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final i18n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: BrandColors.card,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(color: Color(0x242C170C), blurRadius: 28, offset: Offset(0, 8)),
+            BoxShadow(color: Color(0x0F2C170C), blurRadius: 2, offset: Offset(0, 1)),
+          ],
+        ),
+        foregroundDecoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: BrandColors.borderStrong),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+              child: SectionHeader(label: i18n.historyFilterRecipient, padding: EdgeInsets.zero),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
+              child: address == null ? _empty(i18n) : _filled(i18n),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: BrandColors.surfaceSunken,
+                border: Border(top: BorderSide(color: BrandColors.surfaceTinted)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onClear,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      child: Text(
+                        i18n.historyFilterReset,
+                        style: TextStyle(fontSize: 13, color: BrandColors.primary),
+                      ),
+                    ),
+                  ),
+                  BrandButton(label: i18n.done, onPressed: onDone, expand: false, dense: true),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Unknown chain until address is validated
+  Widget _empty(AppLocalizations i18n) => Container(
+    decoration: BoxDecoration(
+      color: BrandColors.surfaceSunken,
+      border: Border.all(color: invalid ? BrandColors.error : BrandColors.border),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: BrandColors.surfaceTinted, shape: BoxShape.circle),
+              child: Icon(
+                Icons.account_balance_wallet_outlined,
+                size: 15,
+                color: BrandColors.inkFaint,
+              ),
+            ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Text(
+                i18n.historyFilterRecipientAny,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w500,
+                  color: BrandColors.inkFaint,
+                ),
+              ),
+            ),
+            MiniActionButton(
+              bordered: true,
+              icon: Icons.content_paste_outlined,
+              label: i18n.sendPasteButton,
+              onTap: onPaste,
+            ),
+            if (Platform.isAndroid || Platform.isIOS) ...[
+              const SizedBox(width: 7),
+              MiniActionButton(
+                bordered: true,
+                icon: Icons.qr_code_scanner,
+                label: i18n.sendScanButton,
+                onTap: onScan,
+              ),
+            ],
+          ],
+        ),
+        if (invalid) ...[
+          const SizedBox(height: 8),
+          Text(
+            i18n.historyFilterRecipientInvalid,
+            style: BrandText.caption.copyWith(color: BrandColors.error),
+          ),
+        ],
+      ],
+    ),
+  );
+
+  Widget _filled(AppLocalizations i18n) => BrandCard(
+    radius: 14,
+    padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+    child: Row(
+      children: [
+        CoinMark(coinSymbol: coinSymbol!, iconAsset: iconAsset, size: 30),
+        const SizedBox(width: 11),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                blockchainName ?? coinSymbol!,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w500,
+                  color: BrandColors.ink,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                shortenMiddle(address!, head: 9, tail: 9),
+                style: TextStyle(
+                  fontFamily: 'Ubuntu Mono',
+                  fontSize: 11,
+                  color: BrandColors.inkMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onClear,
+          child: Container(
+            width: 26,
+            height: 26,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: BrandColors.surfaceTinted, shape: BoxShape.circle),
+            child: Icon(Icons.close, size: 13, color: BrandColors.inkMuted),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 class _FilterPill extends StatelessWidget {
   final String label;
   final int? count; // null = every option checked (default): no badge.

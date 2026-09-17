@@ -361,6 +361,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyFilterType => 'Type';
 
   @override
+  String get historyFilterRecipient => 'Recipient';
+
+  @override
+  String get historyFilterRecipientAny => 'Any blockchain';
+
+  @override
+  String get historyFilterRecipientInvalid => 'Invalid address for supported blockchains';
+
+  @override
   String get historyTypeBridge => 'Bridge';
 
   @override
@@ -497,6 +506,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receiveCopyAddress => 'Copy address';
 
   @override
+  String get receiveShareError => 'Could not open the share sheet';
+
+  @override
   String receiveAddressHeading(String coin) {
     return 'Your $coin address';
   }
@@ -622,6 +634,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsExportLogsError => 'No logs found to export.';
+
+  @override
+  String get settingsExportLogsFailed => 'Could not export the log file';
 
   @override
   String get settingsThemeLabel => 'Theme';

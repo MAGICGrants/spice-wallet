@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
-import 'package:spice_wallet/models/contact_model.dart';
 import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/format.dart';
@@ -437,7 +436,7 @@ class _AddressRow extends StatelessWidget {
 
   void _copy(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    // Treat as sensitive (auto-cleared) like other address/key copies (D10).
+    // Treat as sensitive (auto-cleared) like other address/key copies.
     SecureClipboard.copy(address);
     showCopyToast(context, i18n.addressCopied);
   }
@@ -646,95 +645,94 @@ class _ContactSheetState extends State<_ContactSheet> {
     final i18n = AppLocalizations.of(context)!;
     final name = _nameController.text.trim();
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: SafeArea(
-        top: false,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.88),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(padding: EdgeInsets.only(top: 8), child: SheetHandle()),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(22, 0, 22, 16),
+    // No keyboard padding here: showBrandSheet applies it once for the
+    // whole sheet, and a second one lifts this clear off the keyboard.
+    return SafeArea(
+      top: false,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxSheetHeight(context)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(padding: EdgeInsets.only(top: 8), child: SheetHandle()),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      SheetIcon(
+                        // A person glyph, not a "+": the filled tile already
+                        // reads as a button, and a plus reinforces that.
+                        icon: _isEditing ? Icons.edit_outlined : Icons.person_outline,
+                        bg: BrandColors.surfaceAccent,
+                        color: BrandColors.primaryDeep,
+                      ),
+                      const SizedBox(width: 11),
+                      Text(
+                        _isEditing ? i18n.addressBookEditContact : i18n.addressBookAddContact,
+                        style: BrandText.sheetTitle,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 7),
+                  Text(
+                    _isEditing ? i18n.addressBookEditDescription : i18n.addressBookAddDescription,
+                    style: BrandText.bodyMuted.copyWith(fontSize: 13, height: 1.5),
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        SheetIcon(
-                          // A person glyph, not a "+": the filled tile already
-                          // reads as a button, and a plus reinforces that.
-                          icon: _isEditing ? Icons.edit_outlined : Icons.person_outline,
-                          bg: BrandColors.surfaceAccent,
-                          color: BrandColors.primaryDeep,
-                        ),
-                        const SizedBox(width: 11),
-                        Text(
-                          _isEditing ? i18n.addressBookEditContact : i18n.addressBookAddContact,
-                          style: BrandText.sheetTitle,
-                        ),
-                      ],
+                    SectionHeader(
+                      label: i18n.addressBookContactName,
+                      padding: const EdgeInsets.only(left: 4, bottom: 8),
                     ),
-                    const SizedBox(height: 7),
-                    Text(
-                      _isEditing ? i18n.addressBookEditDescription : i18n.addressBookAddDescription,
-                      style: BrandText.bodyMuted.copyWith(fontSize: 13, height: 1.5),
+                    _nameField(name),
+                    const SizedBox(height: 16),
+                    SectionHeader(
+                      label:
+                          '${i18n.addressBookAddressesLabel} · ${_addresses.isEmpty ? i18n.addressBookAddressesNoneYet : '${_addresses.length}/${_wallets.length}'}',
+                      padding: const EdgeInsets.only(left: 4, bottom: 8),
                     ),
-                  ],
-                ),
-              ),
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(22, 0, 22, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SectionHeader(
-                        label: i18n.addressBookContactName,
-                        padding: const EdgeInsets.only(left: 4, bottom: 8),
-                      ),
-                      _nameField(name),
-                      const SizedBox(height: 16),
-                      SectionHeader(
-                        label:
-                            '${i18n.addressBookAddressesLabel} · ${_addresses.isEmpty ? i18n.addressBookAddressesNoneYet : '${_addresses.length}/${_wallets.length}'}',
-                        padding: const EdgeInsets.only(left: 4, bottom: 8),
-                      ),
-                      for (var i = 0; i < _wallets.length; i++) ...[
-                        if (i != 0) const SizedBox(height: 8),
-                        _addressEntry(_wallets[i]),
-                      ],
-                      if (_error != null) ...[
-                        const SizedBox(height: 10),
-                        Text(_error!, style: BrandText.caption.copyWith(color: BrandColors.error)),
-                      ],
+                    for (var i = 0; i < _wallets.length; i++) ...[
+                      if (i != 0) const SizedBox(height: 8),
+                      _addressEntry(_wallets[i]),
                     ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(22, 18, 22, 8),
-                child: Column(
-                  children: [
-                    BrandButton(
-                      label: _isEditing ? i18n.addressBookUpdate : i18n.addressBookSave,
-                      loading: _saving,
-                      onPressed: (_saving || name.isEmpty || _addresses.isEmpty) ? null : _save,
-                    ),
-                    const SizedBox(height: 4),
-                    BrandButton.ghost(
-                      label: i18n.cancel,
-                      color: BrandColors.inkMuted,
-                      onPressed: () => Navigator.pop(context),
-                    ),
+                    if (_error != null) ...[
+                      const SizedBox(height: 10),
+                      Text(_error!, style: BrandText.caption.copyWith(color: BrandColors.error)),
+                    ],
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 18, 22, 8),
+              child: Column(
+                children: [
+                  BrandButton(
+                    label: _isEditing ? i18n.addressBookUpdate : i18n.addressBookSave,
+                    loading: _saving,
+                    onPressed: (_saving || name.isEmpty || _addresses.isEmpty) ? null : _save,
+                  ),
+                  const SizedBox(height: 4),
+                  BrandButton.ghost(
+                    label: i18n.cancel,
+                    color: BrandColors.inkMuted,
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
