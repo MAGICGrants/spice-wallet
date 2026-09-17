@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
-import 'package:spice_wallet/models/contact_model.dart';
 import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/format.dart';

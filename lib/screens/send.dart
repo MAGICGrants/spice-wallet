@@ -10,7 +10,6 @@ import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/util/logging.dart';
-import 'package:spice_wallet/models/contact_model.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/confirm_send.dart';
