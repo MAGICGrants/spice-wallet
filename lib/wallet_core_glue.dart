@@ -118,11 +118,9 @@ void installWalletCore() {
 /// wallet connects through.
 Future<bool> _ensureTorConnected() async {
   await TorService.sharedInstance.start();
-  await TorService.sharedInstance.waitUntilConnected().timeout(
-    const Duration(minutes: 2),
-    onTimeout: () {},
-  );
-  return TorService.sharedInstance.status == TorConnectionStatus.connected;
+  // The wait is bounded by the service itself and reports whether Tor came up,
+  // so there is no outer `.timeout()` and no status read afterwards.
+  return TorService.sharedInstance.waitUntilConnected(timeout: const Duration(minutes: 2));
 }
 
 /// The wallet-core [WalletManager] provider.
