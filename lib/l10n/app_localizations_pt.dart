@@ -362,6 +362,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get historyFilterType => 'Tipo';
 
   @override
+  String get historyFilterRecipient => 'Destinatário';
+
+  @override
+  String get historyFilterRecipientAny => 'Qualquer blockchain';
+
+  @override
+  String get historyFilterRecipientInvalid => 'Endereço inválido para as blockchains suportadas';
+
+  @override
   String get historyTypeBridge => 'Ponte';
 
   @override

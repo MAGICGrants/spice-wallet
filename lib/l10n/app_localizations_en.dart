@@ -361,6 +361,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyFilterType => 'Type';
 
   @override
+  String get historyFilterRecipient => 'Recipient';
+
+  @override
+  String get historyFilterRecipientAny => 'Any blockchain';
+
+  @override
+  String get historyFilterRecipientInvalid => 'Invalid address for supported blockchains';
+
+  @override
   String get historyTypeBridge => 'Bridge';
 
   @override

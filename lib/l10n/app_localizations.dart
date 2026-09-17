@@ -753,6 +753,24 @@ abstract class AppLocalizations {
   /// **'Type'**
   String get historyFilterType;
 
+  /// No description provided for @historyFilterRecipient.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipient'**
+  String get historyFilterRecipient;
+
+  /// No description provided for @historyFilterRecipientAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any blockchain'**
+  String get historyFilterRecipientAny;
+
+  /// No description provided for @historyFilterRecipientInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid address for supported blockchains'**
+  String get historyFilterRecipientInvalid;
+
   /// No description provided for @historyTypeBridge.
   ///
   /// In en, this message translates to:
