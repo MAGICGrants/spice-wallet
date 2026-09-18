@@ -47,7 +47,6 @@
   },
   "connectionTypeLws": "Light Wallet Server",
   "connectionTypeNode": "Monero Node",
-  "lwsSetupAddressHint": "lws.example.com:18090",
   "lwsSetupUseTorLabel": "Use Tor",
   "lwsSetupTestConnectionButton": "Test Connection",
   "connectionProxyPortLabel": "HTTP Proxy Port",
