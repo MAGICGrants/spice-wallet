@@ -100,6 +100,9 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     final subSupported = monero?.serverSupportsSubaddresses;
     final unusedIndexSupported = monero?.unusedSubaddressIndexIsSupported;
     final canToggle = monero != null && subSupported == true && !isDemoMode;
+    // The address and the index that labels it, as one value: read separately
+    // they can name different subaddresses.
+    final sub = isDemoMode ? null : monero?.unusedSubaddress;
 
     String? address;
     if (monero == null) {
@@ -107,7 +110,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     } else if (subSupported == false || isDemoMode) {
       address = primaryAddress;
     } else if (subSupported == true) {
-      address = _showSubaddress ? receiveAddress : primaryAddress;
+      address = _showSubaddress ? sub?.address : primaryAddress;
     }
 
     final showingSubaddress = canToggle && _showSubaddress;
@@ -127,7 +130,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
       selectedTab: _showSubaddress ? 0 : 1,
       onSelectTab: (i) => setState(() => _showSubaddress = i == 0),
       address: address ?? '',
-      qrHeading: ready ? _heading(i18n, wallet, monero, showingSubaddress) : '',
+      qrHeading: ready ? _heading(i18n, wallet, sub, showingSubaddress) : '',
       warning: warning,
       onCopy: () => _copyAddress(address!),
     );
@@ -136,12 +139,11 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   String _heading(
     AppLocalizations i18n,
     CryptoWallet wallet,
-    MoneroWallet? monero,
+    ({int index, String address})? sub,
     bool showingSubaddress,
   ) {
     if (showingSubaddress) {
-      final index = monero?.unusedSubaddressIndex;
-      return index != null ? '${i18n.receiveSubaddressTab} #$index' : i18n.receiveSubaddressTab;
+      return sub != null ? '${i18n.receiveSubaddressTab} #${sub.index}' : i18n.receiveSubaddressTab;
     }
     return i18n.receiveAddressHeading(wallet.blockchainName);
   }
