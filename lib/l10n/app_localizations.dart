@@ -291,12 +291,6 @@ abstract class AppLocalizations {
   /// **'Monero Node'**
   String get connectionTypeNode;
 
-  /// No description provided for @lwsSetupAddressHint.
-  ///
-  /// In en, this message translates to:
-  /// **'lws.example.com:18090'**
-  String get lwsSetupAddressHint;
-
   /// No description provided for @lwsSetupUseTorLabel.
   ///
   /// In en, this message translates to:

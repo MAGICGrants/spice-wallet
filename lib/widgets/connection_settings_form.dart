@@ -517,7 +517,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
         (_isExplorer
             ? wallet?.explorerAddressExample
             : wallet?.connectionAddressExampleForType(_connectionType)) ??
-        i18n.lwsSetupAddressHint;
+        '';
     final addressLabel = _isExplorer ? i18n.explorerAddressLabel : i18n.address;
 
     final hasWorkingConnection = _hasTested && _connectionSuccess && !_connectionTestIsLoading;

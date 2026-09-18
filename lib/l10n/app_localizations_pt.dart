@@ -115,9 +115,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get connectionTypeNode => 'Nó Monero';
 
   @override
-  String get lwsSetupAddressHint => 'lws.example.com:18090';
-
-  @override
   String get lwsSetupUseTorLabel => 'Usar Tor';
 
   @override
