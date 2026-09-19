@@ -78,6 +78,7 @@ class _NavTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = selected ? BrandColors.primaryDeep : BrandColors.inkMuted;
     return InkWell(
+      mouseCursor: WidgetStateMouseCursor.clickable,
       // Navigate on touch-down, not release: a very light (or slightly rolling)
       // tap can drift past the tap recognizer's slop before the finger lifts and
       // get dropped. onTap stays as a no-op only to keep the ripple feedback.

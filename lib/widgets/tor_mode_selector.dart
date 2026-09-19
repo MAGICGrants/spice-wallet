@@ -301,6 +301,7 @@ class _TestChip extends StatelessWidget {
         color: BrandColors.surfaceSunken,
         shape: shape,
         child: InkWell(
+          mouseCursor: WidgetStateMouseCursor.clickable,
           onTap: onTap,
           customBorder: shape,
           child: Padding(
@@ -330,6 +331,7 @@ class _OrbotCheck extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
+      mouseCursor: WidgetStateMouseCursor.clickable,
       onTap: () => onChanged(!value),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: BrandSpacing.md),

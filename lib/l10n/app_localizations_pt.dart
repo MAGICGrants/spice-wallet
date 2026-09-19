@@ -401,7 +401,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get unlockWithTouchId => 'Desbloquear com Touch ID';
 
   @override
-  String get unlockPasswordLabel => 'Senha';
+  String get unlockPasswordLabel => 'Senha da carteira';
 
   @override
   String get unlockPasswordHint => 'Digite sua senha';
@@ -442,6 +442,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get coinHomeActivityTitle => 'Atividade';
+
+  @override
+  String get coinHomeBalancesMayBeStale =>
+      'Os saldos podem estar desatualizados durante a sincronização';
 
   @override
   String get coinHomeSwap => 'Trocar';
@@ -502,6 +506,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get receiveCopyAddress => 'Copiar endereço';
+
+  @override
+  String receiveQrHint(String coin) {
+    return 'Escaneie isto da carteira remetente ou envie seu endereço $coin.';
+  }
 
   @override
   String get receiveShareError => 'Não foi possível abrir a janela de compartilhamento';
@@ -871,6 +880,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sendPasteButton => 'Colar';
+
+  @override
+  String get sendIrreversibleNote =>
+      'As transações são irreversíveis. A próxima etapa mostra estes detalhes mais uma vez antes de qualquer envio.';
 
   @override
   String get sendScanButton => 'Escanear';

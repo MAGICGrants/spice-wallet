@@ -153,6 +153,7 @@
   "unlockWithTouchId": "Desbloquear com Touch ID",
   "unlockPasswordLabel": "Senha",
   "unlockPasswordHint": "Digite sua senha",
+  "unlockPasswordLabel": "Senha da carteira",
   "unlockIncorrectPasswordError": "Senha incorreta. Tente novamente.",
   "homeSyncing": "Sincronizando",
   "homeSynced": "Sincronizado",
@@ -176,6 +177,7 @@
   },
   "coinHomeAssetsTitle": "Ativos",
   "coinHomeActivityTitle": "Atividade",
+  "coinHomeBalancesMayBeStale": "Os saldos podem estar desatualizados durante a sincronização",
   "coinHomeSwap": "Trocar",
   "coinHomeSwapComingSoon": "Em breve!",
   "coinHomeReceived": "Recebido",
@@ -195,6 +197,7 @@
   "receiveSubaddressTab": "Subendereço",
   "receivePrimaryTab": "Endereço primário",
   "receiveCopyAddress": "Copiar endereço",
+  "receiveQrHint": "Escaneie isto da carteira remetente ou envie seu endereço {coin}.",
   "receiveShareError": "Não foi possível abrir a janela de compartilhamento",
   "receiveAddressHeading": "Seu endereço {coin}",
   "@receiveAddressHeading": {
@@ -351,6 +354,7 @@
   "sendNetworkFee": "Taxa de rede",
   "sendMaxButton": "MÁX",
   "sendPasteButton": "Colar",
+  "sendIrreversibleNote": "As transações são irreversíveis. A próxima etapa mostra estes detalhes mais uma vez antes de qualquer envio.",
   "sendScanButton": "Escanear",
   "sendAddressHint": "Endereço {coin}",
   "@sendAddressHint": {

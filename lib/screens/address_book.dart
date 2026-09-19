@@ -9,6 +9,7 @@ import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/format.dart';
 import 'package:wallet_infra/wallet_infra.dart' show SecureClipboard;
+import 'package:spice_wallet/screens/desktop/home_shell.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
 import 'package:wallet_domain/wallet_domain.dart';
@@ -49,8 +50,9 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
       context: context,
       builder: (sheetContext) => SafeArea(
         top: false,
+        // Desktop modal: the card owns the edge padding.
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(22, 8, 22, 12),
+          padding: isDesktopModal ? EdgeInsets.zero : const EdgeInsets.fromLTRB(22, 8, 22, 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,15 +75,20 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                 style: BrandText.bodyMuted.copyWith(fontSize: 13, height: 1.5),
               ),
               const SizedBox(height: 18),
-              BrandButton(label: i18n.cancel, onPressed: () => Navigator.pop(sheetContext)),
-              const SizedBox(height: 4),
-              BrandButton.ghost(
-                label: i18n.addressBookDelete,
-                color: BrandColors.error,
-                onPressed: () {
-                  Provider.of<ContactModel>(context, listen: false).deleteContact(contact.id);
-                  Navigator.pop(sheetContext);
-                },
+              SheetActions(
+                gap: 4,
+                primary: BrandButton(
+                  label: i18n.cancel,
+                  onPressed: () => Navigator.pop(sheetContext),
+                ),
+                secondary: BrandButton.ghost(
+                  label: i18n.addressBookDelete,
+                  color: BrandColors.error,
+                  onPressed: () {
+                    Provider.of<ContactModel>(context, listen: false).deleteContact(contact.id);
+                    Navigator.pop(sheetContext);
+                  },
+                ),
               ),
             ],
           ),
@@ -90,9 +97,84 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
     );
   }
 
+  /// The searchable contacts list (or empty state), shared by mobile and desktop.
+  Widget _contactsList(EdgeInsetsGeometry padding) {
+    return Consumer<ContactModel>(
+      builder: (context, contactModel, child) {
+        final contacts = contactModel.searchContacts(_searchQuery);
+        if (contacts.isEmpty) return _EmptyState(searching: _searchQuery.isNotEmpty);
+        return ListView.builder(
+          padding: padding,
+          itemCount: contacts.length,
+          itemBuilder: (context, index) {
+            final contact = contacts[index];
+            final expanded = contact.id == _expandedId;
+            return _ContactTile(
+              contact: contact,
+              expanded: expanded,
+              onToggle: () => setState(() => _expandedId = expanded ? null : contact.id),
+              onEdit: () => _showEditContactDialog(contact),
+              onDelete: () => _showDeleteContactDialog(contact),
+              isLast: index == contacts.length - 1,
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
+    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+
+    if (isDesktop) {
+      return DesktopShell(
+        active: DesktopNav.addressBook,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(44, 30, 44, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          i18n.addressBookTitle,
+                          style: TextStyle(
+                            fontFamily: 'Ubuntu',
+                            fontSize: 26,
+                            height: 1.2,
+                            fontWeight: FontWeight.w700,
+                            color: BrandColors.ink,
+                          ),
+                        ),
+                      ),
+                      BrandButton.secondary(
+                        label: i18n.addressBookAddContact,
+                        icon: Icons.add,
+                        expand: false,
+                        onPressed: _showAddContactDialog,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  _SearchField(
+                    controller: _searchController,
+                    onChanged: (q) => setState(() => _searchQuery = q),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(child: _contactsList(const EdgeInsets.fromLTRB(44, 6, 44, 36))),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: BrandColors.paper,
@@ -125,7 +207,7 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      GestureDetector(
+                      Tappable(
                         behavior: HitTestBehavior.opaque,
                         onTap: _showAddContactDialog,
                         child: Container(
@@ -142,31 +224,7 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                     ],
                   ),
                 ),
-                Expanded(
-                  child: Consumer<ContactModel>(
-                    builder: (context, contactModel, child) {
-                      final contacts = contactModel.searchContacts(_searchQuery);
-                      if (contacts.isEmpty) return _EmptyState(searching: _searchQuery.isNotEmpty);
-                      return ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
-                        itemCount: contacts.length,
-                        itemBuilder: (context, index) {
-                          final contact = contacts[index];
-                          final expanded = contact.id == _expandedId;
-                          return _ContactTile(
-                            contact: contact,
-                            expanded: expanded,
-                            onToggle: () =>
-                                setState(() => _expandedId = expanded ? null : contact.id),
-                            onEdit: () => _showEditContactDialog(contact),
-                            onDelete: () => _showDeleteContactDialog(contact),
-                            isLast: index == contacts.length - 1,
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
+                Expanded(child: _contactsList(const EdgeInsets.fromLTRB(16, 6, 16, 24))),
               ],
             ),
           ),
@@ -304,6 +362,7 @@ class _ContactTile extends StatelessWidget {
       return Column(
         children: [
           InkWell(
+            mouseCursor: WidgetStateMouseCursor.clickable,
             onTap: onToggle,
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -354,6 +413,7 @@ class _ContactTile extends StatelessWidget {
         child: Column(
           children: [
             InkWell(
+              mouseCursor: WidgetStateMouseCursor.clickable,
               onTap: onToggle,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               child: Padding(
@@ -508,7 +568,7 @@ class _IconSquare extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Tappable(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
@@ -644,6 +704,8 @@ class _ContactSheetState extends State<_ContactSheet> {
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
     final name = _nameController.text.trim();
+    // Desktop modal: the card owns the edge padding.
+    final hpad = isDesktopModal ? 0.0 : 22.0;
 
     // No keyboard padding here: showBrandSheet applies it once for the
     // whole sheet, and a second one lifts this clear off the keyboard.
@@ -657,7 +719,7 @@ class _ContactSheetState extends State<_ContactSheet> {
           children: [
             const Padding(padding: EdgeInsets.only(top: 8), child: SheetHandle()),
             Padding(
-              padding: const EdgeInsets.fromLTRB(22, 0, 22, 16),
+              padding: EdgeInsets.fromLTRB(hpad, 0, hpad, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -687,7 +749,7 @@ class _ContactSheetState extends State<_ContactSheet> {
             ),
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(22, 0, 22, 0),
+                padding: EdgeInsets.fromLTRB(hpad, 0, hpad, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -715,21 +777,19 @@ class _ContactSheetState extends State<_ContactSheet> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(22, 18, 22, 8),
-              child: Column(
-                children: [
-                  BrandButton(
-                    label: _isEditing ? i18n.addressBookUpdate : i18n.addressBookSave,
-                    loading: _saving,
-                    onPressed: (_saving || name.isEmpty || _addresses.isEmpty) ? null : _save,
-                  ),
-                  const SizedBox(height: 4),
-                  BrandButton.ghost(
-                    label: i18n.cancel,
-                    color: BrandColors.inkMuted,
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
+              padding: EdgeInsets.fromLTRB(hpad, 18, hpad, 8),
+              child: SheetActions(
+                gap: 4,
+                primary: BrandButton(
+                  label: _isEditing ? i18n.addressBookUpdate : i18n.addressBookSave,
+                  loading: _saving,
+                  onPressed: (_saving || name.isEmpty || _addresses.isEmpty) ? null : _save,
+                ),
+                secondary: BrandButton.ghost(
+                  label: i18n.cancel,
+                  color: BrandColors.inkMuted,
+                  onPressed: () => Navigator.pop(context),
+                ),
               ),
             ),
           ],
@@ -821,7 +881,7 @@ class _ContactSheetState extends State<_ContactSheet> {
                 ],
               ),
             ),
-            GestureDetector(
+            Tappable(
               behavior: HitTestBehavior.opaque,
               onTap: () => setState(() {
                 _addresses.remove(wallet.coinSymbol);

@@ -400,7 +400,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unlockWithTouchId => 'Unlock with Touch ID';
 
   @override
-  String get unlockPasswordLabel => 'Password';
+  String get unlockPasswordLabel => 'Wallet password';
 
   @override
   String get unlockPasswordHint => 'Enter your password';
@@ -441,6 +441,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get coinHomeActivityTitle => 'Activity';
+
+  @override
+  String get coinHomeBalancesMayBeStale => 'Balances may be out of date while syncing';
 
   @override
   String get coinHomeSwap => 'Swap';
@@ -501,6 +504,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get receiveCopyAddress => 'Copy address';
+
+  @override
+  String receiveQrHint(String coin) {
+    return 'Scan this from the sending wallet, or send your $coin address.';
+  }
 
   @override
   String get receiveShareError => 'Could not open the share sheet';
@@ -870,6 +878,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sendPasteButton => 'Paste';
+
+  @override
+  String get sendIrreversibleNote =>
+      'Transactions are irreversible. The next step shows these details once more before anything is broadcast.';
 
   @override
   String get sendScanButton => 'Scan';

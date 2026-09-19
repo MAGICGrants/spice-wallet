@@ -834,7 +834,7 @@ abstract class AppLocalizations {
   /// No description provided for @unlockPasswordLabel.
   ///
   /// In en, this message translates to:
-  /// **'Password'**
+  /// **'Wallet password'**
   String get unlockPasswordLabel;
 
   /// No description provided for @unlockPasswordHint.
@@ -896,6 +896,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Activity'**
   String get coinHomeActivityTitle;
+
+  /// No description provided for @coinHomeBalancesMayBeStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Balances may be out of date while syncing'**
+  String get coinHomeBalancesMayBeStale;
 
   /// No description provided for @coinHomeSwap.
   ///
@@ -1010,6 +1016,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy address'**
   String get receiveCopyAddress;
+
+  /// No description provided for @receiveQrHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan this from the sending wallet, or send your {coin} address.'**
+  String receiveQrHint(String coin);
 
   /// No description provided for @receiveShareError.
   ///
@@ -1694,6 +1706,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Paste'**
   String get sendPasteButton;
+
+  /// No description provided for @sendIrreversibleNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions are irreversible. The next step shows these details once more before anything is broadcast.'**
+  String get sendIrreversibleNote;
 
   /// No description provided for @sendScanButton.
   ///

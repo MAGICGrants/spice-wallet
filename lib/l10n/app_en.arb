@@ -153,6 +153,7 @@
   "unlockWithTouchId": "Unlock with Touch ID",
   "unlockPasswordLabel": "Password",
   "unlockPasswordHint": "Enter your password",
+  "unlockPasswordLabel": "Wallet password",
   "unlockIncorrectPasswordError": "Incorrect password. Please try again.",
   "homeSyncing": "Syncing",
   "homeSynced": "Synced",
@@ -176,6 +177,7 @@
   },
   "coinHomeAssetsTitle": "Assets",
   "coinHomeActivityTitle": "Activity",
+  "coinHomeBalancesMayBeStale": "Balances may be out of date while syncing",
   "coinHomeSwap": "Swap",
   "coinHomeSwapComingSoon": "Coming soon!",
   "coinHomeReceived": "Received",
@@ -195,6 +197,14 @@
   "receiveSubaddressTab": "Subaddress",
   "receivePrimaryTab": "Primary address",
   "receiveCopyAddress": "Copy address",
+  "receiveQrHint": "Scan this from the sending wallet, or send your {coin} address.",
+  "@receiveQrHint": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
   "receiveShareError": "Could not open the share sheet",
   "receiveAddressHeading": "Your {coin} address",
   "@receiveAddressHeading": {
@@ -351,6 +361,7 @@
   "sendNetworkFee": "Network fee",
   "sendMaxButton": "MAX",
   "sendPasteButton": "Paste",
+  "sendIrreversibleNote": "Transactions are irreversible. The next step shows these details once more before anything is broadcast.",
   "sendScanButton": "Scan",
   "sendAddressHint": "{coin} address",
   "@sendAddressHint": {

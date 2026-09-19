@@ -10,6 +10,7 @@ import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/format.dart';
+import 'package:spice_wallet/screens/desktop/home_shell.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
@@ -125,6 +126,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final manager = context.watch<WalletManager>();
     final fiatRate = context.watch<FiatRateModel>();
     final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
+    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+    // Content gutter: the desktop shell caps width and wants wider margins.
+    final gutter = isDesktop ? 44.0 : 20.0;
 
     // Merge every asset's history into one newest-first timeline.
     final all = <TxEntry>[
@@ -245,8 +249,132 @@ class _HistoryScreenState extends State<HistoryScreen> {
             i18n: i18n,
             fiatRate: fiatRate,
             fiatSymbol: fiatSymbol,
+            gutter: gutter,
             onTapTx: (asset, tx) => TxDetailsDialog.show(context, asset, tx),
           );
+
+    final filters = <Widget>[
+      // Scrolls to allow extending off the screen
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.fromLTRB(gutter, 0, gutter, 12),
+        child: Row(
+          children: [
+            _FilterPill(
+              label: i18n.historyFilterBlockchain,
+              count: selectedCount(chainOptions, _chainsHidden.contains),
+              open: _open == _Filter.blockchain,
+              onTap: () => _toggleOpen(_Filter.blockchain),
+            ),
+            const SizedBox(width: 7),
+            _FilterPill(
+              label: i18n.historyFilterAsset,
+              count: selectedCount(assetOptions, _assetsHidden.contains),
+              open: _open == _Filter.asset,
+              onTap: () => _toggleOpen(_Filter.asset),
+            ),
+            const SizedBox(width: 7),
+            _FilterPill(
+              label: i18n.historyFilterType,
+              count: selectedCount(typeOptions, (v) => _typesHidden.contains(int.parse(v))),
+              open: _open == _Filter.type,
+              onTap: () => _toggleOpen(_Filter.type),
+            ),
+            const SizedBox(width: 7),
+            _FilterPill(
+              label: i18n.historyFilterRecipient,
+              count: _recipient == null ? null : 1,
+              open: _open == _Filter.recipient,
+              onTap: () => _toggleOpen(_Filter.recipient),
+            ),
+          ],
+        ),
+      ),
+      if (_open == _Filter.blockchain)
+        _FilterPanel(
+          header: i18n.historyFilterBlockchain,
+          options: chainOptions,
+          isSelected: (v) => !_chainsHidden.contains(v),
+          gutter: gutter,
+          onToggle: (v) => setState(() {
+            _chainsHidden.toggle(v);
+            // Re-check assets whose chain just went unchecked, so an
+            // unchecked chain never leaves a stale asset filter behind.
+            _assetsHidden.removeWhere((a) => _chainsHidden.contains(assetChain(a)));
+          }),
+          onReset: () => setState(_chainsHidden.clear),
+          onDone: () => setState(() => _open = null),
+        ),
+      if (_open == _Filter.asset)
+        _FilterPanel(
+          header: i18n.historyFilterAsset,
+          options: assetOptions,
+          isSelected: (v) => !_assetsHidden.contains(v),
+          gutter: gutter,
+          onToggle: (v) => setState(() => _assetsHidden.toggle(v)),
+          onReset: () => setState(_assetsHidden.clear),
+          onDone: () => setState(() => _open = null),
+        ),
+      if (_open == _Filter.type)
+        _FilterPanel(
+          header: i18n.historyFilterType,
+          options: typeOptions,
+          isSelected: (v) => !_typesHidden.contains(int.parse(v)),
+          gutter: gutter,
+          onToggle: (v) => setState(() => _typesHidden.toggle(int.parse(v))),
+          onReset: () => setState(_typesHidden.clear),
+          onDone: () => setState(() => _open = null),
+        ),
+      if (_open == _Filter.recipient)
+        _RecipientPanel(
+          address: _recipient,
+          coinSymbol: _recipientCoin,
+          iconAsset: _recipientCoin == null
+              ? ''
+              : manager.getWallet(_recipientCoin!)?.iconAsset ?? '',
+          blockchainName: _recipientCoin == null ? null : blockchainName(_recipientCoin!),
+          invalid: _recipientInvalid,
+          gutter: gutter,
+          onPaste: () => _pasteRecipient(manager.allWallets),
+          onScan: () => _scanRecipient(manager.allWallets),
+          onClear: _clearRecipient,
+          onDone: () => setState(() => _open = null),
+        ),
+      Expanded(
+        child: _open == null
+            ? list
+            : GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => setState(() => _open = null),
+                child: Opacity(opacity: 0.4, child: IgnorePointer(child: list)),
+              ),
+      ),
+    ];
+
+    if (isDesktop) {
+      return DesktopShell(
+        active: DesktopNav.history,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(44, 30, 44, 20),
+              child: Text(
+                i18n.historyTitle,
+                style: TextStyle(
+                  fontFamily: 'Ubuntu',
+                  fontSize: 26,
+                  height: 1.2,
+                  fontWeight: FontWeight.w700,
+                  color: BrandColors.ink,
+                ),
+              ),
+            ),
+            ...filters,
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: BrandColors.paper,
@@ -266,100 +394,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Scrolls to allow extending off the screen
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                  child: Row(
-                    children: [
-                      _FilterPill(
-                        label: i18n.historyFilterBlockchain,
-                        count: selectedCount(chainOptions, _chainsHidden.contains),
-                        open: _open == _Filter.blockchain,
-                        onTap: () => _toggleOpen(_Filter.blockchain),
-                      ),
-                      const SizedBox(width: 7),
-                      _FilterPill(
-                        label: i18n.historyFilterAsset,
-                        count: selectedCount(assetOptions, _assetsHidden.contains),
-                        open: _open == _Filter.asset,
-                        onTap: () => _toggleOpen(_Filter.asset),
-                      ),
-                      const SizedBox(width: 7),
-                      _FilterPill(
-                        label: i18n.historyFilterType,
-                        count: selectedCount(
-                          typeOptions,
-                          (v) => _typesHidden.contains(int.parse(v)),
-                        ),
-                        open: _open == _Filter.type,
-                        onTap: () => _toggleOpen(_Filter.type),
-                      ),
-                      const SizedBox(width: 7),
-                      _FilterPill(
-                        label: i18n.historyFilterRecipient,
-                        count: _recipient == null ? null : 1,
-                        open: _open == _Filter.recipient,
-                        onTap: () => _toggleOpen(_Filter.recipient),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_open == _Filter.blockchain)
-                  _FilterPanel(
-                    header: i18n.historyFilterBlockchain,
-                    options: chainOptions,
-                    isSelected: (v) => !_chainsHidden.contains(v),
-                    onToggle: (v) => setState(() {
-                      _chainsHidden.toggle(v);
-                      // Re-check assets whose chain just went unchecked, so an
-                      // unchecked chain never leaves a stale asset filter behind.
-                      _assetsHidden.removeWhere((a) => _chainsHidden.contains(assetChain(a)));
-                    }),
-                    onReset: () => setState(_chainsHidden.clear),
-                    onDone: () => setState(() => _open = null),
-                  ),
-                if (_open == _Filter.asset)
-                  _FilterPanel(
-                    header: i18n.historyFilterAsset,
-                    options: assetOptions,
-                    isSelected: (v) => !_assetsHidden.contains(v),
-                    onToggle: (v) => setState(() => _assetsHidden.toggle(v)),
-                    onReset: () => setState(_assetsHidden.clear),
-                    onDone: () => setState(() => _open = null),
-                  ),
-                if (_open == _Filter.type)
-                  _FilterPanel(
-                    header: i18n.historyFilterType,
-                    options: typeOptions,
-                    isSelected: (v) => !_typesHidden.contains(int.parse(v)),
-                    onToggle: (v) => setState(() => _typesHidden.toggle(int.parse(v))),
-                    onReset: () => setState(_typesHidden.clear),
-                    onDone: () => setState(() => _open = null),
-                  ),
-                if (_open == _Filter.recipient)
-                  _RecipientPanel(
-                    address: _recipient,
-                    coinSymbol: _recipientCoin,
-                    iconAsset: _recipientCoin == null
-                        ? ''
-                        : manager.getWallet(_recipientCoin!)?.iconAsset ?? '',
-                    blockchainName: _recipientCoin == null ? null : blockchainName(_recipientCoin!),
-                    invalid: _recipientInvalid,
-                    onPaste: () => _pasteRecipient(manager.allWallets),
-                    onScan: () => _scanRecipient(manager.allWallets),
-                    onClear: _clearRecipient,
-                    onDone: () => setState(() => _open = null),
-                  ),
-                Expanded(
-                  child: _open == null
-                      ? list
-                      : GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => setState(() => _open = null),
-                          child: Opacity(opacity: 0.4, child: IgnorePointer(child: list)),
-                        ),
-                ),
+                ...filters,
               ],
             ),
           ),
@@ -398,6 +433,7 @@ class _Timeline extends StatelessWidget {
   final AppLocalizations i18n;
   final FiatRateModel fiatRate;
   final String fiatSymbol;
+  final double gutter;
   final void Function(CryptoWallet asset, TxDetails tx) onTapTx;
 
   const _Timeline({
@@ -405,6 +441,7 @@ class _Timeline extends StatelessWidget {
     required this.i18n,
     required this.fiatRate,
     required this.fiatSymbol,
+    required this.gutter,
     required this.onTapTx,
   });
 
@@ -424,7 +461,7 @@ class _Timeline extends StatelessWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+      padding: EdgeInsets.fromLTRB(gutter, 0, gutter, 24),
       itemCount: rows.length,
       itemBuilder: (context, index) {
         final row = rows[index];
@@ -463,6 +500,7 @@ class _RecipientPanel extends StatelessWidget {
   final String iconAsset;
   final String? blockchainName;
   final bool invalid;
+  final double gutter;
   final VoidCallback onPaste;
   final VoidCallback onScan;
   final VoidCallback onClear;
@@ -474,6 +512,7 @@ class _RecipientPanel extends StatelessWidget {
     required this.iconAsset,
     required this.blockchainName,
     required this.invalid,
+    required this.gutter,
     required this.onPaste,
     required this.onScan,
     required this.onClear,
@@ -484,7 +523,7 @@ class _RecipientPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      padding: EdgeInsets.fromLTRB(gutter, 0, gutter, 12),
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
@@ -520,7 +559,7 @@ class _RecipientPanel extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  GestureDetector(
+                  Tappable(
                     behavior: HitTestBehavior.opaque,
                     onTap: onClear,
                     child: Padding(
@@ -635,7 +674,7 @@ class _RecipientPanel extends StatelessWidget {
             ],
           ),
         ),
-        GestureDetector(
+        Tappable(
           behavior: HitTestBehavior.opaque,
           onTap: onClear,
           child: Container(
@@ -668,7 +707,7 @@ class _FilterPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final active = open || count != null;
     final fg = active ? BrandColors.onPrimary : BrandColors.ink;
-    return GestureDetector(
+    return Tappable(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
@@ -720,6 +759,7 @@ class _FilterPanel extends StatelessWidget {
   final String header;
   final List<_Option> options;
   final bool Function(String value) isSelected;
+  final double gutter;
   final ValueChanged<String> onToggle;
   final VoidCallback onReset;
   final VoidCallback onDone;
@@ -728,6 +768,7 @@ class _FilterPanel extends StatelessWidget {
     required this.header,
     required this.options,
     required this.isSelected,
+    required this.gutter,
     required this.onToggle,
     required this.onReset,
     required this.onDone,
@@ -737,7 +778,7 @@ class _FilterPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      padding: EdgeInsets.fromLTRB(gutter, 0, gutter, 12),
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
@@ -780,7 +821,7 @@ class _FilterPanel extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  GestureDetector(
+                  Tappable(
                     behavior: HitTestBehavior.opaque,
                     onTap: onReset,
                     child: Padding(
@@ -803,7 +844,7 @@ class _FilterPanel extends StatelessWidget {
 
   Widget _row(_Option opt, {required bool last}) {
     final selected = isSelected(opt.value);
-    return GestureDetector(
+    return Tappable(
       behavior: HitTestBehavior.opaque,
       onTap: () => onToggle(opt.value),
       child: Container(

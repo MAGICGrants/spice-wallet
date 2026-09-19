@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -11,6 +12,8 @@ import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
+import 'package:spice_wallet/screens/desktop/home_shell.dart';
+import 'package:spice_wallet/screens/desktop/home_view.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
@@ -47,6 +50,10 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+      return const DesktopShell(active: DesktopNav.home, child: DesktopHomeView());
+    }
+
     final walletManager = context.watch<WalletManager>();
     final fiatRate = context.watch<FiatRateModel>();
     final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
@@ -285,6 +292,7 @@ class _CoinCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(BrandRadii.field),
       ),
       child: InkWell(
+        mouseCursor: WidgetStateMouseCursor.clickable,
         onTap: () => _open(context),
         borderRadius: BorderRadius.circular(BrandRadii.field),
         child: Padding(

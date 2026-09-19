@@ -6,6 +6,9 @@ import 'package:screen_brightness/screen_brightness.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/screens/desktop/home_shell.dart';
+import 'package:spice_wallet/screens/desktop/receive_view.dart';
+import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/secure_clipboard.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -15,7 +18,11 @@ import 'package:wallet_monero/wallet_monero.dart' show MoneroWallet;
 class ReceiveScreenArgs {
   final String coinSymbol;
 
-  ReceiveScreenArgs({required this.coinSymbol});
+  /// When true (entered from the multicoin home), the coin card becomes an asset
+  /// dropdown so the user can pick which chain to receive on.
+  final bool allAssets;
+
+  ReceiveScreenArgs({required this.coinSymbol, this.allAssets = false});
 }
 
 class ReceiveScreen extends StatefulWidget {
@@ -29,12 +36,36 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   var _showSubaddress = true;
   var _previousBrightness = 0.0;
 
+  String _coinSymbol = 'XMR';
+  bool _allAssets = false;
+  bool _argsLoaded = false;
+
   static bool get _isMobile => Platform.isAndroid || Platform.isIOS;
 
   @override
   void initState() {
     super.initState();
     if (_isMobile) _setBrightnessToMax();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_argsLoaded) return;
+    _argsLoaded = true;
+    final args = ModalRoute.of(context)?.settings.arguments as ReceiveScreenArgs?;
+    if (args != null) {
+      _coinSymbol = args.coinSymbol;
+      _allAssets = args.allAssets;
+    }
+  }
+
+  void _selectAsset(String coinSymbol) {
+    if (coinSymbol == _coinSymbol) return;
+    setState(() {
+      _coinSymbol = coinSymbol;
+      _showSubaddress = true; // reset the Monero subaddress/primary tab
+    });
   }
 
   @override
@@ -78,18 +109,24 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final args = ModalRoute.of(context)?.settings.arguments as ReceiveScreenArgs?;
-    final coinSymbol = args?.coinSymbol ?? 'XMR';
-    final wallet = context.watch<WalletManager>().getWallet(coinSymbol);
+    final manager = context.watch<WalletManager>();
+    final wallet = manager.getWallet(_coinSymbol);
 
     if (wallet == null) {
       return Scaffold(
         backgroundColor: BrandColors.paper,
         body: SafeArea(
-          child: Center(child: Text('Unknown coin: $coinSymbol', style: BrandText.body)),
+          child: Center(child: Text('Unknown coin: $_coinSymbol', style: BrandText.body)),
         ),
       );
     }
+
+    final assetOptions = _allAssets
+        ? [
+            for (final w in receivableChains(manager))
+              (coinSymbol: w.coinSymbol, iconAsset: w.iconAsset, coinName: w.blockchainName),
+          ]
+        : const <ReceiveAssetOption>[];
 
     final primaryAddress = wallet.getPrimaryAddress();
     final receiveAddress = wallet.getReceiveAddress();
@@ -117,6 +154,32 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     final ready = address != null;
     final warning = _warning(i18n, monero, subSupported, unusedIndexSupported);
 
+    if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+      return DesktopShell(
+        active: DesktopNav.home,
+        child: DesktopReceiveView(
+          title: i18n.receiveTitle,
+          copyLabel: i18n.receiveCopyAddress,
+          qrHint: i18n.receiveQrHint(wallet.blockchainName),
+          coinSymbol: wallet.coinSymbol,
+          iconAsset: wallet.iconAsset,
+          coinName: wallet.blockchainName,
+          blockchainSubtitle: i18n.receiveBlockchainSubtitle(wallet.blockchainName),
+          ready: ready,
+          address: address ?? '',
+          qrHeading: ready ? _heading(i18n, wallet, sub, showingSubaddress) : '',
+          tabLabels: canToggle ? [i18n.receiveSubaddressTab, i18n.receivePrimaryTab] : null,
+          selectedTab: _showSubaddress ? 0 : 1,
+          onSelectTab: (i) => setState(() => _showSubaddress = i == 0),
+          warning: warning,
+          onCopy: () => _copyAddress(address!),
+          onBack: () => Navigator.pop(context),
+          assetOptions: assetOptions,
+          onSelectAsset: _allAssets ? _selectAsset : null,
+        ),
+      );
+    }
+
     return ReceiveView(
       labels: ReceiveLabels(title: i18n.receiveTitle, copyAddress: i18n.receiveCopyAddress),
       onBack: () => Navigator.pop(context),
@@ -133,6 +196,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
       qrHeading: ready ? _heading(i18n, wallet, sub, showingSubaddress) : '',
       warning: warning,
       onCopy: () => _copyAddress(address!),
+      assetOptions: assetOptions,
+      onSelectAsset: _allAssets ? _selectAsset : null,
     );
   }
 
