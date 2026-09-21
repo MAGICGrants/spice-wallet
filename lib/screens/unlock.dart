@@ -36,7 +36,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
     if (_isDesktop) {
       PackageInfo.fromPlatform().then((info) {
         if (mounted) {
-          setState(() => _version = 'Spice Wallet ${info.version} · build ${info.buildNumber}');
+          setState(() => _version = 'Spice Wallet v${info.version} · build ${info.buildNumber}');
         }
       });
     }

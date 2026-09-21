@@ -356,19 +356,23 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
 /// Tracks the name of the current top route, so the app-lock relock can avoid
 /// stacking a second unlock screen over one that's already showing.
 class _CurrentRouteObserver extends NavigatorObserver {
-  String? currentName;
+  // A notifier so the desktop shell (in MaterialApp.builder) can rebuild the
+  // persistent sidebar's visibility + active tab when the top route changes.
+  final ValueNotifier<String?> current = ValueNotifier<String?>(null);
+
+  String? get currentName => current.value;
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) =>
-      currentName = route.settings.name;
+      current.value = route.settings.name;
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) =>
-      currentName = previousRoute?.settings.name;
+      current.value = previousRoute?.settings.name;
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) =>
-      currentName = newRoute?.settings.name;
+      current.value = newRoute?.settings.name;
 }
 
 /// A [MaterialPageRoute] whose own push/pop is instant — used for the bottom-nav
