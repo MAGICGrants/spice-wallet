@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/consts.dart' as consts;
+import 'package:spice_wallet/screens/desktop/home_shell.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_settings.dart';
@@ -57,31 +58,7 @@ class DesktopCoinHomeView extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            InkWell(
-              mouseCursor: WidgetStateMouseCursor.clickable,
-              onTap: () => Navigator.pop(context),
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.chevron_left, size: 18, color: BrandColors.primary),
-                    const SizedBox(width: 2),
-                    Text(
-                      i18n.navigationBarHome,
-                      style: TextStyle(
-                        fontFamily: 'Ubuntu',
-                        fontSize: 12.5,
-                        height: 1,
-                        fontWeight: FontWeight.w500,
-                        color: BrandColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            DesktopBackLink(label: i18n.navigationBarHome, onTap: () => Navigator.pop(context)),
             const SizedBox(height: 18),
             _headerCard(
               context,

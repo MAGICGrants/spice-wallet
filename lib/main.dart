@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import 'package:spice_wallet/models/fiat_rate_model.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/contact_model.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
@@ -48,9 +49,6 @@ import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/cacert.dart';
 import 'package:spice_wallet/wallet_core_glue.dart';
 import 'package:wallet_domain/wallet_domain.dart' show WalletManager;
-
-final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
-final isMobile = Platform.isAndroid || Platform.isIOS;
 
 void main() async {
   runZonedGuarded(

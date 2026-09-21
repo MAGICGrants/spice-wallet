@@ -1,9 +1,8 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/create_wallet.dart';
 import 'package:spice_wallet/screens/desktop/create_password_view.dart';
@@ -75,7 +74,6 @@ class _CreateWalletPasswordScreenState extends State<CreateWalletPasswordScreen>
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
     final args = ModalRoute.of(context)?.settings.arguments as CreateWalletPasswordArgs?;
 
     final labels = CreatePasswordLabels(

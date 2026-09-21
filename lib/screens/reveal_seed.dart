@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/screens/desktop/home_shell.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
 import 'package:spice_wallet/widgets/seed_grid.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -47,64 +49,65 @@ class _RevealSeedScreenState extends State<RevealSeedScreen> with SecureScreenMi
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: BrandColors.paper,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: BrandSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: BrandSpacing.sm),
-              BrandScreenHeader(
-                onBack: () => Navigator.pop(context),
-                center: Text(
-                  i18n.settingsSeedPhraseLabel,
-                  style: BrandText.appBar.copyWith(fontSize: 16),
-                ),
+    final content = SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: BrandSpacing.xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: BrandSpacing.sm),
+            BrandScreenHeader(
+              onBack: () => Navigator.pop(context),
+              center: Text(
+                i18n.settingsSeedPhraseLabel,
+                style: BrandText.appBar.copyWith(fontSize: 16),
               ),
-              const SizedBox(height: BrandSpacing.lg),
-              Text(i18n.generateSeedTitleCovered, style: BrandText.title),
-              const SizedBox(height: BrandSpacing.sm),
-              Text(
-                _revealed ? i18n.revealSeedSubtitleRevealed : i18n.revealSeedSubtitleCovered,
-                style: BrandText.bodyMuted,
-              ),
-              const SizedBox(height: BrandSpacing.xl),
-              Expanded(
-                child: !_loaded
-                    ? const SizedBox.shrink()
-                    : ListView(
-                        children: [
-                          SeedGrid(
-                            words: _words,
-                            revealed: _revealed,
-                            revealLabel: i18n.generateSeedReveal,
-                            screenshotNote: i18n.generateSeedScreenshotNote,
-                            onReveal: () => setState(() => _revealed = true),
+            ),
+            const SizedBox(height: BrandSpacing.lg),
+            Text(i18n.generateSeedTitleCovered, style: BrandText.title),
+            const SizedBox(height: BrandSpacing.sm),
+            Text(
+              _revealed ? i18n.revealSeedSubtitleRevealed : i18n.revealSeedSubtitleCovered,
+              style: BrandText.bodyMuted,
+            ),
+            const SizedBox(height: BrandSpacing.xl),
+            Expanded(
+              child: !_loaded
+                  ? const SizedBox.shrink()
+                  : ListView(
+                      children: [
+                        SeedGrid(
+                          words: _words,
+                          revealed: _revealed,
+                          revealLabel: i18n.generateSeedReveal,
+                          screenshotNote: i18n.generateSeedScreenshotNote,
+                          onReveal: () => setState(() => _revealed = true),
+                        ),
+                        if (_revealed && _restoreDate != null) ...[
+                          const SizedBox(height: BrandSpacing.lg),
+                          SeedBirthdayCard(
+                            label: i18n.generateSeedBirthdayLabel,
+                            reason: i18n.generateSeedBirthdayReason,
+                            value: DateFormat.yMMM(
+                              Localizations.localeOf(context).toString(),
+                            ).format(_restoreDate!),
                           ),
-                          if (_revealed && _restoreDate != null) ...[
-                            const SizedBox(height: BrandSpacing.lg),
-                            SeedBirthdayCard(
-                              label: i18n.generateSeedBirthdayLabel,
-                              reason: i18n.generateSeedBirthdayReason,
-                              value: DateFormat.yMMM(
-                                Localizations.localeOf(context).toString(),
-                              ).format(_restoreDate!),
-                            ),
-                          ],
                         ],
-                      ),
-              ),
-              BrandButton.secondary(
-                label: _revealed ? i18n.revealSeedHideButton : i18n.revealSeedBackButton,
-                onPressed: () => Navigator.pop(context),
-              ),
-              const SizedBox(height: BrandSpacing.sm),
-            ],
-          ),
+                      ],
+                    ),
+            ),
+            BrandButton.secondary(
+              label: _revealed ? i18n.revealSeedHideButton : i18n.revealSeedBackButton,
+              onPressed: () => Navigator.pop(context),
+            ),
+            const SizedBox(height: BrandSpacing.sm),
+          ],
         ),
       ),
     );
+    if (isDesktop) {
+      return DesktopShell(active: DesktopNav.settings, child: content);
+    }
+    return Scaffold(backgroundColor: BrandColors.paper, body: content);
   }
 }

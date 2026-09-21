@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/format.dart';
@@ -126,7 +127,6 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     if (isDesktop) {
       return DesktopShell(
@@ -141,18 +141,7 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                 children: [
                   Row(
                     children: [
-                      Expanded(
-                        child: Text(
-                          i18n.addressBookTitle,
-                          style: TextStyle(
-                            fontFamily: 'Ubuntu',
-                            fontSize: 26,
-                            height: 1.2,
-                            fontWeight: FontWeight.w700,
-                            color: BrandColors.ink,
-                          ),
-                        ),
-                      ),
+                      Expanded(child: Text(i18n.addressBookTitle, style: desktopTitleStyle)),
                       BrandButton.secondary(
                         label: i18n.addressBookAddContact,
                         icon: Icons.add,

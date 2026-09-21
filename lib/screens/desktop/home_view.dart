@@ -77,29 +77,7 @@ class DesktopHomeView extends StatelessWidget {
             const SizedBox(height: 30),
             _coinGrid(context, manager, wallets, fiatRate, fiatSymbol),
             const SizedBox(height: 20),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SectionHeader(label: i18n.coinHomeActivityTitle, padding: EdgeInsets.zero),
-                if (top.isNotEmpty)
-                  InkWell(
-                    mouseCursor: WidgetStateMouseCursor.clickable,
-                    onTap: () => Navigator.pushNamed(context, '/history'),
-                    child: Text(
-                      i18n.navigationBarHistory,
-                      style: TextStyle(
-                        fontFamily: 'Ubuntu',
-                        fontSize: 12.5,
-                        height: 1,
-                        fontWeight: FontWeight.w500,
-                        color: BrandColors.primary,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+            SectionHeader(label: i18n.coinHomeActivityTitle, padding: EdgeInsets.zero),
             const SizedBox(height: 12),
             if (top.isEmpty)
               Padding(

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:spice_wallet/util/logging.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
@@ -264,8 +265,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final i18n = AppLocalizations.of(context)!;
     final language = context.watch<LanguageModel>();
     final theme = context.watch<ThemeModel>();
-    final isMobile = Platform.isAndroid || Platform.isIOS;
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     final themeLabel = {
       'system': i18n.settingsThemeSystem,
@@ -397,16 +396,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(44, 30, 44, 36),
           children: [
-            Text(
-              i18n.settingsTitle,
-              style: TextStyle(
-                fontFamily: 'Ubuntu',
-                fontSize: 26,
-                height: 1.2,
-                fontWeight: FontWeight.w700,
-                color: BrandColors.ink,
-              ),
-            ),
+            Text(i18n.settingsTitle, style: desktopTitleStyle),
             const SizedBox(height: 24),
             ...tiles,
           ],

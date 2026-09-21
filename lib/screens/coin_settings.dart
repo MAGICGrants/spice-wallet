@@ -1,9 +1,8 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
 import 'package:spice_wallet/screens/explorer_setup.dart';
 import 'package:spice_wallet/screens/lws_keys.dart';
@@ -22,7 +21,6 @@ List<Widget> coinSettingsGroups(BuildContext context, CryptoWallet wallet) {
   final i18n = AppLocalizations.of(context)!;
   final coinSymbol = wallet.coinSymbol;
   // Desktop opens these options as stacked modals; mobile navigates full screens.
-  final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
   final connectionValue = wallet.connectionAddress.isNotEmpty
       ? wallet.connectionAddress
       : i18n.settingsCoinNotConfigured;

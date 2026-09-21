@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/util/socks_http.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -118,7 +119,6 @@ class _TorModeSelectorState extends State<TorModeSelector> {
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final isMobile = Platform.isAndroid || Platform.isIOS;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/consts.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/desktop/fiat_setup_view.dart';
@@ -52,7 +53,6 @@ class _FiatApiSetupScreenState extends State<FiatApiSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     final labels = FiatSetupLabels(
       title: i18n.fiatApiSetupTitle,

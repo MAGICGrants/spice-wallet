@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +5,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_settings.dart';
 import 'package:spice_wallet/screens/desktop/coin_home_view.dart';
@@ -94,7 +93,7 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
 
     final coinSymbol = _coinSymbolFromRoute(context);
 
-    if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+    if (isDesktop) {
       return DesktopShell(
         active: DesktopNav.home,
         child: DesktopCoinHomeView(coinSymbol: coinSymbol),

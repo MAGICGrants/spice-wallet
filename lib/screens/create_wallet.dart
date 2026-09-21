@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'dart:io' show Platform;
-
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/screens/desktop/wallet_setup_view.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 
@@ -37,7 +36,6 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     final labels = CreateWalletLabels(
       title: i18n.createWalletTitle,

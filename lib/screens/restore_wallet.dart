@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/create_wallet_password.dart';
 import 'package:spice_wallet/screens/desktop/onboarding_scaffold.dart';
@@ -133,8 +134,6 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
       scanValue = i18n.restoreScanFromStart;
       scanStyle = BrandText.body;
     }
-
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     final view = RestoreWalletView(
       controller: _restoreWalletController,

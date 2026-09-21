@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:spice_wallet/widgets/ui/ui.dart';
+import 'package:spice_wallet/screens/desktop/home_shell.dart';
 
 /// Desktop receive (inside [DesktopShell]): a QR panel on the left, and the coin
 /// card, subaddress/primary toggle, address and Copy on the right. Presentational
@@ -56,42 +57,9 @@ class DesktopReceiveView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(44, 30, 44, 36),
       children: [
-        InkWell(
-          mouseCursor: WidgetStateMouseCursor.clickable,
-          onTap: onBack,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.chevron_left, size: 18, color: BrandColors.primary),
-                const SizedBox(width: 2),
-                Text(
-                  coinName,
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu',
-                    fontSize: 12.5,
-                    height: 1,
-                    fontWeight: FontWeight.w500,
-                    color: BrandColors.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        DesktopBackLink(label: coinName, onTap: onBack),
         const SizedBox(height: 16),
-        Text(
-          title,
-          style: TextStyle(
-            fontFamily: 'Ubuntu',
-            fontSize: 26,
-            height: 1.2,
-            fontWeight: FontWeight.w700,
-            color: BrandColors.ink,
-          ),
-        ),
+        Text(title, style: desktopTitleStyle),
         const SizedBox(height: 24),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,

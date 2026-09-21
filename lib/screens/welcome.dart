@@ -1,10 +1,9 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/screens/desktop/welcome_view.dart';
 import 'package:spice_wallet/widgets/spinning_logo.dart';
 import 'package:spice_wallet/widgets/theme_language_sheets.dart';
@@ -38,7 +37,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     final labels = WelcomeLabels(
       getStarted: i18n.welcomeGetStarted,

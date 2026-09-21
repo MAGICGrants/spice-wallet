@@ -11,6 +11,58 @@ import 'package:wallet_infra/wallet_infra.dart';
 /// The top-level desktop destinations, mirroring the mobile navigation bar.
 enum DesktopNav { home, history, addressBook, settings }
 
+/// Shared style for a desktop screen's large title (Settings, History, …).
+TextStyle get desktopTitleStyle => TextStyle(
+  fontFamily: 'Ubuntu',
+  fontSize: 26,
+  height: 1.2,
+  fontWeight: FontWeight.w700,
+  color: BrandColors.ink,
+);
+
+/// The "‹ label" back link at the top of a desktop sub-screen (coin home,
+/// receive, ToS, …) — the shared back affordance in place of a mobile app bar.
+class DesktopBackLink extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const DesktopBackLink({super.key, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    // Sized to its content (left-aligned) so the hover/ripple doesn't span the
+    // full parent width; a little right padding keeps the ripple off the label.
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: InkWell(
+        mouseCursor: WidgetStateMouseCursor.clickable,
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(0, 4, 4, 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.chevron_left, size: 18, color: BrandColors.primary),
+              const SizedBox(width: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Ubuntu',
+                  fontSize: 12.5,
+                  height: 1,
+                  fontWeight: FontWeight.w500,
+                  color: BrandColors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Two-pane desktop chrome: a fixed left sidebar (brand, nav, Tor status,
 /// version) with the screen's content on the right. Shared by the desktop
 /// screens so the sidebar stays put.
@@ -30,7 +82,10 @@ class DesktopShell extends StatefulWidget {
 }
 
 class _DesktopShellState extends State<DesktopShell> {
-  String _version = '';
+  // Cached across shells: each nav click mounts a fresh shell, and a per-instance
+  // reload would blank the version line for a frame (a flicker) every time.
+  static String _cachedVersion = '';
+  String _version = _cachedVersion;
 
   // TorService exposes no change notification, so poll its status and rebuild
   // when it flips (e.g. connecting → connected after launch).
@@ -40,9 +95,12 @@ class _DesktopShellState extends State<DesktopShell> {
   @override
   void initState() {
     super.initState();
-    PackageInfo.fromPlatform().then((info) {
-      if (mounted) setState(() => _version = 'v${info.version} · build ${info.buildNumber}');
-    });
+    if (_cachedVersion.isEmpty) {
+      PackageInfo.fromPlatform().then((info) {
+        _cachedVersion = 'v${info.version} · build ${info.buildNumber}';
+        if (mounted) setState(() => _version = _cachedVersion);
+      });
+    }
     _torPoll = Timer.periodic(const Duration(seconds: 1), (_) {
       final status = TorService.sharedInstance.status;
       if (mounted && status != _torState) setState(() => _torState = status);
@@ -73,7 +131,13 @@ class _DesktopShellState extends State<DesktopShell> {
         children: [
           // Flies in place across transitions, so the sidebar doesn't slide with
           // the page. Kept out of the page's own transition, like the mobile nav.
-          Hero(tag: 'desktop-sidebar', child: _sidebar(context)),
+          // placeholderBuilder keeps it painted in place during the flight, so
+          // instant (zero-duration) tab switches don't blink an empty gap.
+          Hero(
+            tag: 'desktop-sidebar',
+            placeholderBuilder: (context, heroSize, child) => child,
+            child: _sidebar(context),
+          ),
           Expanded(
             child: Align(
               alignment: Alignment.topCenter,
@@ -227,7 +291,12 @@ class _DesktopShellState extends State<DesktopShell> {
           const SizedBox(width: 9),
           Text(
             text,
-            style: TextStyle(fontFamily: 'Ubuntu', fontSize: 12, height: 1, color: BrandColors.inkMuted),
+            style: TextStyle(
+              fontFamily: 'Ubuntu',
+              fontSize: 12,
+              height: 1,
+              color: BrandColors.inkMuted,
+            ),
           ),
         ],
       ),

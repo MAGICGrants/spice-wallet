@@ -6,6 +6,7 @@ import 'package:screen_brightness/screen_brightness.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/screens/desktop/home_shell.dart';
 import 'package:spice_wallet/screens/desktop/receive_view.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
@@ -154,7 +155,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     final ready = address != null;
     final warning = _warning(i18n, monero, subSupported, unusedIndexSupported);
 
-    if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+    if (isDesktop) {
       return DesktopShell(
         active: DesktopNav.home,
         child: DesktopReceiveView(

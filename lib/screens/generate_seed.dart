@@ -1,10 +1,9 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/create_wallet.dart';
 import 'package:spice_wallet/screens/create_wallet_password.dart';
@@ -82,7 +81,6 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     if (isDesktop) {
       return DesktopGenerateSeedView(

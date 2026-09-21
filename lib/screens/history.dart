@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/format.dart';
@@ -126,7 +127,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final manager = context.watch<WalletManager>();
     final fiatRate = context.watch<FiatRateModel>();
     final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
     // Content gutter: the desktop shell caps width and wants wider margins.
     final gutter = isDesktop ? 44.0 : 20.0;
 
@@ -359,16 +359,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(44, 30, 44, 20),
-              child: Text(
-                i18n.historyTitle,
-                style: TextStyle(
-                  fontFamily: 'Ubuntu',
-                  fontSize: 26,
-                  height: 1.2,
-                  fontWeight: FontWeight.w700,
-                  color: BrandColors.ink,
-                ),
-              ),
+              child: Text(i18n.historyTitle, style: desktopTitleStyle),
             ),
             ...filters,
           ],

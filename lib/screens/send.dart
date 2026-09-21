@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -9,6 +8,7 @@ import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
@@ -772,7 +772,7 @@ class _SendScreenState extends State<SendScreen> {
     final amount = double.tryParse(_amountController.text) ?? 0;
     final amountFiat = coinRate != null ? amount * coinRate : 0.0;
 
-    if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+    if (isDesktop) {
       return DesktopShell(
         active: DesktopNav.home,
         child: _desktopBody(
@@ -894,16 +894,7 @@ class _SendScreenState extends State<SendScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        Text(
-          i18n.sendTitle,
-          style: TextStyle(
-            fontFamily: 'Ubuntu',
-            fontSize: 26,
-            height: 1.2,
-            fontWeight: FontWeight.w700,
-            color: BrandColors.ink,
-          ),
-        ),
+        Text(i18n.sendTitle, style: desktopTitleStyle),
         const SizedBox(height: 24),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,

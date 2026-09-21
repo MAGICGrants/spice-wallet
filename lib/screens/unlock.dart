@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
@@ -20,8 +21,6 @@ class UnlockScreen extends StatefulWidget {
 }
 
 class _UnlockScreenState extends State<UnlockScreen> {
-  static bool get _isDesktop => Platform.isLinux || Platform.isWindows || Platform.isMacOS;
-
   final _passwordController = TextEditingController();
   bool _obscure = true;
   bool _isLoading = false;
@@ -33,7 +32,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
   @override
   void initState() {
     super.initState();
-    if (_isDesktop) {
+    if (isDesktop) {
       PackageInfo.fromPlatform().then((info) {
         if (mounted) {
           setState(() => _version = 'Spice Wallet v${info.version} · build ${info.buildNumber}');
@@ -45,7 +44,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_started || _isDesktop) return;
+    if (_started || isDesktop) return;
     _started = true;
     _resolveBiometricLabel();
     _promptUnlock();
@@ -154,7 +153,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
         unlockButton: i18n.unlockButton,
         passwordLabel: i18n.unlockPasswordLabel,
       ),
-      isDesktop: _isDesktop,
+      isDesktop: isDesktop,
       version: _version.isEmpty ? null : _version,
       passwordController: _passwordController,
       obscure: _obscure,
