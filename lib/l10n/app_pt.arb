@@ -195,6 +195,8 @@
   "receiveSubaddressTab": "Subendereço",
   "receivePrimaryTab": "Endereço primário",
   "receiveCopyAddress": "Copiar endereço",
+  "receiveEnlargeQr": "Toque para ampliar e aumentar o brilho",
+  "receiveShrinkQr": "Toque para reduzir",
   "receiveShareError": "Não foi possível abrir a janela de compartilhamento",
   "receiveAddressHeading": "Seu endereço {coin}",
   "@receiveAddressHeading": {

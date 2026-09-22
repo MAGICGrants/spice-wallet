@@ -195,6 +195,8 @@
   "receiveSubaddressTab": "Subaddress",
   "receivePrimaryTab": "Primary address",
   "receiveCopyAddress": "Copy address",
+  "receiveEnlargeQr": "Tap to enlarge and brighten",
+  "receiveShrinkQr": "Tap to shrink",
   "receiveShareError": "Could not open the share sheet",
   "receiveAddressHeading": "Your {coin} address",
   "@receiveAddressHeading": {

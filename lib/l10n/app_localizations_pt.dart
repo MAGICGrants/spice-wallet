@@ -504,6 +504,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get receiveCopyAddress => 'Copiar endereço';
 
   @override
+  String get receiveEnlargeQr => 'Toque para ampliar e aumentar o brilho';
+
+  @override
+  String get receiveShrinkQr => 'Toque para reduzir';
+
+  @override
   String get receiveShareError => 'Não foi possível abrir a janela de compartilhamento';
 
   @override
