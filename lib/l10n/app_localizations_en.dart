@@ -503,6 +503,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receiveCopyAddress => 'Copy address';
 
   @override
+  String get receiveEnlargeQr => 'Tap to enlarge and brighten';
+
+  @override
+  String get receiveShrinkQr => 'Tap to shrink';
+
+  @override
   String get receiveShareError => 'Could not open the share sheet';
 
   @override

@@ -1011,6 +1011,18 @@ abstract class AppLocalizations {
   /// **'Copy address'**
   String get receiveCopyAddress;
 
+  /// No description provided for @receiveEnlargeQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to enlarge and brighten'**
+  String get receiveEnlargeQr;
+
+  /// No description provided for @receiveShrinkQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to shrink'**
+  String get receiveShrinkQr;
+
   /// No description provided for @receiveShareError.
   ///
   /// In en, this message translates to:
