@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import 'package:spice_wallet/models/fiat_rate_model.dart';
@@ -342,7 +343,14 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
           });
         }
         _lastBrightness = brightness;
-        return child ?? const SizedBox.shrink();
+        // Brand-tone skeletons (the default grey clashes with the scheme); the
+        // token resolves to the current theme.
+        return SkeletonizerConfig(
+          data: SkeletonizerConfigData(
+            effect: SoldColorEffect(color: BrandColors.surfaceMuted),
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
       },
       initialRoute: '/loading',
       locale: Locale.fromSubtags(languageCode: languageProvider.language),

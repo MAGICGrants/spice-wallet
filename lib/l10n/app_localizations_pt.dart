@@ -18,6 +18,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get close => 'Fechar';
 
   @override
+  String get back => 'Voltar';
+
+  @override
   String get unknownError => 'Erro desconhecido.';
 
   @override

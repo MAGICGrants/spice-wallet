@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-import 'package:spice_wallet/screens/desktop/onboarding_scaffold.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 
 /// Desktop Step 4 of 5 (new wallet) — shows the generated seed words + wallet
@@ -46,6 +46,7 @@ class _DesktopGenerateSeedViewState extends State<DesktopGenerateSeedView> {
   @override
   Widget build(BuildContext context) {
     return DesktopOnboardingScaffold(
+      logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
       title: widget.title,
       description: widget.description,
       step: 4,

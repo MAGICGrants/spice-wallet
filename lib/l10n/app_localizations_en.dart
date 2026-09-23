@@ -18,6 +18,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get close => 'Close';
 
   @override
+  String get back => 'Back';
+
+  @override
   String get unknownError => 'Unknown error.';
 
   @override

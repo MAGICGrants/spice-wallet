@@ -1173,7 +1173,7 @@ class _SendScreenState extends State<SendScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: BrandColors.inkMuted),
+            Icon(icon, size: 16, color: BrandColors.primaryDeep),
             const SizedBox(width: 7),
             Text(
               label,
@@ -1182,7 +1182,7 @@ class _SendScreenState extends State<SendScreen> {
                 fontSize: 12.5,
                 height: 1,
                 fontWeight: FontWeight.w500,
-                color: BrandColors.ink,
+                color: BrandColors.primaryDeep,
               ),
             ),
           ],

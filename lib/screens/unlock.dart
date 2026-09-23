@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/util/logging.dart';
+import 'package:spice_wallet/widgets/spinning_logo.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
@@ -146,7 +147,11 @@ class _UnlockScreenState extends State<UnlockScreen> {
     // stack on a relock, and backing out would reveal it unauthenticated.
     // Unlocking still pops programmatically from _unlockDone.
     return UnlockView(
-      logo: SvgPicture.asset('assets/spice-mark.svg', width: 84, height: 84),
+      // Same spin-in as the welcome screen (pivots on the mark's off-centre spiral).
+      logo: SpinningLogo(
+        alignment: const Alignment(-0.133, -0.283),
+        child: SvgPicture.asset('assets/spice-mark.svg', width: 84, height: 84),
+      ),
       labels: UnlockLabels(
         title: i18n.unlockLockedTitle,
         passwordHint: i18n.unlockPasswordHint,

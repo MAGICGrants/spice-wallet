@@ -70,10 +70,7 @@ class DesktopWelcomeView extends StatelessWidget {
                   child: BrandButton(label: labels.getStarted, onPressed: onGetStarted),
                 ),
                 const SizedBox(height: 16),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 360),
-                  child: _TermsLine(labels: labels, onTerms: onTerms, onPrivacy: onPrivacy),
-                ),
+                _TermsLine(labels: labels, onTerms: onTerms, onPrivacy: onPrivacy),
               ],
             ),
           ),
@@ -106,13 +103,15 @@ class _TermsLine extends StatelessWidget {
         children: [
           TextSpan(text: labels.agreePrefix),
           TextSpan(
-            text: labels.termsLink,
+            // Non-breaking spaces keep the link phrase whole — the line wraps
+            // between phrases, never mid-"Terms of Service".
+            text: labels.termsLink.replaceAll(' ', ' '),
             style: link,
             recognizer: TapGestureRecognizer()..onTap = onTerms,
           ),
           TextSpan(text: labels.agreeMiddle),
           TextSpan(
-            text: labels.privacyLink,
+            text: labels.privacyLink.replaceAll(' ', ' '),
             style: link,
             recognizer: TapGestureRecognizer()..onTap = onPrivacy,
           ),

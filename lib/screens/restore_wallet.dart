@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:bip39/bip39.dart' as bip39;
 // ignore: implementation_imports — the BIP39 English wordlist for per-word checks.
@@ -11,7 +12,6 @@ import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/create_wallet_password.dart';
-import 'package:spice_wallet/screens/desktop/onboarding_scaffold.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -180,6 +180,7 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
     return ValueListenableBuilder<bool>(
       valueListenable: _restoreWalletController.canRestore,
       builder: (context, valid, _) => DesktopOnboardingScaffold(
+      logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
         title: i18n.restoreWalletTitle,
         description: i18n.restoreWalletSubtitle,
         step: 4,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-import 'package:spice_wallet/screens/desktop/onboarding_scaffold.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 
 /// Desktop Step 3 of 5 — create-new vs restore. Selection then Continue (rather
@@ -34,6 +34,7 @@ class _DesktopWalletSetupViewState extends State<DesktopWalletSetupView> {
   Widget build(BuildContext context) {
     final l = widget.labels;
     return DesktopOnboardingScaffold(
+      logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
       title: l.title,
       description: l.subtitle,
       step: 3,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-import 'package:spice_wallet/screens/desktop/onboarding_scaffold.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 
 /// Desktop Step 1 of 5 — Tor connection choice (Built-in / External / No Tor).
@@ -59,6 +59,7 @@ class _DesktopTorChoiceViewState extends State<DesktopTorChoiceView> {
   Widget build(BuildContext context) {
     final l = widget.labels;
     return DesktopOnboardingScaffold(
+      logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
       title: l.title,
       description: l.subtitle,
       step: 1,

@@ -357,11 +357,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         tiles: [
           SettingsNavTile(
             title: i18n.welcomeTermsLink,
-            onTap: () => Navigator.pushNamed(context, '/terms_of_service'),
+            onTap: () => Navigator.pushNamed(context, '/terms_of_service', arguments: true),
           ),
           SettingsNavTile(
             title: i18n.welcomePrivacyLink,
-            onTap: () => Navigator.pushNamed(context, '/privacy_policy'),
+            onTap: () => Navigator.pushNamed(context, '/privacy_policy', arguments: true),
           ),
         ],
       ),

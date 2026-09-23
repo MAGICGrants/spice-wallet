@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-import 'package:spice_wallet/screens/desktop/onboarding_scaffold.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 
 /// Desktop Step 2 of 5 — price-display choice (Tor-Only / Clearnet / Disabled)
@@ -34,6 +34,7 @@ class DesktopFiatSetupView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DesktopOnboardingScaffold(
+      logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
       title: labels.title,
       description: labels.subtitle,
       step: 2,
