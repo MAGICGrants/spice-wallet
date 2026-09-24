@@ -9,6 +9,10 @@ import 'package:spice_wallet/widgets/ui/ui.dart';
 class DesktopWalletSetupView extends StatefulWidget {
   final CreateWalletLabels labels;
   final String continueText;
+  final String noteGenerated;
+  final String noteRestore;
+  final List<String> createBullets;
+  final List<String> restoreBullets;
   final VoidCallback onCreateNew;
   final VoidCallback onRestore;
   final VoidCallback? onBack;
@@ -17,6 +21,10 @@ class DesktopWalletSetupView extends StatefulWidget {
     super.key,
     required this.labels,
     required this.continueText,
+    required this.noteGenerated,
+    required this.noteRestore,
+    required this.createBullets,
+    required this.restoreBullets,
     required this.onCreateNew,
     required this.onRestore,
     this.onBack,
@@ -45,15 +53,9 @@ class _DesktopWalletSetupViewState extends State<DesktopWalletSetupView> {
       onContinue: _selected == null
           ? null
           : (_selected == _new ? widget.onCreateNew : widget.onRestore),
-      notes: const [
-        OnboardingNote(
-          Icons.key_outlined,
-          'A new wallet’s seed is generated here, offline, and shown to you once.',
-        ),
-        OnboardingNote(
-          Icons.history,
-          'Restoring asks roughly when the seed first held funds, to skip years of scanning.',
-        ),
+      notes: [
+        OnboardingNote(Icons.key_outlined, widget.noteGenerated),
+        OnboardingNote(Icons.history, widget.noteRestore),
       ],
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -64,11 +66,7 @@ class _DesktopWalletSetupViewState extends State<DesktopWalletSetupView> {
             title: l.createNew,
             description: l.createNewDesc,
             onTap: () => setState(() => _selected = _new),
-            trailing: const _Bullets([
-              'Fifteen words, shown once',
-              'Starts empty, syncs from today',
-              'Takes about two minutes',
-            ]),
+            trailing: _Bullets(widget.createBullets),
           ),
           const SizedBox(height: 10),
           OnboardingRadioCard(
@@ -77,11 +75,7 @@ class _DesktopWalletSetupViewState extends State<DesktopWalletSetupView> {
             title: l.restore,
             description: l.restoreDesc,
             onTap: () => setState(() => _selected = _restore),
-            trailing: const _Bullets([
-              'Any BIP39 phrase',
-              'Optional scan-from date',
-              'Same password step afterwards',
-            ]),
+            trailing: _Bullets(widget.restoreBullets),
           ),
         ],
       ),

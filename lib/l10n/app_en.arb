@@ -93,11 +93,29 @@
   "generateSeedSubtitleCovered": "These fifteen words, in this order, are your wallet. Write them down and keep them in a physical safe. If you lose these words or if you share them with anyone else, you will lose your money permanently. Careful planning now avoids a potential disaster later.",
   "generateSeedSubtitleRevealed": "Securely save these. Do not share them.",
   "generateSeedScreenshotNote": "Screenshots are blocked on this screen. Make sure nobody is looking over your shoulder.",
+  "generateSeedPasswordNote": "Spice Wallet asks for your password before ever showing them again.",
   "generateSeedReveal": "Tap to reveal",
   "generateSeedBirthdayLabel": "Wallet birthday",
   "generateSeedBirthdayReason": "Where a future restore starts scanning",
   "generateSeedConfirm": "I have written down all 15 words and stored them somewhere only I can reach.",
   "generateSeedContinueButton": "Continue",
+  "onboardingPriceNoteRatesOnly": "The price service is asked for rates only — never for addresses or amounts.",
+  "onboardingPriceNoteTor": "Routed over Tor by default, separately from chain traffic.",
+  "onboardingTorNotePrivacy": "Tor hides your address from the node you query — slower, and worth it.",
+  "onboardingTorNoteChangeable": "Changeable later under Settings → Connections, per chain.",
+  "onboardingPasswordNoteLaunch": "Asked for at every launch, and before the seed is ever shown.",
+  "onboardingPasswordNoteNotCloud": "Not a cloud account. Losing it means restoring from your seed phrase.",
+  "onboardingPasswordStrong": "Strong",
+  "onboardingPasswordMatch": "Both entries match",
+  "onboardingPasswordAcknowledge": "I understand that no one — including the Spice Wallet team — can recover this password for me.",
+  "onboardingWalletNoteGenerated": "A new wallet’s seed is generated here, offline, and shown to you once.",
+  "onboardingWalletNoteRestore": "Restoring asks roughly when the seed first held funds, to skip years of scanning.",
+  "onboardingWalletCreateBullet1": "Fifteen words, shown once",
+  "onboardingWalletCreateBullet2": "Starts empty, syncs from today",
+  "onboardingWalletCreateBullet3": "Takes about two minutes",
+  "onboardingWalletRestoreBullet1": "Any BIP39 phrase",
+  "onboardingWalletRestoreBullet2": "Optional scan-from date",
+  "onboardingWalletRestoreBullet3": "Same password step afterwards",
   "lwsDetailsDescription": "If your Monero light wallet server (LWS) requires registration, you can use these details to add this wallet to that server. Not all servers require registration.",
   "restoreWalletTitle": "Restore wallet",
   "restoreWalletSubtitle": "Any BIP39 phrase, from Spice Wallet or another wallet.",
@@ -158,6 +176,9 @@
   "unlockIncorrectPasswordError": "Incorrect password. Please try again.",
   "homeSyncing": "Syncing",
   "homeSynced": "Synced",
+  "homeTorConnected": "Tor · connected",
+  "homeTorConnecting": "Tor · connecting",
+  "homeTorOff": "Tor · off",
   "homeBlocksRemaining": "{count} blocks left",
   "@homeBlocksRemaining": {
     "placeholders": {
@@ -168,6 +189,14 @@
   },
   "homeNoConnection": "No connection",
   "homeCoinNotConfigured": "Not configured",
+  "homeUnknownCoin": "Unknown coin: {symbol}",
+  "@homeUnknownCoin": {
+    "placeholders": {
+      "symbol": {
+        "type": "String"
+      }
+    }
+  },
   "homeAssetsCount": "{count, plural, =1{1 asset} other{{count} assets}}",
   "@homeAssetsCount": {
     "placeholders": {
@@ -185,7 +214,6 @@
   "coinHomeSent": "Sent",
   "coinHomeAddExplorerTitle": "Add an explorer to see history",
   "coinHomeAddExplorerButton": "Add explorer",
-  "homeFiatSource": "Kraken over Tor",
   "homeReceive": "Receive",
   "homeSend": "Send",
   "homeNoTransactions": "No transactions",
@@ -271,7 +299,6 @@
   "settingsLanguageLabel": "Language",
   "settingsLanguageSheetSubtitle": "Pick your language and localization.",
   "settingsSeedPhraseLabel": "Seed Phrase",
-  "revealSeedSubtitleCovered": "The same fifteen words this wallet was created with, in the same order.",
   "revealSeedSubtitleRevealed": "Securely save these. Do not share them. If you lose these words or if you share them with anyone else, you will lose your money permanently.",
   "revealSeedBackButton": "Back to settings",
   "revealSeedHideButton": "Hide and go back",

@@ -7,6 +7,8 @@ import 'package:spice_wallet/widgets/ui/ui.dart';
 /// plus the display currency. Reuses the mobile [FiatSetupLabels] and callbacks.
 class DesktopFiatSetupView extends StatelessWidget {
   final FiatSetupLabels labels;
+  final String noteRatesOnly;
+  final String noteTor;
   final List<FiatCurrencyOption> currencies;
   final int modeIndex;
   final String currency;
@@ -19,6 +21,8 @@ class DesktopFiatSetupView extends StatelessWidget {
   const DesktopFiatSetupView({
     super.key,
     required this.labels,
+    required this.noteRatesOnly,
+    required this.noteTor,
     required this.currencies,
     required this.modeIndex,
     required this.currency,
@@ -42,15 +46,9 @@ class DesktopFiatSetupView extends StatelessWidget {
       continueLabel: labels.continueText,
       onBack: onBack,
       onContinue: onContinue,
-      notes: const [
-        OnboardingNote(
-          Icons.price_change_outlined,
-          'The price service is asked for rates only — never for addresses or amounts.',
-        ),
-        OnboardingNote(
-          Icons.lock_outline,
-          'Routed over Tor by default, separately from chain traffic.',
-        ),
+      notes: [
+        OnboardingNote(Icons.price_change_outlined, noteRatesOnly),
+        OnboardingNote(Icons.lock_outline, noteTor),
       ],
       content: ListView(
         padding: EdgeInsets.zero,
@@ -131,7 +129,7 @@ class _CurrencyChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: selected ? BrandColors.surfaceSunken : BrandColors.card,
+          color: BrandColors.card,
           border: Border.all(
             color: selected ? BrandColors.primary : BrandColors.border,
             width: selected ? 1.5 : 1,

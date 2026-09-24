@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
-/// Spins [child] [turns] of a full rotation over [period], once, then stops
-/// (default 0.5 = 180°). [alignment] is the pivot: default centre, but the spice
-/// mark's viewBox isn't centred on the spiral origin, so pass the spiral centre
-/// to spin in place instead of orbit.
+/// Spins [child] [turns] of a full rotation over [period], once, then stops.
+/// The sweep ends upright: it runs from `-turns` to `0`, so a default 0.5 turns
+/// sweeps 180° and settles the mark the right way up (not upside down).
+/// [alignment] is the pivot: default centre, but the spice mark's viewBox isn't
+/// centred on the spiral origin, so pass the spiral centre to spin in place
+/// instead of orbit.
 class SpinningLogo extends StatefulWidget {
   final Widget child;
   final Duration period;
@@ -30,7 +32,7 @@ class _SpinningLogoState extends State<SpinningLogo> with SingleTickerProviderSt
     duration: widget.period,
   )..forward();
   late final CurvedAnimation _curved = CurvedAnimation(parent: _controller, curve: widget.curve);
-  late final Animation<double> _turns = _curved.drive(Tween(begin: 0.0, end: widget.turns));
+  late final Animation<double> _turns = _curved.drive(Tween(begin: -widget.turns, end: 0.0));
 
   @override
   void dispose() {

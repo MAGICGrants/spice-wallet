@@ -259,6 +259,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Screenshots are blocked on this screen. Make sure nobody is looking over your shoulder.';
 
   @override
+  String get generateSeedPasswordNote =>
+      'Spice Wallet asks for your password before ever showing them again.';
+
+  @override
   String get generateSeedReveal => 'Tap to reveal';
 
   @override
@@ -273,6 +277,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get generateSeedContinueButton => 'Continue';
+
+  @override
+  String get onboardingPriceNoteRatesOnly =>
+      'The price service is asked for rates only — never for addresses or amounts.';
+
+  @override
+  String get onboardingPriceNoteTor => 'Routed over Tor by default, separately from chain traffic.';
+
+  @override
+  String get onboardingTorNotePrivacy =>
+      'Tor hides your address from the node you query — slower, and worth it.';
+
+  @override
+  String get onboardingTorNoteChangeable =>
+      'Changeable later under Settings → Connections, per chain.';
+
+  @override
+  String get onboardingPasswordNoteLaunch =>
+      'Asked for at every launch, and before the seed is ever shown.';
+
+  @override
+  String get onboardingPasswordNoteNotCloud =>
+      'Not a cloud account. Losing it means restoring from your seed phrase.';
+
+  @override
+  String get onboardingPasswordStrong => 'Strong';
+
+  @override
+  String get onboardingPasswordMatch => 'Both entries match';
+
+  @override
+  String get onboardingPasswordAcknowledge =>
+      'I understand that no one — including the Spice Wallet team — can recover this password for me.';
+
+  @override
+  String get onboardingWalletNoteGenerated =>
+      'A new wallet’s seed is generated here, offline, and shown to you once.';
+
+  @override
+  String get onboardingWalletNoteRestore =>
+      'Restoring asks roughly when the seed first held funds, to skip years of scanning.';
+
+  @override
+  String get onboardingWalletCreateBullet1 => 'Fifteen words, shown once';
+
+  @override
+  String get onboardingWalletCreateBullet2 => 'Starts empty, syncs from today';
+
+  @override
+  String get onboardingWalletCreateBullet3 => 'Takes about two minutes';
+
+  @override
+  String get onboardingWalletRestoreBullet1 => 'Any BIP39 phrase';
+
+  @override
+  String get onboardingWalletRestoreBullet2 => 'Optional scan-from date';
+
+  @override
+  String get onboardingWalletRestoreBullet3 => 'Same password step afterwards';
 
   @override
   String get lwsDetailsDescription =>
@@ -418,6 +481,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeSynced => 'Synced';
 
   @override
+  String get homeTorConnected => 'Tor · connected';
+
+  @override
+  String get homeTorConnecting => 'Tor · connecting';
+
+  @override
+  String get homeTorOff => 'Tor · off';
+
+  @override
   String homeBlocksRemaining(String count) {
     return '$count blocks left';
   }
@@ -427,6 +499,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeCoinNotConfigured => 'Not configured';
+
+  @override
+  String homeUnknownCoin(String symbol) {
+    return 'Unknown coin: $symbol';
+  }
 
   @override
   String homeAssetsCount(int count) {
@@ -465,9 +542,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get coinHomeAddExplorerButton => 'Add explorer';
-
-  @override
-  String get homeFiatSource => 'Kraken over Tor';
 
   @override
   String get homeReceive => 'Receive';
@@ -678,10 +752,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSeedPhraseLabel => 'Seed Phrase';
-
-  @override
-  String get revealSeedSubtitleCovered =>
-      'The same fifteen words this wallet was created with, in the same order.';
 
   @override
   String get revealSeedSubtitleRevealed =>

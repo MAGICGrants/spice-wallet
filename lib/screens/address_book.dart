@@ -706,7 +706,10 @@ class _ContactSheetState extends State<_ContactSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(padding: EdgeInsets.only(top: 8), child: SheetHandle()),
+            Padding(
+              padding: EdgeInsets.only(top: isDesktopModal ? 0 : 8),
+              child: const SheetHandle(),
+            ),
             Padding(
               padding: EdgeInsets.fromLTRB(hpad, 0, hpad, 16),
               child: Column(
@@ -766,7 +769,7 @@ class _ContactSheetState extends State<_ContactSheet> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(hpad, 18, hpad, 8),
+              padding: EdgeInsets.fromLTRB(hpad, 18, hpad, isDesktopModal ? 0 : 8),
               child: SheetActions(
                 gap: 4,
                 primary: BrandButton(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -7,7 +8,6 @@ import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/create_wallet.dart';
 import 'package:spice_wallet/screens/create_wallet_password.dart';
-import 'package:spice_wallet/screens/desktop/generate_seed_view.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -84,6 +84,9 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
 
     if (isDesktop) {
       return DesktopGenerateSeedView(
+        logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
+        step: 4,
+        totalSteps: 5,
         title: i18n.generateSeedTitle,
         description: i18n.generateSeedSubtitleRevealed,
         seedWords: _seed,
@@ -93,7 +96,8 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
             ? DateFormat.yMMM(Localizations.localeOf(context).toString()).format(_restoreDate!)
             : null,
         confirmLabel: i18n.generateSeedConfirm,
-        screenshotNote: i18n.generateSeedScreenshotNote,
+        passwordNote: i18n.generateSeedPasswordNote,
+        revealLabel: i18n.generateSeedReveal,
         continueText: i18n.generateSeedContinueButton,
         onContinue: _continueDesktop,
         onBack: () => Navigator.pop(context),

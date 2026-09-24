@@ -107,7 +107,10 @@ class DesktopHomeView extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         const gap = 10.0;
-        final cols = constraints.maxWidth >= 520 ? 2 : 1;
+        // Two columns only when each card still gets a comfortable width;
+        // otherwise fall back to a single-column list.
+        const twoColMinWidth = 600.0;
+        final cols = constraints.maxWidth >= twoColMinWidth ? 2 : 1;
         Widget card(CryptoWallet w) => _DesktopCoinCard(
           wallet: w,
           fiatRate: fiatRate,

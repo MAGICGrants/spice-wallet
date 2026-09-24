@@ -40,7 +40,7 @@ class DesktopCoinHomeView extends StatelessWidget {
 
     final entered = manager.getWallet(coinSymbol);
     if (entered == null) {
-      return Center(child: Text('Unknown coin: $coinSymbol', style: BrandText.body));
+      return Center(child: Text(i18n.homeUnknownCoin(coinSymbol), style: BrandText.body));
     }
 
     // Entering as a token (DAI) resolves to its chain (Ethereum).

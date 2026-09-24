@@ -95,7 +95,8 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
 
     if (isDesktop) {
       return DesktopShell(
-        active: DesktopNav.home,
+        active: DesktopNav.coin,
+        activeCoinSymbol: coinSymbol,
         child: DesktopCoinHomeView(coinSymbol: coinSymbol),
       );
     }

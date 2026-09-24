@@ -91,6 +91,11 @@ class _CreateWalletPasswordScreenState extends State<CreateWalletPasswordScreen>
       return DesktopCreatePasswordView(
         labels: labels,
         continueText: i18n.continueText,
+        noteLaunch: i18n.onboardingPasswordNoteLaunch,
+        noteNotCloud: i18n.onboardingPasswordNoteNotCloud,
+        strongLabel: i18n.onboardingPasswordStrong,
+        matchLabel: i18n.onboardingPasswordMatch,
+        acknowledgeLabel: i18n.onboardingPasswordAcknowledge,
         loading: _isLoading,
         onSubmit: (password) =>
             args != null ? _createWallet(password, args) : _savePassword(password),

@@ -71,6 +71,8 @@ class TorSettingsScreen extends StatelessWidget {
     if (isDesktop) {
       return DesktopTorChoiceView(
         labels: labels,
+        notePrivacy: i18n.onboardingTorNotePrivacy,
+        noteChangeable: i18n.onboardingTorNoteChangeable,
         onTest: _test,
         onContinue: ({required modeIndex, required port, required useOrbot}) =>
             _continue(context, modeIndex: modeIndex, port: port, useOrbot: useOrbot),

@@ -20,12 +20,29 @@ import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/widgets/theme_language_sheets.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
-import 'package:spice_wallet/screens/desktop/home_shell.dart';
+import 'package:spice_wallet/screens/reveal_seed.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
 import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
 
+/// Desktop: settings as a wide centered modal (opened from the sidebar); mobile
+/// keeps the full-screen tab.
+Future<void> showSettingsSheet(BuildContext context) {
+  return showBrandSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    maxWidth: 720,
+    builder: (ctx) => ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 640),
+      child: const SettingsScreen(asModal: true),
+    ),
+  );
+}
+
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  /// Content-only render for the desktop settings modal (2-column, no shell).
+  final bool asModal;
+
+  const SettingsScreen({super.key, this.asModal = false});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -255,7 +272,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return;
       }
     }
-    if (mounted) Navigator.pushNamed(context, '/reveal_seed');
+    if (!mounted) return;
+    if (isDesktop) {
+      await showRevealSeedSheet(context);
+    } else {
+      Navigator.pushNamed(context, '/reveal_seed');
+    }
   }
 
   static const _languageNames = {'en': 'English', 'pt': 'Português'};
@@ -277,7 +299,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ? _fiatModeLabel(i18n)
         : '${_fiatModeLabel(i18n)} · $fiatCode';
 
-    final tiles = <Widget>[
+    final groups = <Widget>[
       SettingsGroup(
         label: i18n.settingsSectionGeneral,
         tiles: [
@@ -312,7 +334,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-      const SizedBox(height: 20),
       SettingsGroup(
         label: i18n.settingsSectionBehaviour,
         tiles: [
@@ -351,7 +372,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
         ],
       ),
-      const SizedBox(height: 20),
       SettingsGroup(
         label: i18n.settingsSectionAbout,
         tiles: [
@@ -365,7 +385,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-      const SizedBox(height: 20),
       SettingsGroup(
         label: i18n.settingsSectionWallet,
         tiles: [
@@ -381,28 +400,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-      const SizedBox(height: 20),
-      Center(
-        child: Text(
-          'Spice Wallet v$_appVersion (build $_buildNumber)',
-          style: BrandText.caption.copyWith(color: BrandColors.inkFaint),
-        ),
-      ),
     ];
 
-    if (isDesktop) {
-      return DesktopShell(
-        active: DesktopNav.settings,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(44, 30, 44, 36),
-          children: [
-            Text(i18n.settingsTitle, style: desktopTitleStyle),
-            const SizedBox(height: 24),
-            ...tiles,
-          ],
-        ),
-      );
-    }
+    final versionFooter = Center(
+      child: Text(
+        'Spice Wallet v$_appVersion (build $_buildNumber)',
+        style: BrandText.caption.copyWith(color: BrandColors.inkFaint),
+      ),
+    );
+
+    if (widget.asModal) return _modalBody(i18n, groups, versionFooter);
+
+    final tiles = <Widget>[
+      for (var i = 0; i < groups.length; i++) ...[
+        if (i > 0) const SizedBox(height: 20),
+        groups[i],
+      ],
+      const SizedBox(height: 20),
+      versionFooter,
+    ];
 
     return Scaffold(
       backgroundColor: BrandColors.paper,
@@ -435,6 +451,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// The desktop settings modal: a header + a two-column body of the groups that
+  /// wraps to one column when the modal is narrow (design: 720px, 2 columns).
+  Widget _modalBody(AppLocalizations i18n, List<Widget> groups, Widget versionFooter) {
+    final hpad = isDesktopModal ? 0.0 : 20.0;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(hpad, 2, isDesktopModal ? 34 : hpad, 18),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: BrandColors.orangeBg,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.tune, size: 19, color: BrandColors.primary),
+              ),
+              const SizedBox(width: 13),
+              Text(
+                i18n.settingsTitle,
+                style: TextStyle(
+                  fontFamily: 'Ubuntu',
+                  fontSize: 21,
+                  height: 1.25,
+                  fontWeight: FontWeight.w700,
+                  color: BrandColors.ink,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Flexible(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(hpad, 0, hpad, 2),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                const gap = 20.0;
+                Widget stack(List<Widget> gs, {Widget? tail}) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < gs.length; i++) ...[
+                      if (i > 0) const SizedBox(height: gap),
+                      gs[i],
+                    ],
+                    if (tail != null) ...[const SizedBox(height: gap), tail],
+                  ],
+                );
+                // Two columns when there's room; split the groups down the middle.
+                if (constraints.maxWidth >= 520) {
+                  final half = (groups.length / 2).ceil();
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: stack(groups.sublist(0, half))),
+                      const SizedBox(width: 22),
+                      Expanded(child: stack(groups.sublist(half), tail: versionFooter)),
+                    ],
+                  );
+                }
+                return stack(groups, tail: versionFooter);
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

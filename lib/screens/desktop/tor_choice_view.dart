@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'package:spice_wallet/widgets/tor_mode_selector.dart'
+    show TorPortField, TorTestChip, TorTestStatus;
 import 'package:spice_wallet/widgets/ui/ui.dart';
 
 /// Desktop Step 1 of 5 — Tor connection choice (Built-in / External / No Tor).
@@ -8,6 +10,8 @@ import 'package:spice_wallet/widgets/ui/ui.dart';
 /// pane's footnotes are desktop-only copy.
 class DesktopTorChoiceView extends StatefulWidget {
   final TorChoiceLabels labels;
+  final String notePrivacy;
+  final String noteChangeable;
   final Future<bool> Function(String port) onTest;
   final void Function({required int modeIndex, required String port, required bool useOrbot})
   onContinue;
@@ -16,6 +20,8 @@ class DesktopTorChoiceView extends StatefulWidget {
   const DesktopTorChoiceView({
     super.key,
     required this.labels,
+    required this.notePrivacy,
+    required this.noteChangeable,
     required this.onTest,
     required this.onContinue,
     this.onBack,
@@ -30,7 +36,7 @@ class _DesktopTorChoiceViewState extends State<DesktopTorChoiceView> {
 
   int? _selected;
   final _portController = TextEditingController(text: '9050');
-  bool _useOrbot = false;
+  final bool _useOrbot = false;
   bool _testing = false;
   bool? _testOk;
 
@@ -74,12 +80,9 @@ class _DesktopTorChoiceViewState extends State<DesktopTorChoiceView> {
               port: _portController.text.trim(),
               useOrbot: _useOrbot,
             ),
-      notes: const [
-        OnboardingNote(
-          Icons.lock_outline,
-          'Tor hides your address from the node you query — slower, and worth it.',
-        ),
-        OnboardingNote(Icons.tune, 'Changeable later under Settings → Connections, per chain.'),
+      notes: [
+        OnboardingNote(Icons.lock_outline, widget.notePrivacy),
+        OnboardingNote(Icons.tune, widget.noteChangeable),
       ],
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -115,44 +118,32 @@ class _DesktopTorChoiceViewState extends State<DesktopTorChoiceView> {
 
   Widget _externalForm(TorChoiceLabels l) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Same labeled port field + compact test chip / inline status as the
+        // settings Tor sheet (shared widgets from tor_mode_selector).
+        TorPortField(
+          controller: _portController,
+          label: l.socksPortLabel,
+          onChanged: () {
+            if (_testOk != null) setState(() => _testOk = null);
+          },
+        ),
+        const SizedBox(height: 12),
         Row(
           children: [
-            SizedBox(
-              width: 140,
-              child: BrandTextField(
-                controller: _portController,
-                label: l.socksPortLabel,
-                keyboardType: TextInputType.number,
+            Expanded(
+              child: TorTestStatus(
+                testing: _testing,
+                tested: _testOk != null,
+                ok: _testOk == true,
+                connectedLabel: l.connected,
+                failedLabel: l.testFailed,
               ),
             ),
             const SizedBox(width: 12),
-            BrandButton(
-              label: l.testButton,
-              onPressed: _testing ? null : _runTest,
-              variant: BrandButtonVariant.secondary,
-              expand: false,
-              loading: _testing,
-            ),
-            const SizedBox(width: 12),
-            if (_testOk == true)
-              StatusPill(label: l.connected, color: BrandColors.success)
-            else if (_testOk == false)
-              StatusPill(label: l.testFailed, color: BrandColors.error),
+            TorTestChip(label: l.testButton, onTap: _testing ? null : _runTest),
           ],
-        ),
-        const SizedBox(height: 8),
-        InkWell(
-          mouseCursor: WidgetStateMouseCursor.clickable,
-          onTap: () => setState(() => _useOrbot = !_useOrbot),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Checkbox(value: _useOrbot, onChanged: (v) => setState(() => _useOrbot = v ?? false)),
-              Text(l.orbotLabel, style: BrandText.bodyMuted),
-            ],
-          ),
         ),
       ],
     );

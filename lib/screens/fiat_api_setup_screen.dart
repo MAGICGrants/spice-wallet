@@ -74,6 +74,8 @@ class _FiatApiSetupScreenState extends State<FiatApiSetupScreen> {
     if (isDesktop) {
       return DesktopFiatSetupView(
         labels: labels,
+        noteRatesOnly: i18n.onboardingPriceNoteRatesOnly,
+        noteTor: i18n.onboardingPriceNoteTor,
         currencies: currencies,
         modeIndex: _fiatMode.index,
         currency: _fiatCurrency,

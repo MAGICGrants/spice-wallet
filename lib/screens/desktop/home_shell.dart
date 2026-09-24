@@ -3,13 +3,22 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:provider/provider.dart';
 
+import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/models/fiat_rate_model.dart';
+import 'package:spice_wallet/screens/coin_home.dart';
+import 'package:spice_wallet/screens/settings.dart';
+import 'package:spice_wallet/util/coin_assets.dart';
+import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
+import 'package:wallet_domain/wallet_domain.dart';
 import 'package:wallet_infra/wallet_infra.dart';
 
-/// The top-level desktop destinations, mirroring the mobile navigation bar.
-enum DesktopNav { home, history, addressBook, settings }
+/// The top-level desktop destinations. [coin] is a specific blockchain screen
+/// under the expandable Home group (its symbol in [DesktopShell.activeCoinSymbol]).
+enum DesktopNav { home, coin, swap, history, addressBook, settings }
 
 /// Shared style for a desktop screen's large title (Settings, History, …).
 TextStyle get desktopTitleStyle => TextStyle(
@@ -73,15 +82,28 @@ class DesktopBackLink extends StatelessWidget {
 /// cover (and dim) the whole window, sidebar included.
 class DesktopShell extends StatefulWidget {
   final DesktopNav active;
+
+  /// When [active] is [DesktopNav.coin], the symbol of the chain being shown, so
+  /// the matching sidebar sub-item highlights.
+  final String? activeCoinSymbol;
   final Widget child;
 
-  const DesktopShell({super.key, required this.active, required this.child});
+  const DesktopShell({
+    super.key,
+    required this.active,
+    this.activeCoinSymbol,
+    required this.child,
+  });
 
   @override
   State<DesktopShell> createState() => _DesktopShellState();
 }
 
 class _DesktopShellState extends State<DesktopShell> {
+  // Expansion of the Home group's chain list. Static so it survives the fresh
+  // shell mounted on each navigation (like the cached version string).
+  static bool _homeExpanded = true;
+
   // Cached across shells: each nav click mounts a fresh shell, and a per-instance
   // reload would blank the version line for a frame (a flicker) every time.
   static String _cachedVersion = '';
@@ -118,12 +140,48 @@ class _DesktopShellState extends State<DesktopShell> {
     Navigator.pushNamed(context, route);
   }
 
+  void _goCoin(String symbol) {
+    if (widget.active == DesktopNav.coin && widget.activeCoinSymbol == symbol) return;
+    Navigator.pushNamed(
+      context,
+      '/coin_home',
+      arguments: CoinHomeScreenArgs(coinSymbol: symbol),
+    );
+  }
+
   /// Readable cap for a screen's content so it doesn't span an ultra-wide window
   /// (the child adds its own gutters, so this includes ~44px each side).
   static const contentMaxWidth = 948.0;
 
+  /// Configured non-token chains, each with its total asset value (own coin +
+  /// tokens, formatted), ordered by that value descending. Computed here (not
+  /// inside the Hero child) so the sidebar the Hero flies is plain data. [fiat]
+  /// is null when prices are disabled or nothing can be priced yet.
+  List<({CryptoWallet wallet, String? fiat})> _chainNavItems(BuildContext context) {
+    final manager = context.watch<WalletManager>();
+    final fiatRate = context.watch<FiatRateModel>();
+    final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
+    bool isChain(CryptoWallet w) => !isTokenWallet(w) && w.connectionAddress.isNotEmpty;
+
+    final entries = [
+      for (final w in manager.allWallets.where(isChain))
+        (wallet: w, value: aggregateUnlockedFiat(manager, w, fiatRate.rateFor)),
+    ]..sort(
+      (a, b) => (b.value ?? double.negativeInfinity).compareTo(a.value ?? double.negativeInfinity),
+    );
+
+    return [
+      for (final e in entries)
+        (
+          wallet: e.wallet,
+          fiat: (fiatRate.isDisabled || e.value == null) ? null : formatFiat(e.value!, fiatSymbol),
+        ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
+    final chains = _chainNavItems(context);
     return Scaffold(
       backgroundColor: BrandColors.paper,
       body: Row(
@@ -135,8 +193,14 @@ class _DesktopShellState extends State<DesktopShell> {
           // instant (zero-duration) tab switches don't blink an empty gap.
           Hero(
             tag: 'desktop-sidebar',
+            // The sidebar flies in place so it doesn't slide with the page. The
+            // default flight shows the destination copy opaquely (no cross-fade,
+            // so identical sidebars don't dim mid-flight); placeholderBuilder
+            // keeps the source painted so instant switches don't blink a gap. The
+            // flown child is plain data (chains passed in), so nothing re-runs a
+            // provider lookup mid-flight — that was the earlier flicker.
             placeholderBuilder: (context, heroSize, child) => child,
-            child: _sidebar(context),
+            child: _sidebar(context, chains),
           ),
           Expanded(
             child: Align(
@@ -152,14 +216,14 @@ class _DesktopShellState extends State<DesktopShell> {
     );
   }
 
-  Widget _sidebar(BuildContext context) {
+  Widget _sidebar(BuildContext context, List<({CryptoWallet wallet, String? fiat})> chains) {
     final i18n = AppLocalizations.of(context)!;
     // The Hero lifts this into the overlay mid-flight, outside any Scaffold, so
     // give it a Material for text styling (transparent to keep the fill).
     return Material(
       type: MaterialType.transparency,
       child: Container(
-        width: 236,
+        width: 280,
         decoration: BoxDecoration(
           color: BrandColors.surfaceSunken,
           border: Border(right: BorderSide(color: BrandColors.border)),
@@ -188,7 +252,14 @@ class _DesktopShellState extends State<DesktopShell> {
               ),
             ),
             const SizedBox(height: 28),
-            _navItem(DesktopNav.home, Icons.home_outlined, i18n.navigationBarHome, '/wallet_home'),
+            _homeGroup(i18n, chains),
+            const SizedBox(height: 2),
+            _navTile(
+              icon: Icons.swap_horiz,
+              label: i18n.coinHomeSwap,
+              active: false,
+              onTap: () => showBrandToast(context, i18n.coinHomeSwapComingSoon),
+            ),
             const SizedBox(height: 2),
             _navItem(DesktopNav.history, Icons.history, i18n.navigationBarHistory, '/history'),
             const SizedBox(height: 2),
@@ -199,7 +270,13 @@ class _DesktopShellState extends State<DesktopShell> {
               '/address_book',
             ),
             const Spacer(),
-            _navItem(DesktopNav.settings, Icons.tune, i18n.navigationBarSettings, '/settings'),
+            // Settings opens as a modal over the current screen (not a page).
+            _navTile(
+              icon: Icons.tune,
+              label: i18n.navigationBarSettings,
+              active: false,
+              onTap: () => showSettingsSheet(context),
+            ),
             const SizedBox(height: 6),
             _torStatus(),
             if (_version.isNotEmpty)
@@ -273,11 +350,155 @@ class _DesktopShellState extends State<DesktopShell> {
     );
   }
 
+  /// The expandable Home group: the aggregate overview + a chevron that toggles
+  /// the per-chain sub-items (each opens that blockchain's screen).
+  Widget _homeGroup(AppLocalizations i18n, List<({CryptoWallet wallet, String? fiat})> chains) {
+    // Home highlights only when it's the active screen; a selected coin does not
+    // tint Home (per the design — the pill on the coin marks the selection).
+    final homeSelected = widget.active == DesktopNav.home;
+    final fg = homeSelected ? BrandColors.primaryDeep : BrandColors.inkMuted;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Material(
+          color: homeSelected ? BrandColors.paper : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: homeSelected ? BrandColors.border : Colors.transparent),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  mouseCursor: WidgetStateMouseCursor.clickable,
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => _go('/wallet_home'),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(13, 11, 4, 11),
+                    child: Row(
+                      children: [
+                        Icon(Icons.home_outlined, size: 19, color: fg),
+                        const SizedBox(width: 12),
+                        Text(
+                          i18n.navigationBarHome,
+                          style: TextStyle(
+                            fontFamily: 'Ubuntu',
+                            fontSize: 14,
+                            height: 1,
+                            fontWeight: homeSelected ? FontWeight.w500 : FontWeight.w400,
+                            color: fg,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // No chevron when there are no chains to expand.
+              if (chains.isNotEmpty)
+                InkWell(
+                  mouseCursor: WidgetStateMouseCursor.clickable,
+                  borderRadius: BorderRadius.circular(9),
+                  onTap: () => setState(() => _homeExpanded = !_homeExpanded),
+                  child: Padding(
+                    padding: const EdgeInsets.all(9),
+                    child: Icon(
+                      _homeExpanded ? Icons.expand_more : Icons.chevron_right,
+                      size: 18,
+                      color: BrandColors.inkFaint,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (_homeExpanded)
+          Padding(
+            // Indent the chain list under Home (design: padding-left 22).
+            padding: const EdgeInsets.only(left: 22, top: 2),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < chains.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 2),
+                  _coinTile(chains[i]),
+                ],
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _coinTile(({CryptoWallet wallet, String? fiat}) item) {
+    final wallet = item.wallet;
+    final active =
+        widget.active == DesktopNav.coin && widget.activeCoinSymbol == wallet.coinSymbol;
+    return Material(
+      color: active ? BrandColors.paper : Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: active ? BrandColors.border : Colors.transparent),
+      ),
+      child: InkWell(
+        mouseCursor: WidgetStateMouseCursor.clickable,
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _goCoin(wallet.coinSymbol),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          child: Row(
+            children: [
+              CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 28),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      wallet.blockchainName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: 'Ubuntu',
+                        fontSize: 13.5,
+                        height: 1,
+                        // Selected weight matches the other nav items (w500).
+                        fontWeight: active ? FontWeight.w500 : FontWeight.w400,
+                        color: BrandColors.ink,
+                      ),
+                    ),
+                    if (item.fiat != null) ...[
+                      const SizedBox(height: 5),
+                      Text(
+                        item.fiat!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: 'Ubuntu Mono',
+                          fontSize: 11,
+                          height: 1,
+                          color: BrandColors.inkFaint,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _torStatus() {
+    final i18n = AppLocalizations.of(context)!;
     final (Color color, String text) = switch (_torState) {
-      TorConnectionStatus.connected => (BrandColors.purple, 'Tor · connected'),
-      TorConnectionStatus.connecting => (BrandColors.warning, 'Tor · connecting'),
-      TorConnectionStatus.disconnected => (BrandColors.inkFaint, 'Tor · off'),
+      TorConnectionStatus.connected => (BrandColors.purple, i18n.homeTorConnected),
+      TorConnectionStatus.connecting => (BrandColors.warning, i18n.homeTorConnecting),
+      TorConnectionStatus.disconnected => (BrandColors.inkFaint, i18n.homeTorOff),
     };
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),

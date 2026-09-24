@@ -36,6 +36,7 @@ import 'package:spice_wallet/screens/wallet_home.dart';
 import 'package:spice_wallet/screens/welcome.dart';
 import 'package:spice_wallet/theme/brand.dart';
 import 'package:spice_wallet/theme/palette.dart';
+import 'package:wallet_ui/wallet_ui.dart' show OnboardingRadioCard;
 import 'package:spice_wallet/screens/tor_settings.dart';
 import 'package:spice_wallet/screens/address_book.dart';
 import 'package:spice_wallet/screens/privacy_policy.dart';
@@ -57,6 +58,7 @@ void main() async {
       WidgetsFlutterBinding.ensureInitialized();
 
       BrandColors.install(spicePalette);
+      OnboardingRadioCard.selectedFill = () => BrandColors.card;
 
       installWalletCore();
 
@@ -268,18 +270,16 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
 
   // The bottom-nav destinations. Tapping a nav tab must not animate (on either
   // platform), so these get a zero-duration route in _onGenerateRoute.
-  static const _noTransitionRoutes = {'/wallet_home', '/history', '/address_book', '/settings'};
-
   Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
     final builder = <String, WidgetBuilder>{
       '/loading': (context) => Scaffold(body: Center(child: CircularProgressIndicator())),
       ..._routes,
     }[settings.name];
     if (builder == null) return null;
-    if (_noTransitionRoutes.contains(settings.name)) {
-      return _NoTransitionPageRoute(builder: builder, settings: settings);
-    }
-    return MaterialPageRoute(builder: builder, settings: settings);
+    // Screen transitions are disabled for now — every route pushes/pops
+    // instantly. Modals keep their own animations (they use showDialog /
+    // showModalBottomSheet, not this route generator).
+    return _NoTransitionPageRoute(builder: builder, settings: settings);
   }
 
   Map<String, WidgetBuilder> get _routes => {
@@ -346,9 +346,7 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
         // Brand-tone skeletons (the default grey clashes with the scheme); the
         // token resolves to the current theme.
         return SkeletonizerConfig(
-          data: SkeletonizerConfigData(
-            effect: SoldColorEffect(color: BrandColors.surfaceMuted),
-          ),
+          data: SkeletonizerConfigData(effect: SoldColorEffect(color: BrandColors.surfaceMuted)),
           child: child ?? const SizedBox.shrink(),
         );
       },
@@ -381,10 +379,11 @@ class _CurrentRouteObserver extends NavigatorObserver {
       current.value = newRoute?.settings.name;
 }
 
-/// A [MaterialPageRoute] whose own push/pop is instant — used for the bottom-nav
-/// destinations so tapping a tab doesn't animate. Subclassing (rather than a bare
-/// PageRouteBuilder) keeps Material's transition machinery, so the *secondary*
-/// transition still plays when another screen is pushed over a nav screen.
+/// A [MaterialPageRoute] whose push/pop is instant — used for every named route
+/// so screen transitions don't animate (modals keep their own animations).
+/// Subclassing (rather than a bare PageRouteBuilder) keeps Material's transition
+/// machinery, so a covered screen's secondary transition still resolves (also
+/// instantly, since the covering route's duration is zero).
 class _NoTransitionPageRoute<T> extends MaterialPageRoute<T> {
   _NoTransitionPageRoute({required super.builder, super.settings});
 

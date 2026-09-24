@@ -260,6 +260,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'As capturas de tela estão bloqueadas nesta tela. Certifique-se de que ninguém está olhando por cima do seu ombro.';
 
   @override
+  String get generateSeedPasswordNote =>
+      'A Spice Wallet pede sua senha antes de mostrá-las novamente.';
+
+  @override
   String get generateSeedReveal => 'Toque para revelar';
 
   @override
@@ -274,6 +278,66 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get generateSeedContinueButton => 'Continuar';
+
+  @override
+  String get onboardingPriceNoteRatesOnly =>
+      'O serviço de preços é consultado apenas por cotações — nunca por endereços ou valores.';
+
+  @override
+  String get onboardingPriceNoteTor =>
+      'Roteado pela rede Tor por padrão, separadamente do tráfego da blockchain.';
+
+  @override
+  String get onboardingTorNotePrivacy =>
+      'O Tor esconde seu endereço do nó que você consulta — mais lento, e vale a pena.';
+
+  @override
+  String get onboardingTorNoteChangeable =>
+      'Alterável depois em Configurações → Conexões, por moeda.';
+
+  @override
+  String get onboardingPasswordNoteLaunch =>
+      'Pedida a cada abertura, e antes de a seed ser mostrada.';
+
+  @override
+  String get onboardingPasswordNoteNotCloud =>
+      'Não é uma conta na nuvem. Perdê-la significa restaurar a partir da sua frase seed.';
+
+  @override
+  String get onboardingPasswordStrong => 'Forte';
+
+  @override
+  String get onboardingPasswordMatch => 'As duas entradas coincidem';
+
+  @override
+  String get onboardingPasswordAcknowledge =>
+      'Entendo que ninguém — incluindo a equipe da Spice Wallet — pode recuperar esta senha para mim.';
+
+  @override
+  String get onboardingWalletNoteGenerated =>
+      'A seed de uma nova carteira é gerada aqui, offline, e mostrada a você uma única vez.';
+
+  @override
+  String get onboardingWalletNoteRestore =>
+      'A restauração pergunta aproximadamente quando a seed teve fundos pela primeira vez, para pular anos de escaneamento.';
+
+  @override
+  String get onboardingWalletCreateBullet1 => 'Quinze palavras, mostradas uma vez';
+
+  @override
+  String get onboardingWalletCreateBullet2 => 'Começa vazia, sincroniza a partir de hoje';
+
+  @override
+  String get onboardingWalletCreateBullet3 => 'Leva cerca de dois minutos';
+
+  @override
+  String get onboardingWalletRestoreBullet1 => 'Qualquer frase BIP39';
+
+  @override
+  String get onboardingWalletRestoreBullet2 => 'Data de escaneamento opcional';
+
+  @override
+  String get onboardingWalletRestoreBullet3 => 'Mesma etapa de senha em seguida';
 
   @override
   String get lwsDetailsDescription =>
@@ -419,6 +483,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get homeSynced => 'Sincronizado';
 
   @override
+  String get homeTorConnected => 'Tor · conectado';
+
+  @override
+  String get homeTorConnecting => 'Tor · conectando';
+
+  @override
+  String get homeTorOff => 'Tor · desligado';
+
+  @override
   String homeBlocksRemaining(String count) {
     return '$count blocos restantes';
   }
@@ -428,6 +501,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get homeCoinNotConfigured => 'Não configurado';
+
+  @override
+  String homeUnknownCoin(String symbol) {
+    return 'Moeda desconhecida: $symbol';
+  }
 
   @override
   String homeAssetsCount(int count) {
@@ -467,9 +545,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get coinHomeAddExplorerButton => 'Adicionar explorador';
-
-  @override
-  String get homeFiatSource => 'Kraken via Tor';
 
   @override
   String get homeReceive => 'Receber';
@@ -680,10 +755,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settingsSeedPhraseLabel => 'Frase Seed';
-
-  @override
-  String get revealSeedSubtitleCovered =>
-      'As mesmas quinze palavras com que esta carteira foi criada, na mesma ordem.';
 
   @override
   String get revealSeedSubtitleRevealed =>

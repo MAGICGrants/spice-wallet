@@ -9,6 +9,11 @@ import 'package:spice_wallet/widgets/ui/ui.dart';
 class DesktopCreatePasswordView extends StatefulWidget {
   final CreatePasswordLabels labels;
   final String continueText;
+  final String noteLaunch;
+  final String noteNotCloud;
+  final String strongLabel;
+  final String matchLabel;
+  final String acknowledgeLabel;
   final bool loading;
   final ValueChanged<String> onSubmit;
   final VoidCallback? onBack;
@@ -17,6 +22,11 @@ class DesktopCreatePasswordView extends StatefulWidget {
     super.key,
     required this.labels,
     required this.continueText,
+    required this.noteLaunch,
+    required this.noteNotCloud,
+    required this.strongLabel,
+    required this.matchLabel,
+    required this.acknowledgeLabel,
     required this.onSubmit,
     this.loading = false,
     this.onBack,
@@ -69,42 +79,30 @@ class _DesktopCreatePasswordViewState extends State<DesktopCreatePasswordView> {
       loading: widget.loading,
       onBack: widget.onBack,
       onContinue: () => widget.onSubmit(_password.text),
-      notes: const [
-        OnboardingNote(
-          Icons.lock_outline,
-          'Asked for at every launch, and before the seed is ever shown.',
-        ),
-        OnboardingNote(
-          Icons.cloud_off_outlined,
-          'Not a cloud account. Losing it means restoring from your seed phrase.',
-        ),
+      notes: [
+        OnboardingNote(Icons.lock_outline, widget.noteLaunch),
+        OnboardingNote(Icons.cloud_off_outlined, widget.noteNotCloud),
       ],
       content: ListView(
         padding: EdgeInsets.zero,
         children: [
-          BrandTextField(
+          _passwordField(
             controller: _password,
             label: l.passwordHint,
-            obscureText: _obscurePassword,
-            suffix: _revealToggle(
-              obscured: _obscurePassword,
-              onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
-            ),
+            obscured: _obscurePassword,
+            onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
           ),
           if (_password.text.isNotEmpty)
-            _hint(_longEnough ? 'Strong' : l.tooShortError, ok: _longEnough),
+            _hint(_longEnough ? widget.strongLabel : l.tooShortError, ok: _longEnough),
           const SizedBox(height: 18),
-          BrandTextField(
+          _passwordField(
             controller: _confirm,
             label: l.confirmPasswordHint,
-            obscureText: _obscureConfirm,
-            suffix: _revealToggle(
-              obscured: _obscureConfirm,
-              onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
-            ),
+            obscured: _obscureConfirm,
+            onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
           ),
           if (_confirm.text.isNotEmpty)
-            _hint(_matches ? 'Both entries match' : l.doNotMatchError, ok: _matches),
+            _hint(_matches ? widget.matchLabel : l.doNotMatchError, ok: _matches),
           const SizedBox(height: 22),
           InkWell(
             mouseCursor: WidgetStateMouseCursor.clickable,
@@ -121,8 +119,7 @@ class _DesktopCreatePasswordViewState extends State<DesktopCreatePasswordView> {
                   child: Padding(
                     padding: const EdgeInsets.only(top: 11),
                     child: Text(
-                      'I understand that no one — including the Spice Wallet team — '
-                      'can recover this password for me.',
+                      widget.acknowledgeLabel,
                       style: TextStyle(
                         fontFamily: 'Ubuntu',
                         fontSize: 13,
@@ -140,14 +137,67 @@ class _DesktopCreatePasswordViewState extends State<DesktopCreatePasswordView> {
     );
   }
 
-  // Same reveal affordance the app's other password fields use.
-  Widget _revealToggle({required bool obscured, required VoidCallback onToggle}) => IconButton(
-    icon: Icon(
-      obscured ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-      color: BrandColors.inkMuted,
-    ),
-    onPressed: onToggle,
-  );
+  /// A labeled inset field — small-caps mono label above a white bordered box —
+  /// matching the design and the app's other inputs (not a Material text field).
+  Widget _passwordField({
+    required TextEditingController controller,
+    required String label,
+    required bool obscured,
+    required VoidCallback onToggle,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontFamily: 'Ubuntu Mono',
+            fontSize: 10,
+            height: 1,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.2,
+            color: BrandColors.inkMuted,
+          ),
+        ),
+        const SizedBox(height: 9),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          decoration: BoxDecoration(
+            color: BrandColors.card,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: BrandColors.border),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  obscureText: obscured,
+                  style: TextStyle(
+                    fontFamily: 'Ubuntu Mono',
+                    fontSize: 16,
+                    letterSpacing: obscured ? 3.5 : 0.5,
+                    color: BrandColors.ink,
+                  ),
+                  cursorColor: BrandColors.primary,
+                  decoration: const InputDecoration.collapsed(hintText: ''),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Tappable(
+                onTap: onToggle,
+                child: Icon(
+                  obscured ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  size: 20,
+                  color: BrandColors.inkMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _hint(String text, {required bool ok}) => Padding(
     padding: const EdgeInsets.only(top: 8, left: 4),

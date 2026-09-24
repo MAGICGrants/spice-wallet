@@ -567,6 +567,12 @@ abstract class AppLocalizations {
   /// **'Screenshots are blocked on this screen. Make sure nobody is looking over your shoulder.'**
   String get generateSeedScreenshotNote;
 
+  /// No description provided for @generateSeedPasswordNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Spice Wallet asks for your password before ever showing them again.'**
+  String get generateSeedPasswordNote;
+
   /// No description provided for @generateSeedReveal.
   ///
   /// In en, this message translates to:
@@ -596,6 +602,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue'**
   String get generateSeedContinueButton;
+
+  /// No description provided for @onboardingPriceNoteRatesOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'The price service is asked for rates only — never for addresses or amounts.'**
+  String get onboardingPriceNoteRatesOnly;
+
+  /// No description provided for @onboardingPriceNoteTor.
+  ///
+  /// In en, this message translates to:
+  /// **'Routed over Tor by default, separately from chain traffic.'**
+  String get onboardingPriceNoteTor;
+
+  /// No description provided for @onboardingTorNotePrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Tor hides your address from the node you query — slower, and worth it.'**
+  String get onboardingTorNotePrivacy;
+
+  /// No description provided for @onboardingTorNoteChangeable.
+  ///
+  /// In en, this message translates to:
+  /// **'Changeable later under Settings → Connections, per chain.'**
+  String get onboardingTorNoteChangeable;
+
+  /// No description provided for @onboardingPasswordNoteLaunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Asked for at every launch, and before the seed is ever shown.'**
+  String get onboardingPasswordNoteLaunch;
+
+  /// No description provided for @onboardingPasswordNoteNotCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a cloud account. Losing it means restoring from your seed phrase.'**
+  String get onboardingPasswordNoteNotCloud;
+
+  /// No description provided for @onboardingPasswordStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get onboardingPasswordStrong;
+
+  /// No description provided for @onboardingPasswordMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Both entries match'**
+  String get onboardingPasswordMatch;
+
+  /// No description provided for @onboardingPasswordAcknowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand that no one — including the Spice Wallet team — can recover this password for me.'**
+  String get onboardingPasswordAcknowledge;
+
+  /// No description provided for @onboardingWalletNoteGenerated.
+  ///
+  /// In en, this message translates to:
+  /// **'A new wallet’s seed is generated here, offline, and shown to you once.'**
+  String get onboardingWalletNoteGenerated;
+
+  /// No description provided for @onboardingWalletNoteRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring asks roughly when the seed first held funds, to skip years of scanning.'**
+  String get onboardingWalletNoteRestore;
+
+  /// No description provided for @onboardingWalletCreateBullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Fifteen words, shown once'**
+  String get onboardingWalletCreateBullet1;
+
+  /// No description provided for @onboardingWalletCreateBullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts empty, syncs from today'**
+  String get onboardingWalletCreateBullet2;
+
+  /// No description provided for @onboardingWalletCreateBullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Takes about two minutes'**
+  String get onboardingWalletCreateBullet3;
+
+  /// No description provided for @onboardingWalletRestoreBullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Any BIP39 phrase'**
+  String get onboardingWalletRestoreBullet1;
+
+  /// No description provided for @onboardingWalletRestoreBullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional scan-from date'**
+  String get onboardingWalletRestoreBullet2;
+
+  /// No description provided for @onboardingWalletRestoreBullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Same password step afterwards'**
+  String get onboardingWalletRestoreBullet3;
 
   /// No description provided for @lwsDetailsDescription.
   ///
@@ -867,6 +975,24 @@ abstract class AppLocalizations {
   /// **'Synced'**
   String get homeSynced;
 
+  /// No description provided for @homeTorConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Tor · connected'**
+  String get homeTorConnected;
+
+  /// No description provided for @homeTorConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Tor · connecting'**
+  String get homeTorConnecting;
+
+  /// No description provided for @homeTorOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Tor · off'**
+  String get homeTorOff;
+
   /// No description provided for @homeBlocksRemaining.
   ///
   /// In en, this message translates to:
@@ -884,6 +1010,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not configured'**
   String get homeCoinNotConfigured;
+
+  /// No description provided for @homeUnknownCoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown coin: {symbol}'**
+  String homeUnknownCoin(String symbol);
 
   /// No description provided for @homeAssetsCount.
   ///
@@ -944,12 +1076,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add explorer'**
   String get coinHomeAddExplorerButton;
-
-  /// No description provided for @homeFiatSource.
-  ///
-  /// In en, this message translates to:
-  /// **'Kraken over Tor'**
-  String get homeFiatSource;
 
   /// No description provided for @homeReceive.
   ///
@@ -1334,12 +1460,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Seed Phrase'**
   String get settingsSeedPhraseLabel;
-
-  /// No description provided for @revealSeedSubtitleCovered.
-  ///
-  /// In en, this message translates to:
-  /// **'The same fifteen words this wallet was created with, in the same order.'**
-  String get revealSeedSubtitleCovered;
 
   /// No description provided for @revealSeedSubtitleRevealed.
   ///
