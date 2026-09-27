@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_settings.dart';
@@ -107,8 +106,6 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
     final chainSymbol = wallet.coinSymbol;
     final assets = chainAssets(walletManager, wallet);
     final hasTokens = assets.length > 1;
-
-    final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
     final totalFiat = aggregateUnlockedFiat(walletManager, wallet, fiatRate.rateFor);
 
     return Scaffold(
@@ -131,7 +128,6 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
                             _BalanceHero(
                               wallet: wallet,
                               totalFiat: totalFiat,
-                              fiatSymbol: fiatSymbol,
                               fiatRate: fiatRate,
                               hasTokens: hasTokens,
                             ),
@@ -144,12 +140,7 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
                                 onSwap: () => showBrandToast(context, i18n.coinHomeSwapComingSoon),
                               ),
                             ),
-                            if (hasTokens)
-                              _AssetsSection(
-                                assets: assets,
-                                fiatRate: fiatRate,
-                                fiatSymbol: fiatSymbol,
-                              ),
+                            if (hasTokens) _AssetsSection(assets: assets, fiatRate: fiatRate),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
                               child: SectionHeader(
@@ -165,7 +156,6 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
                         assets: assets,
                         i18n: i18n,
                         fiatRate: fiatRate,
-                        fiatSymbol: fiatSymbol,
                         onTapTx: (asset, tx) => TxDetailsDialog.show(context, asset, tx),
                         onSetupExplorer: () => Navigator.pushNamed(
                           context,
@@ -242,14 +232,12 @@ class _Header extends StatelessWidget {
 class _BalanceHero extends StatelessWidget {
   final CryptoWallet wallet;
   final double? totalFiat;
-  final String fiatSymbol;
   final FiatRateModel fiatRate;
   final bool hasTokens;
 
   const _BalanceHero({
     required this.wallet,
     required this.totalFiat,
-    required this.fiatSymbol,
     required this.fiatRate,
     required this.hasTokens,
   });
@@ -266,7 +254,7 @@ class _BalanceHero extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (showFiat)
-            BalanceText.split(formatFiat(totalFiat!, fiatSymbol), style: _balanceStyle)
+            BalanceText.split(formatFiat(totalFiat!, fiatRate.fiatCurrency), style: _balanceStyle)
           else if (wallet.unlockedBalance == null)
             Skeletonizer(child: Text('0.0000', style: _balanceStyle))
           else
@@ -377,9 +365,8 @@ class _ActionRow extends StatelessWidget {
 class _AssetsSection extends StatelessWidget {
   final List<CryptoWallet> assets;
   final FiatRateModel fiatRate;
-  final String fiatSymbol;
 
-  const _AssetsSection({required this.assets, required this.fiatRate, required this.fiatSymbol});
+  const _AssetsSection({required this.assets, required this.fiatRate});
 
   @override
   Widget build(BuildContext context) {
@@ -396,7 +383,7 @@ class _AssetsSection extends StatelessWidget {
           child: Column(
             children: [
               for (var i = 0; i < assets.length; i++) ...[
-                _AssetRow(wallet: assets[i], fiatRate: fiatRate, fiatSymbol: fiatSymbol),
+                _AssetRow(wallet: assets[i], fiatRate: fiatRate),
                 if (i != assets.length - 1) const SizedBox(height: 8),
               ],
             ],
@@ -410,9 +397,8 @@ class _AssetsSection extends StatelessWidget {
 class _AssetRow extends StatelessWidget {
   final CryptoWallet wallet;
   final FiatRateModel fiatRate;
-  final String fiatSymbol;
 
-  const _AssetRow({required this.wallet, required this.fiatRate, required this.fiatSymbol});
+  const _AssetRow({required this.wallet, required this.fiatRate});
 
   static TextStyle get _fiatStyle => TextStyle(
     fontFamily: 'Ubuntu Mono',
@@ -469,7 +455,7 @@ class _AssetRow extends StatelessWidget {
           if (loading)
             Skeletonizer(enabled: true, child: Text('\$0.00', style: _fiatStyle))
           else if (fiat != null && !fiatRate.isDisabled)
-            BalanceText.split(formatFiat(fiat, fiatSymbol), style: _fiatStyle),
+            BalanceText.split(formatFiat(fiat, fiatRate.fiatCurrency), style: _fiatStyle),
         ],
       ),
     );
@@ -482,7 +468,6 @@ class _ActivitySliver extends StatelessWidget {
   final List<CryptoWallet> assets;
   final AppLocalizations i18n;
   final FiatRateModel fiatRate;
-  final String fiatSymbol;
   final void Function(CryptoWallet asset, TxDetails tx) onTapTx;
   final VoidCallback onSetupExplorer;
 
@@ -491,7 +476,6 @@ class _ActivitySliver extends StatelessWidget {
     required this.assets,
     required this.i18n,
     required this.fiatRate,
-    required this.fiatSymbol,
     required this.onTapTx,
     required this.onSetupExplorer,
   });
@@ -556,7 +540,6 @@ class _ActivitySliver extends StatelessWidget {
             asset: e.asset,
             labels: TxActivityLabels(received: i18n.coinHomeReceived, sent: i18n.coinHomeSent),
             fiatRate: fiatRate,
-            fiatSymbol: fiatSymbol,
             showDivider: next is TxEntry,
             onTap: () => onTapTx(e.asset, e.tx),
           );

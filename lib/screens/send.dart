@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/util/logging.dart';
@@ -51,7 +50,10 @@ class _SendScreenState extends State<SendScreen> {
   bool _isLoadingFees = false;
   bool _feesInProgress = false;
   final _destinationAddressController = TextEditingController(text: '');
-  final _amountController = TextEditingController(text: '');
+
+  /// The amount, typed in the coin or fiat. Read what is spent from
+  /// `_amount.baseUnits`, never from its field.
+  late final AmountEntryController _amount;
   bool _isSweepAll = false;
   Contact? _selectedContact;
 
@@ -98,26 +100,13 @@ class _SendScreenState extends State<SendScreen> {
     return wallet;
   }
 
-  /// Typed amount in integer base units at display precision, or null if the
-  /// field isn't a valid number. Avoids handling money as a `double`.
-  BigInt? _amountUnits(CryptoWallet wallet) {
-    final text = _amountController.text.trim();
-    if (text.isEmpty) return BigInt.zero;
-    try {
-      return decimalToBaseUnits(text, wallet.baseUnitDecimals);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  /// Compares the typed amount to the unlocked balance in exact integer base
-  /// units, so we never use fragile `double ==`/`>`. Returns <0, 0, >0; or null
-  /// when either value is unavailable.
+  /// Compares the amount to the unlocked balance in exact integer base units,
+  /// so we never use fragile `double ==`/`>`. Returns <0, 0, >0; or null when
+  /// the balance is unavailable.
   int? _compareAmountToBalance(CryptoWallet wallet) {
     final balanceUnits = wallet.unlockedBalanceBaseUnits;
-    final amountUnits = _amountUnits(wallet);
-    if (balanceUnits == null || amountUnits == null) return null;
-    return amountUnits.compareTo(balanceUnits);
+    if (balanceUnits == null) return null;
+    return _amount.baseUnits.compareTo(balanceUnits);
   }
 
   Future<String> _resolveAddressIfDomain(String value) async {
@@ -160,7 +149,6 @@ class _SendScreenState extends State<SendScreen> {
   void initState() {
     super.initState();
     _destinationAddressController.addListener(_onAddressChanged);
-    _amountController.addListener(_onAmountChanged);
     _addressFocusNode.addListener(_onAddressFocusChanged);
   }
 
@@ -168,11 +156,11 @@ class _SendScreenState extends State<SendScreen> {
   void dispose() {
     _feeDebounce?.cancel();
     _destinationAddressController.removeListener(_onAddressChanged);
-    _amountController.removeListener(_onAmountChanged);
+    _amount.removeListener(_onAmountChanged);
     _addressFocusNode.removeListener(_onAddressFocusChanged);
     _addressFocusNode.dispose();
     _destinationAddressController.dispose();
-    _amountController.dispose();
+    _amount.dispose();
     _feeRevision.dispose();
     super.dispose();
   }
@@ -196,16 +184,24 @@ class _SendScreenState extends State<SendScreen> {
     super.didChangeDependencies();
     if (_argsLoaded) return;
     _argsLoaded = true;
-    _loadFormFromArgs();
+    final args = ModalRoute.of(context)!.settings.arguments as SendScreenArgs?;
+    if (args != null) _coinSymbol = args.coinSymbol;
+
+    final wallet = Provider.of<WalletManager>(context, listen: false).getWallet(_coinSymbol);
+    _amount = AmountEntryController(
+      quotes: Provider.of<FiatRateModel>(context, listen: false),
+      coinSymbol: _coinSymbol,
+      coinDecimals: wallet?.baseUnitDecimals ?? 0,
+    );
+    _amount.addListener(_onAmountChanged);
+    _loadFormFromArgs(args);
   }
 
-  void _loadFormFromArgs() {
-    final args = ModalRoute.of(context)!.settings.arguments as SendScreenArgs?;
-
+  void _loadFormFromArgs(SendScreenArgs? args) {
     if (args != null) {
-      _coinSymbol = args.coinSymbol;
       _destinationAddressController.text = args.destinationAddress;
-      _amountController.text = args.amount ?? '';
+      final amount = args.amount;
+      if (amount != null && amount.isNotEmpty) _amount.setCoinText(amount);
       // Same pair the in-send picker sets, so the contact card renders here too.
       _selectedContact = args.contact;
     }
@@ -274,7 +270,8 @@ class _SendScreenState extends State<SendScreen> {
 
     _destinationAddressController.text = address;
     if (amount != null) {
-      _amountController.text = _asExactAmount(amount, wallet);
+      // A payment request is denominated in the coin, so entry switches to it.
+      _amount.setCoinText(_asExactAmount(amount, wallet));
     }
   }
 
@@ -368,11 +365,10 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   Future<bool> _validateForm({bool setErrors = true}) async {
-    final amount = double.tryParse(_amountController.text) ?? 0;
     final unresolvedDestinationAddress = _destinationAddressController.text;
     String destinationAddress = '';
 
-    if (amount == 0) {
+    if (_amount.baseUnits == BigInt.zero) {
       return false;
     }
 
@@ -417,7 +413,7 @@ class _SendScreenState extends State<SendScreen> {
 
   Future<PendingTransaction?> _createTxForPriority(String destinationAddress, int priority) async {
     final wallet = _wallet(context);
-    final amountUnits = _amountUnits(wallet) ?? BigInt.zero;
+    final amountUnits = _amount.baseUnits;
     final maxRetries = 10;
 
     for (int i = 0; i < maxRetries; i++) {
@@ -443,7 +439,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   Future<void> _calculateFees() async {
-    final feeFetchKey = '${_destinationAddressController.text}-${_amountController.text}';
+    final feeFetchKey = '${_destinationAddressController.text}-${_amount.coinText}';
 
     if (feeFetchKey == _lastFeeFetchKey) {
       return;
@@ -547,7 +543,7 @@ class _SendScreenState extends State<SendScreen> {
     }
 
     final destinationAddressUnresolved = _destinationAddressController.text;
-    final amountUnits = _amountUnits(wallet) ?? BigInt.zero;
+    final amountUnits = _amount.baseUnits;
     String destinationAddress = '';
     String? destinationOpenAlias;
 
@@ -561,7 +557,7 @@ class _SendScreenState extends State<SendScreen> {
     try {
       PendingTransaction tx;
 
-      final currentFeeFetchKey = '${_destinationAddressController.text}-${_amountController.text}';
+      final currentFeeFetchKey = '${_destinationAddressController.text}-${_amount.coinText}';
       final cachedTx = _feeTxs != null && _feeTxs!.length > _selectedPriority
           ? _feeTxs![_selectedPriority]
           : null;
@@ -632,9 +628,11 @@ class _SendScreenState extends State<SendScreen> {
   void _setBalanceAsSendAmount() {
     final wallet = _wallet(context);
     final units = wallet.unlockedBalanceBaseUnits;
-    _amountController.text = units == null
-        ? ''
-        : baseUnitsToDecimalString(units, wallet.baseUnitDecimals);
+    if (units == null) {
+      _amount.clear();
+    } else {
+      _amount.setMax(units);
+    }
 
     setState(() {
       _isSweepAll = true;
@@ -713,11 +711,9 @@ class _SendScreenState extends State<SendScreen> {
 
   Future<void> _calculateFeesIfValid() async {
     final wallet = _wallet(context);
-    final amountUnits = _amountUnits(wallet);
+    final amountUnits = _amount.baseUnits;
 
-    if (amountUnits == null ||
-        amountUnits <= BigInt.zero ||
-        (_compareAmountToBalance(wallet) ?? 1) > 0) {
+    if (amountUnits <= BigInt.zero || (_compareAmountToBalance(wallet) ?? 1) > 0) {
       _feeCalculationCounter++;
       _lastFeeFetchKey = '';
       if (mounted) {
@@ -756,11 +752,7 @@ class _SendScreenState extends State<SendScreen> {
     }
 
     final fiatRate = context.watch<FiatRateModel>();
-    final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
-    final coinRate = fiatRate.rateFor(wallet.coinSymbol);
-
-    final amount = double.tryParse(_amountController.text) ?? 0;
-    final amountFiat = coinRate != null ? amount * coinRate : 0.0;
+    final quote = fiatRate.quoteFor(wallet.coinSymbol);
 
     return SendView(
       labels: SendLabels(
@@ -779,6 +771,7 @@ class _SendScreenState extends State<SendScreen> {
         // goes to an "Ethereum address", not a "Dai address".
         addressHint: i18n.sendAddressHint(chainNameOf(walletManager, wallet)),
         priorityLabels: [i18n.sendPriorityLow, i18n.sendPriorityNormal, i18n.sendPriorityHigh],
+        switchUnit: i18n.sendSwitchUnit,
       ),
       onBack: () => Navigator.pop(context),
       assetSection: Column(
@@ -788,7 +781,7 @@ class _SendScreenState extends State<SendScreen> {
             label: i18n.sendFromLabel,
             padding: const EdgeInsets.only(left: 4, bottom: 8),
           ),
-          _fromCard(wallet, assetsOnChainOf(walletManager, wallet), fiatRate, fiatSymbol),
+          _fromCard(wallet, assetsOnChainOf(walletManager, wallet), fiatRate),
         ],
       ),
       addressController: _destinationAddressController,
@@ -803,26 +796,19 @@ class _SendScreenState extends State<SendScreen> {
           ? shortenMiddle(_destinationAddressController.text, head: 8, tail: 10)
           : null,
       onClearContact: _clearSelectedContact,
-      amountController: _amountController,
+      amount: _amount,
       amountError: _amountError,
       onMax: _setBalanceAsSendAmount,
-      coinSymbol: wallet.coinSymbol,
-      amountFiatText: '≈ ${formatFiat(amountFiat, fiatSymbol)}',
       selectedPriority: _selectedPriority,
       onSelectPriority: _setPriority,
-      feeValue: _feeValue(wallet, fiatSymbol, coinRate),
+      feeValue: _feeValue(wallet, quote),
       onCancel: () => Navigator.pop(context),
       onSend: (_formValid && _openAliasResolving == 0 && !_isLoading) ? _send : null,
       sendLoading: _isLoading,
     );
   }
 
-  Widget _fromCard(
-    CryptoWallet wallet,
-    List<CryptoWallet> assets,
-    FiatRateModel fiatRate,
-    String fiatSymbol,
-  ) {
+  Widget _fromCard(CryptoWallet wallet, List<CryptoWallet> assets, FiatRateModel fiatRate) {
     final canChoose = assets.length > 1;
     final card = AnimatedContainer(
       duration: BrandMotion.transition,
@@ -856,7 +842,7 @@ class _SendScreenState extends State<SendScreen> {
       link: _assetMenuLink,
       child: OverlayPortal(
         controller: _assetMenuController,
-        overlayChildBuilder: (ctx) => _assetDropdown(ctx, assets, fiatRate, fiatSymbol),
+        overlayChildBuilder: (ctx) => _assetDropdown(ctx, assets, fiatRate),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: _toggleAssetMenu,
@@ -882,12 +868,7 @@ class _SendScreenState extends State<SendScreen> {
     _assetMenuController.hide();
   }
 
-  Widget _assetDropdown(
-    BuildContext ctx,
-    List<CryptoWallet> assets,
-    FiatRateModel fiatRate,
-    String fiatSymbol,
-  ) {
+  Widget _assetDropdown(BuildContext ctx, List<CryptoWallet> assets, FiatRateModel fiatRate) {
     final width = math.min(MediaQuery.of(ctx).size.width, 480.0) - 32;
     return Stack(
       children: [
@@ -913,9 +894,7 @@ class _SendScreenState extends State<SendScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (final asset in assets) _assetDropdownRow(asset, fiatRate, fiatSymbol),
-                  ],
+                  children: [for (final asset in assets) _assetDropdownRow(asset, fiatRate)],
                 ),
               ),
             ),
@@ -925,15 +904,13 @@ class _SendScreenState extends State<SendScreen> {
     );
   }
 
-  Widget _assetDropdownRow(CryptoWallet asset, FiatRateModel fiatRate, String fiatSymbol) {
+  Widget _assetDropdownRow(CryptoWallet asset, FiatRateModel fiatRate) {
     final i18n = AppLocalizations.of(context)!;
     final configured = asset.connectionAddress.isNotEmpty;
     final selected = asset.coinSymbol == _coinSymbol;
     final balance = asset.unlockedBalance;
-    final rate = fiatRate.rateFor(asset.coinSymbol);
-    final fiat = (rate != null && balance is double && !fiatRate.isDisabled)
-        ? balance * rate
-        : null;
+    final quote = fiatRate.quoteFor(asset.coinSymbol);
+    final fiat = (quote != null && balance is double) ? balance * quote.rate : null;
     final subtitle = !configured
         ? i18n.homeNoConnection
         : (balance is double
@@ -987,7 +964,9 @@ class _SendScreenState extends State<SendScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    fiat != null ? '$fiatSymbol${NumberFormat('#,##0').format(fiat)}' : '—',
+                    fiat != null
+                        ? '${quote!.currency.symbol}${NumberFormat('#,##0').format(fiat)}'
+                        : '—',
                     style: TextStyle(
                       fontFamily: 'Ubuntu Mono',
                       fontSize: 13,
@@ -1041,7 +1020,8 @@ class _SendScreenState extends State<SendScreen> {
 
   /// Switches the send form to a different asset on the same chain. The picker
   /// only offers same-chain assets (all EVM), which share an address format, so
-  /// the destination is kept; only the amount and fee state (asset-specific) reset.
+  /// the destination is kept; the fee state resets, and so does a coin amount.
+  /// A fiat amount carries over (`$100` of ETH becomes `$100` of DAI).
   void _selectAsset(String coinSymbol) {
     if (coinSymbol == _coinSymbol) return;
     setState(() {
@@ -1056,10 +1036,12 @@ class _SendScreenState extends State<SendScreen> {
       _lastFeeFetchKey = '';
     });
     _feeCalculationCounter++;
-    _amountController.clear(); // fires _onAmountChanged → revalidates for the new asset
+    final wallet = _wallet(context);
+    // Notifies → _onAmountChanged → revalidates for the new asset.
+    _amount.setCoin(wallet.coinSymbol, wallet.baseUnitDecimals);
   }
 
-  Widget _feeValue(CryptoWallet wallet, String fiatSymbol, double? coinRate) {
+  Widget _feeValue(CryptoWallet wallet, FiatQuote? quote) {
     final feeUnits = (_fees != null && _fees!.length > _selectedPriority)
         ? _fees![_selectedPriority]
         : null;
@@ -1078,8 +1060,8 @@ class _SendScreenState extends State<SendScreen> {
     }
     final fee = displayAmount(feeUnits, wallet.feeBaseUnitDecimals);
     final feeStr = formatAmount(fee, wallet.feeDecimals, symbol: wallet.feeCoinSymbol);
-    final feeFiat = (coinRate != null && !wallet.feeIsForeign)
-        ? ' · ${formatFiat(fee * coinRate, fiatSymbol)}'
+    final feeFiat = (quote != null && !wallet.feeIsForeign)
+        ? ' · ${formatFiat(fee * quote.rate, quote.currency)}'
         : '';
     return Text(
       '$feeStr$feeFiat',

@@ -6,13 +6,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
-import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
@@ -49,7 +47,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   Widget build(BuildContext context) {
     final walletManager = context.watch<WalletManager>();
     final fiatRate = context.watch<FiatRateModel>();
-    final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
 
     final ratesBySymbol = <String, double?>{
       for (final w in walletManager.allWallets) w.coinSymbol: fiatRate.rateFor(w.coinSymbol),
@@ -82,11 +79,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                   child: ListView(
                     padding: const EdgeInsets.only(bottom: BrandSpacing.lg),
                     children: [
-                      _TotalBalanceHeader(
-                        totalFiat: totalFiat,
-                        fiatSymbol: fiatSymbol,
-                        fiatRate: fiatRate,
-                      ),
+                      _TotalBalanceHeader(totalFiat: totalFiat, fiatRate: fiatRate),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 14),
                         child: Column(
@@ -95,7 +88,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                               _CoinCard(
                                 wallet: wallet,
                                 fiatRate: fiatRate,
-                                fiatSymbol: fiatSymbol,
                                 tokenCount: tokensOf(walletManager, wallet.coinSymbol).length,
                                 fiatOverride: aggregateUnlockedFiat(
                                   walletManager,
@@ -148,14 +140,9 @@ class _Header extends StatelessWidget {
 
 class _TotalBalanceHeader extends StatelessWidget {
   final double totalFiat;
-  final String fiatSymbol;
   final FiatRateModel fiatRate;
 
-  const _TotalBalanceHeader({
-    required this.totalFiat,
-    required this.fiatSymbol,
-    required this.fiatRate,
-  });
+  const _TotalBalanceHeader({required this.totalFiat, required this.fiatRate});
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +163,7 @@ class _TotalBalanceHeader extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
-                    child: BalanceText.split(formatFiat(totalFiat, fiatSymbol)),
+                    child: BalanceText.split(formatFiat(totalFiat, fiatRate.fiatCurrency)),
                   ),
                 )
               else
@@ -202,7 +189,6 @@ class _TotalBalanceHeader extends StatelessWidget {
 class _CoinCard extends StatelessWidget {
   final CryptoWallet wallet;
   final FiatRateModel fiatRate;
-  final String fiatSymbol;
 
   /// Number of tokens on this chain (>0 → the row shows "N assets" + aggregate).
   final int tokenCount;
@@ -213,7 +199,6 @@ class _CoinCard extends StatelessWidget {
   const _CoinCard({
     required this.wallet,
     required this.fiatRate,
-    required this.fiatSymbol,
     this.tokenCount = 0,
     this.fiatOverride,
   });
@@ -349,7 +334,10 @@ class _CoinCard extends StatelessWidget {
     if (balanceFiat != null && !fiatRate.isDisabled) {
       return Padding(
         padding: const EdgeInsets.only(right: 7),
-        child: BalanceText.split(formatFiat(balanceFiat, fiatSymbol), style: _cardBalanceStyle),
+        child: BalanceText.split(
+          formatFiat(balanceFiat, fiatRate.fiatCurrency),
+          style: _cardBalanceStyle,
+        ),
       );
     }
     if (balance == null) {

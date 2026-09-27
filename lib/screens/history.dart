@@ -124,7 +124,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final i18n = AppLocalizations.of(context)!;
     final manager = context.watch<WalletManager>();
     final fiatRate = context.watch<FiatRateModel>();
-    final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
 
     // Merge every asset's history into one newest-first timeline.
     final all = <TxEntry>[
@@ -244,7 +243,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
             entries: entries,
             i18n: i18n,
             fiatRate: fiatRate,
-            fiatSymbol: fiatSymbol,
             onTapTx: (asset, tx) => TxDetailsDialog.show(context, asset, tx),
           );
 
@@ -397,14 +395,12 @@ class _Timeline extends StatelessWidget {
   final List<TxEntry> entries;
   final AppLocalizations i18n;
   final FiatRateModel fiatRate;
-  final String fiatSymbol;
   final void Function(CryptoWallet asset, TxDetails tx) onTapTx;
 
   const _Timeline({
     required this.entries,
     required this.i18n,
     required this.fiatRate,
-    required this.fiatSymbol,
     required this.onTapTx,
   });
 
@@ -441,7 +437,6 @@ class _Timeline extends StatelessWidget {
           asset: e.asset,
           labels: TxActivityLabels(received: i18n.coinHomeReceived, sent: i18n.coinHomeSent),
           fiatRate: fiatRate,
-          fiatSymbol: fiatSymbol,
           showDivider: next is TxEntry,
           onTap: () => onTapTx(e.asset, e.tx),
         );

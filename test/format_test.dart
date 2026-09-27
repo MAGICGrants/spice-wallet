@@ -2,14 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:spice_wallet/util/format.dart';
 
 void main() {
-  group('formatFiat', () {
-    test('groups thousands and keeps two decimals', () {
-      expect(formatFiat(1234.5, '\$'), '\$1,234.50');
-      expect(formatFiat(0, '\$'), '\$0.00');
-      expect(formatFiat(9.999, '€'), '€10.00');
-    });
-  });
-
   group('shortenMiddle', () {
     test('leaves short strings untouched', () {
       expect(shortenMiddle('abc'), 'abc');

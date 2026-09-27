@@ -348,6 +348,7 @@
   "sendToLabel": "Para",
   "sendPriorityHeading": "Prioridade",
   "sendAvailableSuffix": "disponível",
+  "sendSwitchUnit": "Alternar unidade do valor",
   "sendNetworkFee": "Taxa de rede",
   "sendMaxButton": "MÁX",
   "sendPasteButton": "Colar",

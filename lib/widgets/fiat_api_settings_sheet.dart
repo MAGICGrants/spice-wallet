@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:spice_wallet/consts.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
@@ -127,10 +126,6 @@ class _FiatApiSettingsSheetState extends State<_FiatApiSettingsSheet> {
                           modeIndex: _mode.index,
                           onModeChanged: (i) => setState(() => _mode = FiatApiMode.values[i]),
                           currencyLabel: i18n.fiatApiSettingsDisplayCurrencyLabel,
-                          currencies: [
-                            for (final code in supportedFiatCurrencies)
-                              FiatCurrencyOption(code: code, symbol: currencySymbols[code] ?? ''),
-                          ],
                           currency: _currency,
                           onCurrencyChanged: (code) => setState(() => _currency = code),
                         ),
