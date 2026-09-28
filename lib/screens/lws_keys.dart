@@ -11,8 +11,22 @@ import 'package:wallet_domain/wallet_domain.dart';
 /// Shows the Monero wallet's LWS details (primary address, secret view key,
 /// restore height) so the user can whitelist the wallet on a light-wallet
 /// server. Read-only with copy buttons; the view key is hidden until tapped.
+/// Desktop: LWS keys as a modal (opened from the coin-settings modal).
+void showLwsKeysSheet(BuildContext context) {
+  showBrandSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (ctx) => ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxSheetHeight(ctx)),
+      child: const LwsKeysScreen(asModal: true),
+    ),
+  );
+}
+
 class LwsKeysScreen extends StatefulWidget {
-  const LwsKeysScreen({super.key});
+  final bool asModal;
+
+  const LwsKeysScreen({super.key, this.asModal = false});
 
   @override
   State<LwsKeysScreen> createState() => _LwsKeysScreenState();
@@ -62,12 +76,19 @@ class _LwsKeysScreenState extends State<LwsKeysScreen> with SecureScreenMixin {
         reveal: i18n.generateSeedReveal,
         warning: i18n.lwsKeysWarning,
       ),
-      headerIcon: CoinMark(coinSymbol: 'XMR', iconAsset: wallet?.iconAsset ?? '', size: 22),
+      // Desktop modal matches the other settings modals' 34px header icon; the
+      // mobile full-screen header keeps the compact 22px size.
+      headerIcon: CoinMark(
+        coinSymbol: 'XMR',
+        iconAsset: wallet?.iconAsset ?? '',
+        size: widget.asModal ? 34 : 22,
+      ),
       primaryAddress: wallet?.getPrimaryAddress() ?? '',
       secretViewKey: _secretViewKey,
       restoreHeight: _restoreHeight.toString(),
       onCopy: _copy,
-      onBack: () => Navigator.pop(context),
+      asModal: widget.asModal,
+      onBack: widget.asModal ? null : () => Navigator.pop(context),
     );
   }
 }

@@ -5,8 +5,11 @@ import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_settings.dart';
+import 'package:spice_wallet/screens/desktop/coin_home_view.dart';
+import 'package:spice_wallet/screens/desktop/home_shell.dart';
 import 'package:spice_wallet/screens/explorer_setup.dart';
 import 'package:spice_wallet/screens/receive.dart';
 import 'package:spice_wallet/screens/send.dart';
@@ -89,6 +92,15 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
     final fiatRate = context.watch<FiatRateModel>();
 
     final coinSymbol = _coinSymbolFromRoute(context);
+
+    if (isDesktop) {
+      return DesktopShell(
+        active: DesktopNav.coin,
+        activeCoinSymbol: coinSymbol,
+        child: DesktopCoinHomeView(coinSymbol: coinSymbol),
+      );
+    }
+
     final entered = walletManager.getWallet(coinSymbol);
 
     if (entered == null) {
@@ -608,7 +620,7 @@ class _AddExplorerNudge extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          GestureDetector(
+          Tappable(
             behavior: HitTestBehavior.opaque,
             onTap: onSetup,
             child: Container(

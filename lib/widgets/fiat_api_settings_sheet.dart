@@ -69,20 +69,22 @@ class _FiatApiSettingsSheetState extends State<_FiatApiSettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
+    // Desktop modal: the card owns the edge padding.
+    final hpad = isDesktopModal ? 0.0 : 22.0;
 
     return SafeArea(
       top: false,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.86),
         child: Padding(
-          padding: const EdgeInsets.only(top: 10),
+          padding: EdgeInsets.only(top: isDesktopModal ? 0 : 10),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SheetHandle(),
               Padding(
-                padding: const EdgeInsets.fromLTRB(22, 0, 22, 16),
+                padding: EdgeInsets.fromLTRB(hpad, 0, hpad, 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -112,7 +114,7 @@ class _FiatApiSettingsSheetState extends State<_FiatApiSettingsSheet> {
               ),
               Flexible(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(22, 0, 22, 0),
+                  padding: EdgeInsets.fromLTRB(hpad, 0, hpad, 0),
                   child: !_loaded
                       ? const SizedBox.shrink()
                       : FiatModesView(
@@ -137,17 +139,14 @@ class _FiatApiSettingsSheetState extends State<_FiatApiSettingsSheet> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(22, 18, 22, 8),
-                child: Column(
-                  children: [
-                    BrandButton(label: i18n.save, onPressed: _save),
-                    const SizedBox(height: 2),
-                    BrandButton.ghost(
-                      label: i18n.cancel,
-                      color: BrandColors.inkMuted,
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
+                padding: EdgeInsets.fromLTRB(hpad, 18, hpad, 8),
+                child: SheetActions(
+                  primary: BrandButton(label: i18n.save, onPressed: _save),
+                  secondary: BrandButton.ghost(
+                    label: i18n.cancel,
+                    color: BrandColors.inkMuted,
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
                 ),
               ),
             ],

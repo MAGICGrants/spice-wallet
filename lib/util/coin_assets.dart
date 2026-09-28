@@ -35,6 +35,26 @@ List<CryptoWallet> assetsOnChainOf(WalletManager manager, CryptoWallet wallet) {
   return chain == null ? [wallet] : chainAssets(manager, chain);
 }
 
+int _configuredFirst(CryptoWallet a, CryptoWallet b) {
+  final ac = a.connectionAddress.isNotEmpty;
+  final bc = b.connectionAddress.isNotEmpty;
+  return ac == bc ? 0 : (ac ? -1 : 1);
+}
+
+/// Assets selectable when Send is entered from the multicoin home: every chain
+/// coin and its tokens, configured chains first.
+List<CryptoWallet> sendableAssets(WalletManager manager) {
+  final chains = manager.allWallets.where((w) => !isTokenWallet(w)).toList()
+    ..sort(_configuredFirst);
+  return [for (final chain in chains) ...chainAssets(manager, chain)];
+}
+
+/// Chains selectable when Receive is entered from the multicoin home. One per
+/// blockchain — a token is received at its chain's address, so it isn't listed
+/// separately. Configured chains first.
+List<CryptoWallet> receivableChains(WalletManager manager) =>
+    manager.allWallets.where((w) => !isTokenWallet(w)).toList()..sort(_configuredFirst);
+
 /// Sum of a wallet's own unlocked fiat plus that of its tokens, in [fiatRateFor]
 /// units. Returns null only when nothing can be priced yet.
 double? aggregateUnlockedFiat(

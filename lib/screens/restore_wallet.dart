@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:bip39/bip39.dart' as bip39;
 // ignore: implementation_imports — the BIP39 English wordlist for per-word checks.
@@ -8,7 +9,9 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
+import 'package:spice_wallet/screens/create_wallet_password.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -76,6 +79,20 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
     if (_isLoading) return;
     if (!bip39.validateMnemonic(mnemonic)) return;
 
+    // Desktop (password-last flow): carry the seed to the password step, which
+    // encrypts and creates the wallet.
+    if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+      Navigator.pushNamed(
+        context,
+        '/create_wallet_password',
+        arguments: CreateWalletPasswordArgs(
+          seed: Bip39Seed(mnemonic),
+          from: RestorePoint.date(_restoreDate ?? DateTime(2014, 4, 18)),
+        ),
+      );
+      return;
+    }
+
     final i18n = AppLocalizations.of(context)!;
     final manager = Provider.of<WalletManager>(context, listen: false);
     setState(() => _isLoading = true);
@@ -118,8 +135,9 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
       scanStyle = BrandText.body;
     }
 
-    return RestoreWalletView(
+    final view = RestoreWalletView(
       controller: _restoreWalletController,
+      embedded: isDesktop,
       labels: RestoreWalletLabels(
         title: i18n.restoreWalletTitle,
         subtitle: i18n.restoreWalletSubtitle,
@@ -152,6 +170,27 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
         value: scanValue,
         valueStyle: scanStyle,
         onTap: _openScanFrom,
+      ),
+    );
+
+    if (!isDesktop) return view;
+
+    // Desktop: the shared onboarding shell supplies the header, step dots and
+    // Continue; the controller drives its enabled state and triggers restore.
+    return ValueListenableBuilder<bool>(
+      valueListenable: _restoreWalletController.canRestore,
+      builder: (context, valid, _) => DesktopOnboardingScaffold(
+      logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
+        title: i18n.restoreWalletTitle,
+        description: i18n.restoreWalletSubtitle,
+        step: 4,
+        totalSteps: 5,
+        continueLabel: i18n.restoreWalletRestoreButton,
+        continueEnabled: valid,
+        loading: _isLoading,
+        onBack: () => Navigator.pop(context),
+        onContinue: _restoreWalletController.restore,
+        content: view,
       ),
     );
   }

@@ -3,10 +3,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/util/logging.dart';
+import 'package:spice_wallet/widgets/spinning_logo.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
@@ -19,19 +22,30 @@ class UnlockScreen extends StatefulWidget {
 }
 
 class _UnlockScreenState extends State<UnlockScreen> {
-  static bool get _isDesktop => Platform.isLinux || Platform.isWindows || Platform.isMacOS;
-
   final _passwordController = TextEditingController();
   bool _obscure = true;
   bool _isLoading = false;
   String? _error;
   String? _biometricLabel; // resolved per device on iOS (Face ID vs Touch ID)
   bool _started = false;
+  String _version = '';
+
+  @override
+  void initState() {
+    super.initState();
+    if (isDesktop) {
+      PackageInfo.fromPlatform().then((info) {
+        if (mounted) {
+          setState(() => _version = 'Spice Wallet v${info.version} · build ${info.buildNumber}');
+        }
+      });
+    }
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_started || _isDesktop) return;
+    if (_started || isDesktop) return;
     _started = true;
     _resolveBiometricLabel();
     _promptUnlock();
@@ -103,18 +117,20 @@ class _UnlockScreenState extends State<UnlockScreen> {
       _isLoading = true;
       _error = null;
     });
-    try {
-      final manager = Provider.of<WalletManager>(context, listen: false);
-      manager.setWalletPassword(_passwordController.text);
-      if (mounted) _unlockDone(manager);
-    } catch (_) {
+    final manager = Provider.of<WalletManager>(context, listen: false);
+    final password = _passwordController.text;
+    if (!await manager.verifyWalletPassword(password)) {
       if (mounted) {
+        _passwordController.clear();
         setState(() {
           _error = i18n.unlockIncorrectPasswordError;
           _isLoading = false;
         });
       }
+      return;
     }
+    manager.setWalletPassword(password);
+    if (mounted) _unlockDone(manager);
   }
 
   void _showError(String message) {
@@ -131,13 +147,19 @@ class _UnlockScreenState extends State<UnlockScreen> {
     // stack on a relock, and backing out would reveal it unauthenticated.
     // Unlocking still pops programmatically from _unlockDone.
     return UnlockView(
-      logo: SvgPicture.asset('assets/spice-mark.svg', width: 84, height: 84),
+      // Same spin-in as the welcome screen (pivots on the mark's off-centre spiral).
+      logo: SpinningLogo(
+        alignment: const Alignment(-0.133, -0.283),
+        child: SvgPicture.asset('assets/spice-mark.svg', width: 84, height: 84),
+      ),
       labels: UnlockLabels(
         title: i18n.unlockLockedTitle,
         passwordHint: i18n.unlockPasswordHint,
         unlockButton: i18n.unlockButton,
+        passwordLabel: i18n.unlockPasswordLabel,
       ),
-      isDesktop: _isDesktop,
+      isDesktop: isDesktop,
+      version: _version.isEmpty ? null : _version,
       passwordController: _passwordController,
       obscure: _obscure,
       onToggleObscure: () => setState(() => _obscure = !_obscure),

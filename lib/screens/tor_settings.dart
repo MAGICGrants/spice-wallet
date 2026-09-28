@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
+import 'package:spice_wallet/screens/desktop/tor_choice_view.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/util/socks_http.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -48,25 +50,38 @@ class TorSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
-    final isMobile = Platform.isAndroid || Platform.isIOS;
+
+    final labels = TorChoiceLabels(
+      title: i18n.torChoiceTitle,
+      subtitle: i18n.torChoiceSubtitle,
+      builtIn: i18n.torSettingsModeBuiltIn,
+      builtInDesc: i18n.torChoiceBuiltInDesc,
+      external: i18n.torSettingsModeExternal,
+      externalDesc: i18n.torChoiceExternalDesc,
+      noTor: i18n.torSettingsModeDisabled,
+      noTorDesc: i18n.torChoiceNoTorDesc,
+      socksPortLabel: i18n.torSettingsSocksPortLabel,
+      orbotLabel: i18n.torChoiceOrbot,
+      testButton: i18n.torSettingsTestConnectionButton,
+      connected: i18n.torChoiceConnected,
+      testFailed: i18n.torChoiceTestFailed,
+      continueText: i18n.continueText,
+    );
+
+    if (isDesktop) {
+      return DesktopTorChoiceView(
+        labels: labels,
+        notePrivacy: i18n.onboardingTorNotePrivacy,
+        noteChangeable: i18n.onboardingTorNoteChangeable,
+        onTest: _test,
+        onContinue: ({required modeIndex, required port, required useOrbot}) =>
+            _continue(context, modeIndex: modeIndex, port: port, useOrbot: useOrbot),
+        onBack: () => Navigator.pop(context),
+      );
+    }
 
     return TorChoiceView(
-      labels: TorChoiceLabels(
-        title: i18n.torChoiceTitle,
-        subtitle: i18n.torChoiceSubtitle,
-        builtIn: i18n.torSettingsModeBuiltIn,
-        builtInDesc: i18n.torChoiceBuiltInDesc,
-        external: i18n.torSettingsModeExternal,
-        externalDesc: i18n.torChoiceExternalDesc,
-        noTor: i18n.torSettingsModeDisabled,
-        noTorDesc: i18n.torChoiceNoTorDesc,
-        socksPortLabel: i18n.torSettingsSocksPortLabel,
-        orbotLabel: i18n.torChoiceOrbot,
-        testButton: i18n.torSettingsTestConnectionButton,
-        connected: i18n.torChoiceConnected,
-        testFailed: i18n.torChoiceTestFailed,
-        continueText: i18n.continueText,
-      ),
+      labels: labels,
       isMobile: isMobile,
       onTest: _test,
       onContinue: ({required modeIndex, required port, required useOrbot}) =>

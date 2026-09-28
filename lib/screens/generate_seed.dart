@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/create_wallet.dart';
+import 'package:spice_wallet/screens/create_wallet_password.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -61,9 +64,45 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
     }
   }
 
+  /// Desktop (password-last flow): carry the seed to the password step, which
+  /// encrypts and creates the wallet.
+  void _continueDesktop() {
+    if (_seedSource == null || _restoreDate == null) return;
+    Navigator.pushNamed(
+      context,
+      '/create_wallet_password',
+      arguments: CreateWalletPasswordArgs(
+        seed: _seedSource!,
+        from: RestorePoint.date(_restoreDate!),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
+
+    if (isDesktop) {
+      return DesktopGenerateSeedView(
+        logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
+        step: 4,
+        totalSteps: 5,
+        title: i18n.generateSeedTitle,
+        description: i18n.generateSeedSubtitleRevealed,
+        seedWords: _seed,
+        birthdayLabel: i18n.generateSeedBirthdayLabel,
+        birthdayReason: i18n.generateSeedBirthdayReason,
+        birthdayValue: _restoreDate != null
+            ? DateFormat.yMMM(Localizations.localeOf(context).toString()).format(_restoreDate!)
+            : null,
+        confirmLabel: i18n.generateSeedConfirm,
+        passwordNote: i18n.generateSeedPasswordNote,
+        revealLabel: i18n.generateSeedReveal,
+        continueText: i18n.generateSeedContinueButton,
+        onContinue: _continueDesktop,
+        onBack: () => Navigator.pop(context),
+      );
+    }
 
     return GenerateSeedView(
       stepCount: 4,
