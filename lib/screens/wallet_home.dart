@@ -20,6 +20,7 @@ import 'package:spice_wallet/widgets/connection_status_indicator.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
 import 'package:wallet_domain/wallet_domain.dart';
+import 'package:wallet_infra/wallet_infra.dart' show StoreReview;
 
 class WalletHomeScreen extends StatefulWidget {
   const WalletHomeScreen({super.key});
@@ -32,8 +33,20 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrapIfNeeded());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _bootstrapIfNeeded();
+      // Opening the app after a send is when a store review is asked for;
+      // StoreReview decides whether one is due, once per launch.
+      unawaited(StoreReview.requestIfDue(stillAppropriate: _stillOnHome));
+    });
   }
+
+  // Still the screen in front, with the app in the foreground: the review
+  // dialog must not land on a send or receive the user has already opened.
+  bool _stillOnHome() =>
+      mounted &&
+      (ModalRoute.of(context)?.isCurrent ?? false) &&
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
 
   Future<void> _bootstrapIfNeeded() async {
     final manager = context.read<WalletManager>();
