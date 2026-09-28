@@ -17,6 +17,7 @@ import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
+import 'package:wallet_infra/wallet_infra.dart' show StoreReview;
 
 class SendScreenArgs {
   final String coinSymbol;
@@ -592,6 +593,10 @@ class _SendScreenState extends State<SendScreen> {
             destinationContactName: _selectedContact?.name,
           ),
         );
+        if (committed == true) {
+          // The send went through: ask for a store review on a later launch.
+          unawaited(StoreReview.markEligible());
+        }
         if (committed == true && mounted) {
           Navigator.pushNamedAndRemoveUntil(
             context,
