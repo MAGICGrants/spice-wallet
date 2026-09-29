@@ -950,6 +950,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendAvailableSuffix => 'available';
 
   @override
+  String get sendSwitchUnit => 'Switch amount unit';
+
+  @override
   String get sendNetworkFee => 'Network fee';
 
   @override

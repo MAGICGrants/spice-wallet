@@ -126,7 +126,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final i18n = AppLocalizations.of(context)!;
     final manager = context.watch<WalletManager>();
     final fiatRate = context.watch<FiatRateModel>();
-    final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
     // Content gutter: the desktop shell caps width and wants wider margins.
     final gutter = isDesktop ? 44.0 : 20.0;
 
@@ -248,7 +247,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
             entries: entries,
             i18n: i18n,
             fiatRate: fiatRate,
-            fiatSymbol: fiatSymbol,
             gutter: gutter,
             onTapTx: (asset, tx) => TxDetailsDialog.show(context, asset, tx),
           );
@@ -423,7 +421,6 @@ class _Timeline extends StatelessWidget {
   final List<TxEntry> entries;
   final AppLocalizations i18n;
   final FiatRateModel fiatRate;
-  final String fiatSymbol;
   final double gutter;
   final void Function(CryptoWallet asset, TxDetails tx) onTapTx;
 
@@ -431,7 +428,6 @@ class _Timeline extends StatelessWidget {
     required this.entries,
     required this.i18n,
     required this.fiatRate,
-    required this.fiatSymbol,
     required this.gutter,
     required this.onTapTx,
   });
@@ -469,7 +465,6 @@ class _Timeline extends StatelessWidget {
           asset: e.asset,
           labels: TxActivityLabels(received: i18n.coinHomeReceived, sent: i18n.coinHomeSent),
           fiatRate: fiatRate,
-          fiatSymbol: fiatSymbol,
           showDivider: next is TxEntry,
           onTap: () => onTapTx(e.asset, e.tx),
         );

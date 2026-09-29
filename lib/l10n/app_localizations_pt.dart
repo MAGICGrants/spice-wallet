@@ -953,6 +953,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sendAvailableSuffix => 'disponível';
 
   @override
+  String get sendSwitchUnit => 'Alternar unidade do valor';
+
+  @override
   String get sendNetworkFee => 'Taxa de rede';
 
   @override

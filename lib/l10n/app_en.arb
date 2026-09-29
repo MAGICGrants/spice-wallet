@@ -388,6 +388,7 @@
   "sendToLabel": "To",
   "sendPriorityHeading": "Priority",
   "sendAvailableSuffix": "available",
+  "sendSwitchUnit": "Switch amount unit",
   "sendNetworkFee": "Network fee",
   "sendMaxButton": "MAX",
   "sendPasteButton": "Paste",

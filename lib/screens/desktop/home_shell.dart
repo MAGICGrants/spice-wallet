@@ -5,13 +5,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
-import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/settings.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
-import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 import 'package:wallet_infra/wallet_infra.dart';
@@ -160,7 +158,6 @@ class _DesktopShellState extends State<DesktopShell> {
   List<({CryptoWallet wallet, String? fiat})> _chainNavItems(BuildContext context) {
     final manager = context.watch<WalletManager>();
     final fiatRate = context.watch<FiatRateModel>();
-    final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
     bool isChain(CryptoWallet w) => !isTokenWallet(w) && w.connectionAddress.isNotEmpty;
 
     final entries = [
@@ -174,7 +171,9 @@ class _DesktopShellState extends State<DesktopShell> {
       for (final e in entries)
         (
           wallet: e.wallet,
-          fiat: (fiatRate.isDisabled || e.value == null) ? null : formatFiat(e.value!, fiatSymbol),
+          fiat: (fiatRate.isDisabled || e.value == null)
+              ? null
+              : formatFiat(e.value!, fiatRate.fiatCurrency),
         ),
     ];
   }

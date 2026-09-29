@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
@@ -10,7 +9,6 @@ import 'package:spice_wallet/screens/connection_setup.dart';
 import 'package:spice_wallet/screens/receive.dart';
 import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
-import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -36,7 +34,6 @@ class DesktopHomeView extends StatelessWidget {
     final i18n = AppLocalizations.of(context)!;
     final manager = context.watch<WalletManager>();
     final fiatRate = context.watch<FiatRateModel>();
-    final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
 
     final ratesBySymbol = <String, double?>{
       for (final w in manager.allWallets) w.coinSymbol: fiatRate.rateFor(w.coinSymbol),
@@ -69,13 +66,13 @@ class DesktopHomeView extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Expanded(child: _totalBalance(i18n, fiatRate, totalFiat, fiatSymbol)),
+                Expanded(child: _totalBalance(i18n, fiatRate, totalFiat)),
                 const SizedBox(width: 24),
                 _actions(context, i18n, configured),
               ],
             ),
             const SizedBox(height: 30),
-            _coinGrid(context, manager, wallets, fiatRate, fiatSymbol),
+            _coinGrid(context, manager, wallets, fiatRate),
             const SizedBox(height: 20),
             SectionHeader(label: i18n.coinHomeActivityTitle, padding: EdgeInsets.zero),
             const SizedBox(height: 12),
@@ -86,7 +83,7 @@ class DesktopHomeView extends StatelessWidget {
               )
             else
               for (final e in top) ...[
-                _ActivityCard(entry: e, fiatRate: fiatRate, fiatSymbol: fiatSymbol),
+                _ActivityCard(entry: e, fiatRate: fiatRate),
                 const SizedBox(height: 8),
               ],
           ],
@@ -102,7 +99,6 @@ class DesktopHomeView extends StatelessWidget {
     WalletManager manager,
     List<CryptoWallet> wallets,
     FiatRateModel fiatRate,
-    String fiatSymbol,
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -114,7 +110,6 @@ class DesktopHomeView extends StatelessWidget {
         Widget card(CryptoWallet w) => _DesktopCoinCard(
           wallet: w,
           fiatRate: fiatRate,
-          fiatSymbol: fiatSymbol,
           tokenCount: tokensOf(manager, w.coinSymbol).length,
           fiatOverride: aggregateUnlockedFiat(manager, w, fiatRate.rateFor),
         );
@@ -144,7 +139,6 @@ class DesktopHomeView extends StatelessWidget {
     AppLocalizations i18n,
     FiatRateModel fiatRate,
     double totalFiat,
-    String fiatSymbol,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +149,7 @@ class DesktopHomeView extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: BalanceText.split(formatFiat(totalFiat, fiatSymbol), style: _bigBalance),
+            child: BalanceText.split(formatFiat(totalFiat, fiatRate.fiatCurrency), style: _bigBalance),
           )
         else
           Text('--', style: _bigBalance),
@@ -212,9 +206,8 @@ class DesktopHomeView extends StatelessWidget {
 class _ActivityCard extends StatelessWidget {
   final TxEntry entry;
   final FiatRateModel fiatRate;
-  final String fiatSymbol;
 
-  const _ActivityCard({required this.entry, required this.fiatRate, required this.fiatSymbol});
+  const _ActivityCard({required this.entry, required this.fiatRate});
 
   @override
   Widget build(BuildContext context) {
@@ -231,7 +224,6 @@ class _ActivityCard extends StatelessWidget {
         asset: entry.asset,
         labels: TxActivityLabels(received: i18n.coinHomeReceived, sent: i18n.coinHomeSent),
         fiatRate: fiatRate,
-        fiatSymbol: fiatSymbol,
         showDivider: false,
         onTap: () => TxDetailsDialog.show(context, entry.asset, entry.tx),
       ),
@@ -242,14 +234,12 @@ class _ActivityCard extends StatelessWidget {
 class _DesktopCoinCard extends StatelessWidget {
   final CryptoWallet wallet;
   final FiatRateModel fiatRate;
-  final String fiatSymbol;
   final int tokenCount;
   final double? fiatOverride;
 
   const _DesktopCoinCard({
     required this.wallet,
     required this.fiatRate,
-    required this.fiatSymbol,
     this.tokenCount = 0,
     this.fiatOverride,
   });
@@ -379,7 +369,7 @@ class _DesktopCoinCard extends StatelessWidget {
 
   Widget _trailingBalance(Object? balance, double? balanceFiat) {
     if (balanceFiat != null && !fiatRate.isDisabled) {
-      return BalanceText.split(formatFiat(balanceFiat, fiatSymbol), style: _amountStyle);
+      return BalanceText.split(formatFiat(balanceFiat, fiatRate.fiatCurrency), style: _amountStyle);
     }
     if (balance == null) return const SizedBox.shrink();
     return Text(

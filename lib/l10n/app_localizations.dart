@@ -1827,6 +1827,12 @@ abstract class AppLocalizations {
   /// **'available'**
   String get sendAvailableSuffix;
 
+  /// No description provided for @sendSwitchUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch amount unit'**
+  String get sendSwitchUnit;
+
   /// No description provided for @sendNetworkFee.
   ///
   /// In en, this message translates to:

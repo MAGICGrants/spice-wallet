@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:spice_wallet/consts.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
@@ -66,17 +65,11 @@ class _FiatApiSetupScreenState extends State<FiatApiSetupScreen> {
       currencyLabel: i18n.fiatApiSettingsDisplayCurrencyLabel,
       continueText: i18n.lwsSetupContinueButton,
     );
-    final currencies = [
-      for (final code in supportedFiatCurrencies)
-        FiatCurrencyOption(code: code, symbol: currencySymbols[code] ?? ''),
-    ];
-
     if (isDesktop) {
       return DesktopFiatSetupView(
         labels: labels,
         noteRatesOnly: i18n.onboardingPriceNoteRatesOnly,
         noteTor: i18n.onboardingPriceNoteTor,
-        currencies: currencies,
         modeIndex: _fiatMode.index,
         currency: _fiatCurrency,
         offerTorOnly: !_globalTorDisabled,
@@ -89,7 +82,6 @@ class _FiatApiSetupScreenState extends State<FiatApiSetupScreen> {
 
     return FiatSetupView(
       labels: labels,
-      currencies: currencies,
       modeIndex: _fiatMode.index,
       currency: _fiatCurrency,
       offerTorOnly: !_globalTorDisabled,
