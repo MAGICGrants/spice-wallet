@@ -903,7 +903,7 @@ class _SendScreenState extends State<SendScreen> {
         _dField(i18n.sendToLabel, _dToCard(addressHint, i18n)),
         if (_destinationAddressError.isNotEmpty) _dError(_destinationAddressError),
         const SizedBox(height: 16),
-        _dField(i18n.amount, _dAmountCard(wallet, quote)),
+        _dField(i18n.amount, _dAmountCard()),
         if (_amountError.isNotEmpty) _dError(_amountError),
       ],
     );
@@ -1080,90 +1080,20 @@ class _SendScreenState extends State<SendScreen> {
     );
   }
 
-  Widget _dAmountCard(CryptoWallet wallet, FiatQuote? quote) {
-    final coinAmount = double.tryParse(_amount.coinText) ?? 0;
-    final amountFiat = quote != null ? coinAmount * quote.rate : 0.0;
+  Widget _dAmountCard() {
+    final i18n = AppLocalizations.of(context)!;
     return _dCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _amount.field,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu Mono',
-                    fontSize: 28,
-                    height: 1,
-                    fontWeight: FontWeight.w700,
-                    color: BrandColors.ink,
-                  ),
-                  decoration: InputDecoration.collapsed(
-                    hintText: '0',
-                    hintStyle: TextStyle(
-                      fontFamily: 'Ubuntu Mono',
-                      fontSize: 28,
-                      height: 1,
-                      fontWeight: FontWeight.w700,
-                      color: BrandColors.inkDisabled,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                wallet.coinSymbol,
-                style: TextStyle(
-                  fontFamily: 'Ubuntu Mono',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: BrandColors.ink,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Material(
-                color: BrandColors.surfaceTinted,
-                borderRadius: BorderRadius.circular(8),
-                child: InkWell(
-                  mouseCursor: WidgetStateMouseCursor.clickable,
-                  onTap: _setBalanceAsSendAmount,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-                    child: Text(
-                      _maxLabel(),
-                      style: TextStyle(
-                        fontFamily: 'Ubuntu Mono',
-                        fontSize: 10.5,
-                        height: 1,
-                        fontWeight: FontWeight.w700,
-                        color: BrandColors.primaryDeep,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          if (quote != null) ...[
-            const SizedBox(height: 13),
-            Text(
-              '≈ ${formatFiat(amountFiat, quote.currency)}',
-              style: TextStyle(
-                fontFamily: 'Ubuntu Mono',
-                fontSize: 12.5,
-                color: BrandColors.inkMuted,
-              ),
-            ),
-          ],
-        ],
+      child: ListenableBuilder(
+        listenable: _amount,
+        builder: (_, _) => SendAmountCard(
+          amount: _amount,
+          maxLabel: i18n.sendMaxButton,
+          switchUnitLabel: i18n.sendSwitchUnit,
+          onMax: _setBalanceAsSendAmount,
+        ),
       ),
     );
   }
-
-  String _maxLabel() => AppLocalizations.of(context)!.sendMaxButton;
 
   Widget _dPill(IconData icon, String label, VoidCallback onTap) => Material(
     color: BrandColors.surfaceSunken,
