@@ -592,7 +592,9 @@ class _SendScreenState extends State<SendScreen> {
         final committed = await showConfirmSendSheet(
           context,
           ConfirmSendScreenArgs(
-            coinSymbol: _coinSymbol,
+            // Bind to the wallet that built `tx`, not `_coinSymbol` which the
+            // picker can flip mid-send.
+            coinSymbol: wallet.coinSymbol,
             tx: tx,
             destinationAddress: destinationAddress,
             destinationOpenAlias: destinationOpenAlias,
@@ -939,7 +941,11 @@ class _SendScreenState extends State<SendScreen> {
           ),
         ),
         const SizedBox(height: 18),
-        BrandButton(label: i18n.sendSendButton, loading: _isLoading, onPressed: canSend ? _send : null),
+        BrandButton(
+          label: i18n.sendSendButton,
+          loading: _isLoading,
+          onPressed: canSend ? _send : null,
+        ),
         const SizedBox(height: 9),
         BrandButton.ghost(label: i18n.cancel, onPressed: () => Navigator.pop(context)),
         const SizedBox(height: 16),
