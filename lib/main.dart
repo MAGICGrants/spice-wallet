@@ -276,10 +276,14 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
       ..._routes,
     }[settings.name];
     if (builder == null) return null;
-    // Screen transitions are disabled for now — every route pushes/pops
-    // instantly. Modals keep their own animations (they use showDialog /
-    // showModalBottomSheet, not this route generator).
-    return _NoTransitionPageRoute(builder: builder, settings: settings);
+    // Desktop: no transition anywhere. Mobile: only between the nav-bar screens;
+    // every other push/pop keeps its normal animation. (Modals keep their own
+    // animations — they use showDialog / showModalBottomSheet, not this.)
+    const navBarRoutes = {'/wallet_home', '/history', '/address_book', '/settings'};
+    if (isDesktop || navBarRoutes.contains(settings.name)) {
+      return _NoTransitionPageRoute(builder: builder, settings: settings);
+    }
+    return MaterialPageRoute(builder: builder, settings: settings);
   }
 
   Map<String, WidgetBuilder> get _routes => {
