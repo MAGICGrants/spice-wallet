@@ -8,7 +8,6 @@ export 'package:wallet_ui/wallet_ui.dart'
     hide
         displayAmount,
         formatAmount,
-        formatFiat,
         shortenMiddle,
         // Spice wraps the shared confirm-send sheet in its own
         // `screens/confirm_send.dart` (same name, app-specific signature).

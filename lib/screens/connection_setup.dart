@@ -16,8 +16,24 @@ class ConnectionSetupScreenArgs {
   ConnectionSetupScreenArgs({required this.coinSymbol});
 }
 
+/// Desktop: connection setup as a modal (opened from the coin-settings modal).
+void showConnectionSetupSheet(BuildContext context, {required String coinSymbol}) {
+  showBrandSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (ctx) => ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxSheetHeight(ctx)),
+      child: ConnectionSetupScreen(coinSymbol: coinSymbol, asModal: true),
+    ),
+  );
+}
+
 class ConnectionSetupScreen extends StatefulWidget {
-  const ConnectionSetupScreen({super.key});
+  /// Set when shown as a modal; otherwise the coin comes from the route args.
+  final String? coinSymbol;
+  final bool asModal;
+
+  const ConnectionSetupScreen({super.key, this.coinSymbol, this.asModal = false});
 
   @override
   State<ConnectionSetupScreen> createState() => _ConnectionSetupScreenState();
@@ -44,7 +60,7 @@ class _ConnectionSetupScreenState extends State<ConnectionSetupScreen> {
   Widget build(BuildContext context) {
     final i18n = AppLocalizations.of(context)!;
     final args = ModalRoute.of(context)?.settings.arguments as ConnectionSetupScreenArgs?;
-    final coinSymbol = args?.coinSymbol ?? 'XMR';
+    final coinSymbol = widget.coinSymbol ?? args?.coinSymbol ?? 'XMR';
     final manager = Provider.of<WalletManager>(context, listen: false);
     final wallet = manager.getWallet(coinSymbol);
     final connectionTypeName = _descriptionType(i18n, wallet);
@@ -67,7 +83,9 @@ class _ConnectionSetupScreenState extends State<ConnectionSetupScreen> {
         }
       }());
 
-      if (_wasConfigured == true) {
+      // Modal, or editing an existing connection: return to where it opened.
+      // A first-time setup (from the coin card) advances into the coin home.
+      if (widget.asModal || _wasConfigured == true) {
         Navigator.pop(context);
       } else {
         Navigator.pushReplacementNamed(
@@ -78,53 +96,78 @@ class _ConnectionSetupScreenState extends State<ConnectionSetupScreen> {
       }
     }
 
+    final form = ConnectionSettingsForm(
+      coinSymbol: coinSymbol,
+      saveButtonLabel: i18n.save,
+      onSaved: onSaved,
+      // Modal sizes to content (inline Save); the full screen pins Save to the
+      // bottom of the available height.
+      pinnedSave: !widget.asModal,
+      onConnectionTypeChanged: (type) {
+        if (type != _selectedType) setState(() => _selectedType = type);
+      },
+    );
+
+    final body = Column(
+      mainAxisSize: widget.asModal ? MainAxisSize.min : MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (!widget.asModal)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            child: BrandScreenHeader(
+              onBack: () => Navigator.pop(context),
+              center: CoinBadge(wallet: wallet, fallback: coinSymbol),
+            ),
+          ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            // Desktop modal: the card owns the edge padding.
+            widget.asModal ? 0 : 20,
+            widget.asModal ? 0 : 14,
+            widget.asModal ? 0 : 20,
+            0,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // In the modal there's no header, so the coin mark leads the title
+              // (as the LWS keys modal does).
+              if (widget.asModal && wallet != null)
+                Row(
+                  children: [
+                    CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 34),
+                    const SizedBox(width: 11),
+                    Expanded(child: Text(i18n.connectionSetupTitle, style: BrandText.title)),
+                  ],
+                )
+              else
+                Text(i18n.connectionSetupTitle, style: BrandText.title),
+              const SizedBox(height: 8),
+              Text(
+                _selectedType == 'lws'
+                    ? i18n.connectionSetupDescriptionLws(connectionTypeName)
+                    : i18n.connectionSetupDescription(connectionTypeName),
+                style: BrandText.bodyMuted.copyWith(fontSize: 13, height: 1.5),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 22),
+        if (widget.asModal)
+          Flexible(child: SingleChildScrollView(child: form))
+        else
+          Expanded(child: form),
+      ],
+    );
+
+    if (widget.asModal) return body;
+
     return Scaffold(
       backgroundColor: BrandColors.paper,
       body: SafeArea(
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  child: BrandScreenHeader(
-                    onBack: () => Navigator.pop(context),
-                    center: CoinBadge(wallet: wallet, fallback: coinSymbol),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(i18n.connectionSetupTitle, style: BrandText.title),
-                      const SizedBox(height: 8),
-                      Text(
-                        _selectedType == 'lws'
-                            ? i18n.connectionSetupDescriptionLws(connectionTypeName)
-                            : i18n.connectionSetupDescription(connectionTypeName),
-                        style: BrandText.bodyMuted.copyWith(fontSize: 13, height: 1.5),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 22),
-                Expanded(
-                  child: ConnectionSettingsForm(
-                    coinSymbol: coinSymbol,
-                    saveButtonLabel: i18n.save,
-                    onSaved: onSaved,
-                    pinnedSave: true,
-                    onConnectionTypeChanged: (type) {
-                      if (type != _selectedType) setState(() => _selectedType = type);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
+          child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 500), child: body),
         ),
       ),
     );

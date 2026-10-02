@@ -6,17 +6,19 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
+import 'package:spice_wallet/screens/desktop/home_shell.dart';
+import 'package:spice_wallet/screens/desktop/home_view.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
-import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
 import 'package:wallet_domain/wallet_domain.dart';
+import 'package:wallet_infra/wallet_infra.dart' show StoreReview;
 
 class WalletHomeScreen extends StatefulWidget {
   const WalletHomeScreen({super.key});
@@ -29,8 +31,20 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrapIfNeeded());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _bootstrapIfNeeded();
+      // Opening the app after a send is when a store review is asked for;
+      // StoreReview decides whether one is due, once per launch.
+      unawaited(StoreReview.requestIfDue(stillAppropriate: _stillOnHome));
+    });
   }
+
+  // Still the screen in front, with the app in the foreground: the review
+  // dialog must not land on a send or receive the user has already opened.
+  bool _stillOnHome() =>
+      mounted &&
+      (ModalRoute.of(context)?.isCurrent ?? false) &&
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
 
   Future<void> _bootstrapIfNeeded() async {
     final manager = context.read<WalletManager>();
@@ -47,9 +61,12 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (isDesktop) {
+      return const DesktopShell(active: DesktopNav.home, child: DesktopHomeView());
+    }
+
     final walletManager = context.watch<WalletManager>();
     final fiatRate = context.watch<FiatRateModel>();
-    final fiatSymbol = consts.currencySymbols[fiatRate.fiatCode] ?? '\$';
 
     final ratesBySymbol = <String, double?>{
       for (final w in walletManager.allWallets) w.coinSymbol: fiatRate.rateFor(w.coinSymbol),
@@ -82,11 +99,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                   child: ListView(
                     padding: const EdgeInsets.only(bottom: BrandSpacing.lg),
                     children: [
-                      _TotalBalanceHeader(
-                        totalFiat: totalFiat,
-                        fiatSymbol: fiatSymbol,
-                        fiatRate: fiatRate,
-                      ),
+                      _TotalBalanceHeader(totalFiat: totalFiat, fiatRate: fiatRate),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 14),
                         child: Column(
@@ -95,7 +108,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                               _CoinCard(
                                 wallet: wallet,
                                 fiatRate: fiatRate,
-                                fiatSymbol: fiatSymbol,
                                 tokenCount: tokensOf(walletManager, wallet.coinSymbol).length,
                                 fiatOverride: aggregateUnlockedFiat(
                                   walletManager,
@@ -148,14 +160,9 @@ class _Header extends StatelessWidget {
 
 class _TotalBalanceHeader extends StatelessWidget {
   final double totalFiat;
-  final String fiatSymbol;
   final FiatRateModel fiatRate;
 
-  const _TotalBalanceHeader({
-    required this.totalFiat,
-    required this.fiatSymbol,
-    required this.fiatRate,
-  });
+  const _TotalBalanceHeader({required this.totalFiat, required this.fiatRate});
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +183,7 @@ class _TotalBalanceHeader extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
-                    child: BalanceText.split(formatFiat(totalFiat, fiatSymbol)),
+                    child: BalanceText.split(formatFiat(totalFiat, fiatRate.fiatCurrency)),
                   ),
                 )
               else
@@ -202,7 +209,6 @@ class _TotalBalanceHeader extends StatelessWidget {
 class _CoinCard extends StatelessWidget {
   final CryptoWallet wallet;
   final FiatRateModel fiatRate;
-  final String fiatSymbol;
 
   /// Number of tokens on this chain (>0 → the row shows "N assets" + aggregate).
   final int tokenCount;
@@ -213,7 +219,6 @@ class _CoinCard extends StatelessWidget {
   const _CoinCard({
     required this.wallet,
     required this.fiatRate,
-    required this.fiatSymbol,
     this.tokenCount = 0,
     this.fiatOverride,
   });
@@ -285,6 +290,7 @@ class _CoinCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(BrandRadii.field),
       ),
       child: InkWell(
+        mouseCursor: WidgetStateMouseCursor.clickable,
         onTap: () => _open(context),
         borderRadius: BorderRadius.circular(BrandRadii.field),
         child: Padding(
@@ -349,7 +355,10 @@ class _CoinCard extends StatelessWidget {
     if (balanceFiat != null && !fiatRate.isDisabled) {
       return Padding(
         padding: const EdgeInsets.only(right: 7),
-        child: BalanceText.split(formatFiat(balanceFiat, fiatSymbol), style: _cardBalanceStyle),
+        child: BalanceText.split(
+          formatFiat(balanceFiat, fiatRate.fiatCurrency),
+          style: _cardBalanceStyle,
+        ),
       );
     }
     if (balance == null) {

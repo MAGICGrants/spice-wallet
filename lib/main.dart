@@ -5,9 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import 'package:spice_wallet/models/fiat_rate_model.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/contact_model.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
@@ -34,6 +36,7 @@ import 'package:spice_wallet/screens/wallet_home.dart';
 import 'package:spice_wallet/screens/welcome.dart';
 import 'package:spice_wallet/theme/brand.dart';
 import 'package:spice_wallet/theme/palette.dart';
+import 'package:wallet_ui/wallet_ui.dart' show OnboardingRadioCard;
 import 'package:spice_wallet/screens/tor_settings.dart';
 import 'package:spice_wallet/screens/address_book.dart';
 import 'package:spice_wallet/screens/privacy_policy.dart';
@@ -49,15 +52,13 @@ import 'package:spice_wallet/util/cacert.dart';
 import 'package:spice_wallet/wallet_core_glue.dart';
 import 'package:wallet_domain/wallet_domain.dart' show WalletManager;
 
-final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
-final isMobile = Platform.isAndroid || Platform.isIOS;
-
 void main() async {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
       BrandColors.install(spicePalette);
+      OnboardingRadioCard.selectedFill = () => BrandColors.card;
 
       installWalletCore();
 
@@ -269,15 +270,17 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
 
   // The bottom-nav destinations. Tapping a nav tab must not animate (on either
   // platform), so these get a zero-duration route in _onGenerateRoute.
-  static const _noTransitionRoutes = {'/wallet_home', '/history', '/address_book', '/settings'};
-
   Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
     final builder = <String, WidgetBuilder>{
       '/loading': (context) => Scaffold(body: Center(child: CircularProgressIndicator())),
       ..._routes,
     }[settings.name];
     if (builder == null) return null;
-    if (_noTransitionRoutes.contains(settings.name)) {
+    // Desktop: no transition anywhere. Mobile: only between the nav-bar screens;
+    // every other push/pop keeps its normal animation. (Modals keep their own
+    // animations — they use showDialog / showModalBottomSheet, not this.)
+    const navBarRoutes = {'/wallet_home', '/history', '/address_book', '/settings'};
+    if (isDesktop || navBarRoutes.contains(settings.name)) {
       return _NoTransitionPageRoute(builder: builder, settings: settings);
     }
     return MaterialPageRoute(builder: builder, settings: settings);
@@ -344,7 +347,12 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
           });
         }
         _lastBrightness = brightness;
-        return child ?? const SizedBox.shrink();
+        // Brand-tone skeletons (the default grey clashes with the scheme); the
+        // token resolves to the current theme.
+        return SkeletonizerConfig(
+          data: SkeletonizerConfigData(effect: SoldColorEffect(color: BrandColors.surfaceMuted)),
+          child: child ?? const SizedBox.shrink(),
+        );
       },
       initialRoute: '/loading',
       locale: Locale.fromSubtags(languageCode: languageProvider.language),
@@ -356,25 +364,30 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
 /// Tracks the name of the current top route, so the app-lock relock can avoid
 /// stacking a second unlock screen over one that's already showing.
 class _CurrentRouteObserver extends NavigatorObserver {
-  String? currentName;
+  // A notifier so the desktop shell (in MaterialApp.builder) can rebuild the
+  // persistent sidebar's visibility + active tab when the top route changes.
+  final ValueNotifier<String?> current = ValueNotifier<String?>(null);
+
+  String? get currentName => current.value;
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) =>
-      currentName = route.settings.name;
+      current.value = route.settings.name;
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) =>
-      currentName = previousRoute?.settings.name;
+      current.value = previousRoute?.settings.name;
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) =>
-      currentName = newRoute?.settings.name;
+      current.value = newRoute?.settings.name;
 }
 
-/// A [MaterialPageRoute] whose own push/pop is instant — used for the bottom-nav
-/// destinations so tapping a tab doesn't animate. Subclassing (rather than a bare
-/// PageRouteBuilder) keeps Material's transition machinery, so the *secondary*
-/// transition still plays when another screen is pushed over a nav screen.
+/// A [MaterialPageRoute] whose push/pop is instant — used for every named route
+/// so screen transitions don't animate (modals keep their own animations).
+/// Subclassing (rather than a bare PageRouteBuilder) keeps Material's transition
+/// machinery, so a covered screen's secondary transition still resolves (also
+/// instantly, since the covering route's duration is zero).
 class _NoTransitionPageRoute<T> extends MaterialPageRoute<T> {
   _NoTransitionPageRoute({required super.builder, super.settings});
 

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:spice_wallet/util/logging.dart';
+import 'package:spice_wallet/util/platform.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
@@ -19,11 +20,29 @@ import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/widgets/theme_language_sheets.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
+import 'package:spice_wallet/screens/reveal_seed.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
 import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
 
+/// Desktop: settings as a wide centered modal (opened from the sidebar); mobile
+/// keeps the full-screen tab.
+Future<void> showSettingsSheet(BuildContext context) {
+  return showBrandSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    maxWidth: 720,
+    builder: (ctx) => ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 640),
+      child: const SettingsScreen(asModal: true),
+    ),
+  );
+}
+
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  /// Content-only render for the desktop settings modal (2-column, no shell).
+  final bool asModal;
+
+  const SettingsScreen({super.key, this.asModal = false});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -253,7 +272,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return;
       }
     }
-    if (mounted) Navigator.pushNamed(context, '/reveal_seed');
+    if (!mounted) return;
+    if (isDesktop) {
+      await showRevealSeedSheet(context);
+    } else {
+      Navigator.pushNamed(context, '/reveal_seed');
+    }
   }
 
   static const _languageNames = {'en': 'English', 'pt': 'Português'};
@@ -263,7 +287,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final i18n = AppLocalizations.of(context)!;
     final language = context.watch<LanguageModel>();
     final theme = context.watch<ThemeModel>();
-    final isMobile = Platform.isAndroid || Platform.isIOS;
 
     final themeLabel = {
       'system': i18n.settingsThemeSystem,
@@ -275,6 +298,127 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final fiatSubtitle = _fiatMode == FiatApiMode.disabled
         ? _fiatModeLabel(i18n)
         : '${_fiatModeLabel(i18n)} · $fiatCode';
+
+    final groups = <Widget>[
+      SettingsGroup(
+        label: i18n.settingsSectionGeneral,
+        tiles: [
+          SettingsNavTile(
+            title: i18n.settingsThemeLabel,
+            value: themeLabel,
+            onTap: () => showThemeSheet(context),
+          ),
+          SettingsNavTile(
+            title: i18n.settingsLanguageLabel,
+            value: _languageNames[language.language] ?? language.language.toUpperCase(),
+            onTap: () => showLanguageSheet(context),
+          ),
+          if (isMobile)
+            SettingsToggleTile(
+              title: i18n.settingsAppLockLabel,
+              value: _appLockEnabled,
+              onChanged: _setAppLockEnabled,
+              animate: _animateToggles,
+            ),
+          SettingsLinkTile(
+            title: i18n.settingsTorSettingsLabel,
+            subtitle: _torModeLabel(i18n),
+            linkLabel: i18n.settingsLwsViewKeysButton,
+            onTap: _showTorSettings,
+          ),
+          SettingsLinkTile(
+            title: i18n.settingsFiatApiSettingsLabel,
+            subtitle: fiatSubtitle,
+            linkLabel: i18n.settingsLwsViewKeysButton,
+            onTap: _showFiatApiSettings,
+          ),
+        ],
+      ),
+      SettingsGroup(
+        label: i18n.settingsSectionBehaviour,
+        tiles: [
+          if (isMobile)
+            SettingsToggleTile(
+              title: i18n.settingsNotifyNewTxsLabel,
+              description: Platform.isIOS
+                  ? i18n.settingsNotifyNewTxsDescriptionIos
+                  : i18n.settingsNotifyNewTxsDescription,
+              value: _newTxNotificationsEnabled,
+              onChanged: _setTxNotificationsEnabled,
+              animate: _animateToggles,
+            ),
+          SettingsToggleTile(
+            title: i18n.settingsTestnetCoinsLabel,
+            description: i18n.settingsTestnetCoinsDescription,
+            value: _testnetCoinsEnabled,
+            onChanged: _setTestnetCoinsEnabled,
+            animate: _animateToggles,
+          ),
+          SettingsToggleTile(
+            title: i18n.settingsVerboseLoggingLabel,
+            description: Platform.isIOS
+                ? i18n.settingsVerboseLoggingDescriptionIos
+                : i18n.settingsVerboseLoggingDescription,
+            value: _verboseLoggingEnabled,
+            onChanged: _setVerboseLoggingEnabled,
+            animate: _animateToggles,
+          ),
+          // Only meaningful with logs to export.
+          if (Platform.isIOS && _verboseLoggingEnabled)
+            SettingsLinkTile(
+              title: i18n.settingsExportLogsLabel,
+              linkLabel: i18n.settingsExportLogsButton,
+              onTap: _exportLogs,
+            ),
+        ],
+      ),
+      SettingsGroup(
+        label: i18n.settingsSectionAbout,
+        tiles: [
+          SettingsNavTile(
+            title: i18n.welcomeTermsLink,
+            onTap: () => Navigator.pushNamed(context, '/terms_of_service', arguments: true),
+          ),
+          SettingsNavTile(
+            title: i18n.welcomePrivacyLink,
+            onTap: () => Navigator.pushNamed(context, '/privacy_policy', arguments: true),
+          ),
+        ],
+      ),
+      SettingsGroup(
+        label: i18n.settingsSectionWallet,
+        tiles: [
+          SettingsLinkTile(
+            title: i18n.settingsSeedPhraseLabel,
+            linkLabel: i18n.settingsLwsViewKeysButton,
+            onTap: _revealSeed,
+          ),
+          SettingsLinkTile(
+            title: i18n.settingsDeleteWalletButton,
+            titleColor: BrandColors.error,
+            onTap: _showDeleteWalletDialog,
+          ),
+        ],
+      ),
+    ];
+
+    final versionFooter = Center(
+      child: Text(
+        'Spice Wallet v$_appVersion (build $_buildNumber)',
+        style: BrandText.caption.copyWith(color: BrandColors.inkFaint),
+      ),
+    );
+
+    if (widget.asModal) return _modalBody(i18n, groups, versionFooter);
+
+    final tiles = <Widget>[
+      for (var i = 0; i < groups.length; i++) ...[
+        if (i > 0) const SizedBox(height: 20),
+        groups[i],
+      ],
+      const SizedBox(height: 20),
+      versionFooter,
+    ];
 
     return Scaffold(
       backgroundColor: BrandColors.paper,
@@ -299,120 +443,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                    children: [
-                      SettingsGroup(
-                        label: i18n.settingsSectionGeneral,
-                        tiles: [
-                          SettingsNavTile(
-                            title: i18n.settingsThemeLabel,
-                            value: themeLabel,
-                            onTap: () => showThemeSheet(context),
-                          ),
-                          SettingsNavTile(
-                            title: i18n.settingsLanguageLabel,
-                            value:
-                                _languageNames[language.language] ??
-                                language.language.toUpperCase(),
-                            onTap: () => showLanguageSheet(context),
-                          ),
-                          if (isMobile)
-                            SettingsToggleTile(
-                              title: i18n.settingsAppLockLabel,
-                              value: _appLockEnabled,
-                              onChanged: _setAppLockEnabled,
-                              animate: _animateToggles,
-                            ),
-                          SettingsLinkTile(
-                            title: i18n.settingsTorSettingsLabel,
-                            subtitle: _torModeLabel(i18n),
-                            linkLabel: i18n.settingsLwsViewKeysButton,
-                            onTap: _showTorSettings,
-                          ),
-                          SettingsLinkTile(
-                            title: i18n.settingsFiatApiSettingsLabel,
-                            subtitle: fiatSubtitle,
-                            linkLabel: i18n.settingsLwsViewKeysButton,
-                            onTap: _showFiatApiSettings,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      SettingsGroup(
-                        label: i18n.settingsSectionBehaviour,
-                        tiles: [
-                          if (isMobile)
-                            SettingsToggleTile(
-                              title: i18n.settingsNotifyNewTxsLabel,
-                              description: Platform.isIOS
-                                  ? i18n.settingsNotifyNewTxsDescriptionIos
-                                  : i18n.settingsNotifyNewTxsDescription,
-                              value: _newTxNotificationsEnabled,
-                              onChanged: _setTxNotificationsEnabled,
-                              animate: _animateToggles,
-                            ),
-                          SettingsToggleTile(
-                            title: i18n.settingsTestnetCoinsLabel,
-                            description: i18n.settingsTestnetCoinsDescription,
-                            value: _testnetCoinsEnabled,
-                            onChanged: _setTestnetCoinsEnabled,
-                            animate: _animateToggles,
-                          ),
-                          SettingsToggleTile(
-                            title: i18n.settingsVerboseLoggingLabel,
-                            description: Platform.isIOS
-                                ? i18n.settingsVerboseLoggingDescriptionIos
-                                : i18n.settingsVerboseLoggingDescription,
-                            value: _verboseLoggingEnabled,
-                            onChanged: _setVerboseLoggingEnabled,
-                            animate: _animateToggles,
-                          ),
-                          // Only meaningful with logs to export.
-                          if (Platform.isIOS && _verboseLoggingEnabled)
-                            SettingsLinkTile(
-                              title: i18n.settingsExportLogsLabel,
-                              linkLabel: i18n.settingsExportLogsButton,
-                              onTap: _exportLogs,
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      SettingsGroup(
-                        label: i18n.settingsSectionAbout,
-                        tiles: [
-                          SettingsNavTile(
-                            title: i18n.welcomeTermsLink,
-                            onTap: () => Navigator.pushNamed(context, '/terms_of_service'),
-                          ),
-                          SettingsNavTile(
-                            title: i18n.welcomePrivacyLink,
-                            onTap: () => Navigator.pushNamed(context, '/privacy_policy'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      SettingsGroup(
-                        label: i18n.settingsSectionWallet,
-                        tiles: [
-                          SettingsLinkTile(
-                            title: i18n.settingsSeedPhraseLabel,
-                            linkLabel: i18n.settingsLwsViewKeysButton,
-                            onTap: _revealSeed,
-                          ),
-                          SettingsLinkTile(
-                            title: i18n.settingsDeleteWalletButton,
-                            titleColor: BrandColors.error,
-                            onTap: _showDeleteWalletDialog,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Center(
-                        child: Text(
-                          'Spice Wallet v$_appVersion (build $_buildNumber)',
-                          style: BrandText.caption.copyWith(color: BrandColors.inkFaint),
-                        ),
-                      ),
-                    ],
+                    children: tiles,
                   ),
                 ),
               ],
@@ -420,6 +451,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// The desktop settings modal: a header + a two-column body of the groups that
+  /// wraps to one column when the modal is narrow (design: 720px, 2 columns).
+  Widget _modalBody(AppLocalizations i18n, List<Widget> groups, Widget versionFooter) {
+    final hpad = isDesktopModal ? 0.0 : 20.0;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(hpad, 2, isDesktopModal ? 34 : hpad, 18),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: BrandColors.orangeBg,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.tune, size: 19, color: BrandColors.primary),
+              ),
+              const SizedBox(width: 13),
+              Text(
+                i18n.settingsTitle,
+                style: TextStyle(
+                  fontFamily: 'Ubuntu',
+                  fontSize: 21,
+                  height: 1.25,
+                  fontWeight: FontWeight.w700,
+                  color: BrandColors.ink,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Flexible(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(hpad, 0, hpad, 2),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                const gap = 20.0;
+                Widget stack(List<Widget> gs, {Widget? tail}) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < gs.length; i++) ...[
+                      if (i > 0) const SizedBox(height: gap),
+                      gs[i],
+                    ],
+                    if (tail != null) ...[const SizedBox(height: gap), tail],
+                  ],
+                );
+                // Two columns when there's room; split the groups down the middle.
+                if (constraints.maxWidth >= 520) {
+                  final half = (groups.length / 2).ceil();
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: stack(groups.sublist(0, half))),
+                      const SizedBox(width: 22),
+                      Expanded(child: stack(groups.sublist(half), tail: versionFooter)),
+                    ],
+                  );
+                }
+                return stack(groups, tail: versionFooter);
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

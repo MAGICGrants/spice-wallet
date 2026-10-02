@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=Spice Wallet
-Comment=A light Monero wallet.
+Comment=A light multi-asset wallet.
 Exec=spice_wallet
 Icon=spice_wallet
 Categories=Finance;Network;

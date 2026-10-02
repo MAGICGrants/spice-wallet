@@ -1,10 +1,8 @@
 # Spice architecture
 
 How the Spice app is put together on top of **wallet-core**. This documents only
-the *spice-specific* choices — the shared wallet engine is documented in
-`../../wallet-core/docs/` (`decisions.md`, `reconciliation.md`, `testing.md`,
-`storage.md`, `logging.md`, `background-sync.md`), which are the source of truth
-for anything below the app layer. Don't duplicate those here; link to them.
+the *spice-specific* choices; wallet-core is the source of truth for anything
+below the app layer. Don't duplicate it here; link to it.
 
 ## What Spice is
 
@@ -20,8 +18,8 @@ navigation, branding, and app-support glue.
   the gitignored `pubspec_overrides.yaml`. **Wallet-core changes only reach a
   release build once the pin is bumped** — the override is dev-only.
 - **No adapter layer.** Screens bind **directly** to wallet-core's `CryptoWallet`
-  and `WalletManager` (its own types — Spice's architecture is the base, see
-  wallet-core D2). Skylight wraps them in an `AppWallet`/`MoneroWalletAdapter`
+  and `WalletManager` (its own types — Spice's architecture is the base).
+  Skylight wraps them in an `AppWallet`/`MoneroWalletAdapter`
   neutral-type layer because it deleted its own `WalletModel`; Spice never had
   that indirection and doesn't need it (it's already multicoin against the
   generic interface).
@@ -45,9 +43,9 @@ navigation, branding, and app-support glue.
 - **Shared via wallet-core** (deleted from / re-exported by Spice): the entire
   wallet engine (`CryptoWallet`/`WalletManager`/coins); the
   `SharedPreferencesService` + `SettingsKeys`, `NotificationService` and
-  `SecureClipboard` in `wallet_infra` (D21, D10); the background-sync/notification
-  orchestration in `wallet_background` (D22); the `FiatRateModel` in `wallet_fiat`
-  (D23); and the tx-details popup in `wallet_ui` (D24). Spice re-exports the moved
+  `SecureClipboard` in `wallet_infra`; the background-sync/notification
+  orchestration in `wallet_background`; the `FiatRateModel` in `wallet_fiat`;
+  and the tx-details popup in `wallet_ui`. Spice re-exports the moved
   symbols under their old paths (and keeps a thin `TxDetailsDialog` adapter that
   supplies its l10n strings), keeps its `SharedPreferencesKeys` (referencing
   `SettingsKeys` + its 2 extras), and injects the app seams
@@ -68,8 +66,8 @@ is the only heavy, locally-scanning connection. ERC-20 (DAI) pays fees in ETH
 
 The background-sync + tx-notification **design is shared with Skylight**, not
 spice-specific: the security rationale (key exposure vs. the LWS/node mode split)
-is wallet-core's `background-sync.md`, and the orchestration now lives in the
-shared **`wallet_background`** package (wallet-core D22). Spice keeps only the
+is wallet-core's, and the orchestration now lives in the shared
+**`wallet_background`** package. Spice keeps only the
 thin isolate **entry points** (`periodic_tasks.dart`, `foreground_sync_service.dart`
 — they bootstrap the isolate then delegate), the `BackgroundSync.install(...)`
 config in the glue (coin registry, a Tor hook, iOS bundle id, foreground title),
@@ -88,7 +86,7 @@ The only genuinely **spice-specific** part is that spice is multicoin:
 
 ## Testing
 
-wallet-core owns the engine's L0–L5 tests (`testing.md`) and the fake seams
+wallet-core owns the engine's tests and the fake seams
 (`FakeMoneroBackend`, `FakeElectrumClient`, `fake_ethereum_rpc`). Spice keeps
 app-level tests (`test/wallet_core_glue_test.dart` guards the coin registry and
 the no-migration key/file naming). Background-sync / notification / iOS paths are
