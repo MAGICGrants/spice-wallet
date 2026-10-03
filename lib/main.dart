@@ -50,11 +50,14 @@ import 'package:spice_wallet/util/dirs.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/wallet_core_glue.dart';
 import 'package:wallet_domain/wallet_domain.dart' show WalletManager;
+import 'package:wallet_infra/wallet_infra.dart' show HostPlatform;
 
 void main() async {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+      // Before the first frame: the layout reads it synchronously.
+      await HostPlatform.init();
 
       BrandColors.install(spicePalette);
       OnboardingRadioCard.selectedFill = () => BrandColors.card;
@@ -235,8 +238,9 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
 
       final appLockEnabled = prefs.getBool(SharedPreferencesKeys.appLockEnabled) ?? false;
 
+      // A desktop OS asks for the typed password at every launch.
       final initialRoute = walletExists
-          ? appLockEnabled || isDesktop
+          ? appLockEnabled || isDesktopOS
                 ? '/unlock'
                 : '/wallet_home'
           : '/welcome';
@@ -250,7 +254,7 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
         context.read<FiatRateModel>().startService(walletManager: context.read<WalletManager>());
 
         // Desktop announces incoming txs from the foreground (no bg isolate).
-        if (isDesktop) {
+        if (isDesktopOS) {
           _announceManager = manager..addListener(_announceNewTxsOnGrowth);
         }
       }

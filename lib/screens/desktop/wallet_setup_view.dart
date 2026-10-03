@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'package:spice_wallet/screens/desktop/onboarding_steps.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 
 /// Desktop Step 3 of 5 — create-new vs restore. Selection then Continue (rather
@@ -46,7 +47,7 @@ class _DesktopWalletSetupViewState extends State<DesktopWalletSetupView> {
       title: l.title,
       description: l.subtitle,
       step: 3,
-      totalSteps: 5,
+      totalSteps: desktopOnboardingSteps,
       continueLabel: widget.continueText,
       continueEnabled: _selected != null,
       onBack: widget.onBack,

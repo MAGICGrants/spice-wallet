@@ -12,6 +12,7 @@ import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/create_wallet_password.dart';
+import 'package:spice_wallet/screens/desktop/onboarding_steps.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -184,7 +185,7 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
         title: i18n.restoreWalletTitle,
         description: i18n.restoreWalletSubtitle,
         step: 4,
-        totalSteps: 5,
+        totalSteps: desktopOnboardingSteps,
         continueLabel: i18n.restoreWalletRestoreButton,
         continueEnabled: valid,
         loading: _isLoading,
