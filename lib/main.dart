@@ -48,7 +48,6 @@ import 'package:spice_wallet/periodic_tasks.dart';
 import 'package:spice_wallet/services/foreground_sync_service.dart';
 import 'package:spice_wallet/util/dirs.dart';
 import 'package:spice_wallet/util/logging.dart';
-import 'package:spice_wallet/util/cacert.dart';
 import 'package:spice_wallet/wallet_core_glue.dart';
 import 'package:wallet_domain/wallet_domain.dart' show WalletManager;
 
@@ -81,7 +80,6 @@ void main() async {
       }
 
       if (Platform.isAndroid) {
-        copyCacertToAppDocumentsDir();
         registerPeriodicTasks();
         startForegroundSyncIfEnabled();
         NotificationService().init();

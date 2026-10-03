@@ -37,7 +37,7 @@ navigation, branding, and app-support glue.
 ## App-local vs shared
 
 - **Kept app-local** (`lib/util/`, `lib/services/`): logging, dirs, Tor service,
-  `TorSettingsService`, secure screen, socks, cacert, amount/formatting helpers.
+  `TorSettingsService`, secure screen, socks, amount/formatting helpers.
   wallet-core has its own internal copies (`wallet_infra`); the two are bridged by
   **injection**, not by importing `wallet_infra` into the UI.
 - **Shared via wallet-core** (deleted from / re-exported by Spice): the entire
