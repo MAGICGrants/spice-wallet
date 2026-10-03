@@ -118,8 +118,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
       _error = null;
     });
     final manager = Provider.of<WalletManager>(context, listen: false);
-    final password = _passwordController.text;
-    if (!await manager.verifyWalletPassword(password)) {
+    if (!await manager.unlockWithTypedPassword(_passwordController.text)) {
       if (mounted) {
         _passwordController.clear();
         setState(() {
@@ -129,7 +128,6 @@ class _UnlockScreenState extends State<UnlockScreen> {
       }
       return;
     }
-    manager.setWalletPassword(password);
     if (mounted) _unlockDone(manager);
   }
 
