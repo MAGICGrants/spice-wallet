@@ -1,7 +1,7 @@
 name: spice_wallet
 description: "A light multicoin wallet."
 publish_to: "none"
-version: 1.1.0+9
+version: 1.1.0+10
 
 environment:
   sdk: 3.11.5
@@ -35,7 +35,7 @@ dependencies:
   monero:
     git:
       url: https://github.com/magicgrants/monero_c
-      ref: 3ca8418f5888883e1bb6e3a6a919260e71a49647
+      ref: e31cbe2cc595fa9d640b35ffb45dc3afa91ec7b0
       path: impls/monero.dart
 
   # wallet-core packages; SHA-pinned for release, redirected to the local
@@ -43,47 +43,47 @@ dependencies:
   wallet_infra:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 3584c83fc791dfb498dd6a31afb16ebb48b25bf6
+      ref: 548255131912abcfd4b43e273bc4722c160c8ccf
       path: packages/wallet_infra
   wallet_domain:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 3584c83fc791dfb498dd6a31afb16ebb48b25bf6
+      ref: 548255131912abcfd4b43e273bc4722c160c8ccf
       path: packages/wallet_domain
   wallet_monero:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 3584c83fc791dfb498dd6a31afb16ebb48b25bf6
+      ref: 548255131912abcfd4b43e273bc4722c160c8ccf
       path: packages/wallet_monero
   wallet_bitcoin:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 3584c83fc791dfb498dd6a31afb16ebb48b25bf6
+      ref: 548255131912abcfd4b43e273bc4722c160c8ccf
       path: packages/wallet_bitcoin
   wallet_ethereum:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 3584c83fc791dfb498dd6a31afb16ebb48b25bf6
+      ref: 548255131912abcfd4b43e273bc4722c160c8ccf
       path: packages/wallet_ethereum
   wallet_openalias:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 3584c83fc791dfb498dd6a31afb16ebb48b25bf6
+      ref: 548255131912abcfd4b43e273bc4722c160c8ccf
       path: packages/wallet_openalias
   wallet_background:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 3584c83fc791dfb498dd6a31afb16ebb48b25bf6
+      ref: 548255131912abcfd4b43e273bc4722c160c8ccf
       path: packages/wallet_background
   wallet_fiat:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 3584c83fc791dfb498dd6a31afb16ebb48b25bf6
+      ref: 548255131912abcfd4b43e273bc4722c160c8ccf
       path: packages/wallet_fiat
   wallet_ui:
     git:
       url: https://github.com/MAGICGrants/wallet-core
-      ref: 3584c83fc791dfb498dd6a31afb16ebb48b25bf6
+      ref: 548255131912abcfd4b43e273bc4722c160c8ccf
       path: packages/wallet_ui
 
   bip39:
