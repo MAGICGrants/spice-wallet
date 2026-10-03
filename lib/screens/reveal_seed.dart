@@ -79,7 +79,8 @@ class _RevealSeedScreenState extends State<RevealSeedScreen> with SecureScreenMi
           words: _words,
           revealed: _revealed,
           revealLabel: i18n.generateSeedReveal,
-          // Screenshots aren't blocked on desktop, so drop the safety line there.
+          // Screenshots aren't blocked on a desktop OS, and the iOS block is not
+          // known to hold on a Mac, so drop the safety line in either.
           screenshotNote: isDesktop ? null : i18n.generateSeedScreenshotNote,
           onReveal: () => setState(() => _revealed = true),
         ),
