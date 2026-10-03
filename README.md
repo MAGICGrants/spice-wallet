@@ -2,14 +2,33 @@
 
 ![Spice Wallet feature graphic](assets/feature_graphic.png)
 
-A modern, open-source, and self-custody multicoin light-wallet built with Flutter.
+An open-source and self-custody wallet for Monero, Bitcoin, Ethereum, and Dai, built with Flutter by [MAGIC Grants](https://magicgrants.org). One seed, every asset, on mobile and desktop.
+
+**Website:** [spicewallet.org](https://spicewallet.org)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Flutter](https://img.shields.io/badge/Flutter-3.8.1+-02569B.svg?logo=flutter)
 
+## Features
+
+- **One seed, every asset.** Monero, Bitcoin, Ethereum, and Dai sit side by side, all secured by a single 15-word BIP39 seed phrase. Serai will be added as soon as it goes live.
+- **Built-in Tor.** Tor comes bundled. Connect only the services you need over Tor, disable it entirely, or point Spice Wallet at Orbot or a Tor daemon you run yourself.
+- **No more waiting to sync.** The servers you choose can do the scanning, so your history is ready when you open the app. Or scan locally on your device if you prefer.
+- **Your servers, your choice.** Spice Wallet ships with no default servers. Each asset connects through a server you specify: a light-wallet server (LWS) or Monero node for Monero, an Electrum server for Bitcoin, and an RPC endpoint for Ethereum and Dai.
+- **Reproducible builds**, so you can verify that the app you run matches the code in this repository.
+
+Spice Wallet shares its wallet engine with [Skylight Wallet](https://github.com/MAGICGrants/skylight-wallet), MAGIC Grants' Monero-only wallet.
+
 ## Install
 
-[<img src="assets/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store badge" width="25%"/>](https://apps.apple.com/us/app/spice-wallet-for-monero/id6759176050) [<img src="assets/GetItOnGooglePlay_Badge_Web_color_English.svg" alt="Get it on Google Play badge" width="25%"/>](https://play.google.com/store/apps/details?id=org.magicgrants.spice)
+<div align="center">
+
+[<img height="42" src="assets/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store">](https://apps.apple.com/us/developer/magic-grants/id1877162648)
+[<img height="42" src="assets/GetItOnGooglePlay_Badge_Web_color_English.svg" alt="Get it on Google Play">](https://play.google.com/store/apps/details?id=org.magicgrants.spice)
+
+</div>
+
+Android APKs are also available from the [latest release](https://github.com/MAGICGrants/spice-wallet/releases/latest).
 
 ### Desktop
 
@@ -44,17 +63,17 @@ gpg --fingerprint '65C4 1CFC AE37 B3B2 72AC  40BE A555 F5F7 B1FF 5885'
 
 The key owner should be `MAGIC Grants <info@magicgrants.org>`.
 
-**2. Download the artifact and its signature** from the release page. Example for v1.0.10 on amd64:
+**2. Download the artifact and its signature** from the release page. Example for v1.1.0 on amd64:
 
 ```bash
-curl -LO https://github.com/MAGICGrants/skylight-wallet/releases/download/v1.0.10/skylight-wallet-v1.0.10-amd64.deb
-curl -LO https://github.com/MAGICGrants/skylight-wallet/releases/download/v1.0.10/skylight-wallet-v1.0.10-amd64.deb.asc
+curl -LO https://github.com/MAGICGrants/spice-wallet/releases/download/v1.1.0/spice-wallet-v1.1.0-amd64.deb
+curl -LO https://github.com/MAGICGrants/spice-wallet/releases/download/v1.1.0/spice-wallet-v1.1.0-amd64.deb.asc
 ```
 
 **3. Verify the signature**:
 
 ```bash
-gpg --verify skylight-wallet-v1.0.10-amd64.deb.asc skylight-wallet-v1.0.10-amd64.deb
+gpg --verify spice-wallet-v1.1.0-amd64.deb.asc spice-wallet-v1.1.0-amd64.deb
 ```
 
 A successful verification prints `Good signature from "MAGIC Grants <info@magicgrants.org>"`. Substitute the artifact and ``.asc`` filenames for other platforms (e.g. ``.AppImage``, ``.exe``, ``.apk``).
@@ -166,7 +185,7 @@ flutter install
 adb install build/app/outputs/flutter-apk/app-release.apk
 ```
 
-**Note**: Other platforms (iOS, Linux, macOS, Windows, Web) are not currently supported but may be added in future releases.
+**Note**: These steps cover building for Android. Spice Wallet is also available for iOS, Linux, and Windows.
 
 ## Localization
 
