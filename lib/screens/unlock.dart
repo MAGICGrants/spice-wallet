@@ -33,7 +33,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
   @override
   void initState() {
     super.initState();
-    if (isDesktop) {
+    if (isDesktopOS) {
       PackageInfo.fromPlatform().then((info) {
         if (mounted) {
           setState(() => _version = 'Spice Wallet v${info.version} · build ${info.buildNumber}');
@@ -45,7 +45,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_started || isDesktop) return;
+    if (_started || isDesktopOS) return;
     _started = true;
     _resolveBiometricLabel();
     _promptUnlock();
@@ -118,8 +118,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
       _error = null;
     });
     final manager = Provider.of<WalletManager>(context, listen: false);
-    final password = _passwordController.text;
-    if (!await manager.verifyWalletPassword(password)) {
+    if (!await manager.unlockWithTypedPassword(_passwordController.text)) {
       if (mounted) {
         _passwordController.clear();
         setState(() {
@@ -129,7 +128,6 @@ class _UnlockScreenState extends State<UnlockScreen> {
       }
       return;
     }
-    manager.setWalletPassword(password);
     if (mounted) _unlockDone(manager);
   }
 
@@ -158,7 +156,9 @@ class _UnlockScreenState extends State<UnlockScreen> {
         unlockButton: i18n.unlockButton,
         passwordLabel: i18n.unlockPasswordLabel,
       ),
-      isDesktop: isDesktop,
+      // Password entry on a desktop OS. Everywhere else, the iOS build on a Mac
+      // included, the password is in the keystore behind the device auth.
+      isDesktop: isDesktopOS,
       version: _version.isEmpty ? null : _version,
       passwordController: _passwordController,
       obscure: _obscure,

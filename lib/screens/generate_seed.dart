@@ -8,6 +8,7 @@ import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/create_wallet.dart';
 import 'package:spice_wallet/screens/create_wallet_password.dart';
+import 'package:spice_wallet/screens/desktop/onboarding_steps.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -64,8 +65,8 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
     }
   }
 
-  /// Desktop (password-last flow): carry the seed to the password step, which
-  /// encrypts and creates the wallet.
+  /// A desktop OS (password-last flow): carry the seed to the password step,
+  /// which encrypts and creates the wallet.
   void _continueDesktop() {
     if (_seedSource == null || _restoreDate == null) return;
     Navigator.pushNamed(
@@ -86,7 +87,7 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
       return DesktopGenerateSeedView(
         logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
         step: 4,
-        totalSteps: 5,
+        totalSteps: desktopOnboardingSteps,
         title: i18n.generateSeedTitle,
         description: i18n.generateSeedSubtitleRevealed,
         seedWords: _seed,
@@ -96,10 +97,13 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
             ? DateFormat.yMMM(Localizations.localeOf(context).toString()).format(_restoreDate!)
             : null,
         confirmLabel: i18n.generateSeedConfirm,
-        passwordNote: i18n.generateSeedPasswordNote,
+        passwordNote: isDesktopOS ? i18n.generateSeedPasswordNote : null,
         revealLabel: i18n.generateSeedReveal,
         continueText: i18n.generateSeedContinueButton,
-        onContinue: _continueDesktop,
+        loading: _isCreating,
+        // The iOS build on a Mac shows this layout but keeps the mobile wallet
+        // password, so it creates the wallet here with no password step.
+        onContinue: isDesktopOS ? _continueDesktop : _continue,
         onBack: () => Navigator.pop(context),
       );
     }

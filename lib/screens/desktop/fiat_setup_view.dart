@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'package:spice_wallet/screens/desktop/onboarding_steps.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_fiat/wallet_fiat.dart';
 
@@ -43,7 +44,7 @@ class DesktopFiatSetupView extends StatelessWidget {
       title: labels.title,
       description: labels.subtitle,
       step: 2,
-      totalSteps: 5,
+      totalSteps: desktopOnboardingSteps,
       continueLabel: labels.continueText,
       onBack: onBack,
       onContinue: onContinue,
