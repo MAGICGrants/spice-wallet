@@ -589,7 +589,7 @@ class _SendScreenState extends State<SendScreen> {
       });
 
       if (mounted) {
-        final committed = await showConfirmSendSheet(
+        final result = await showConfirmSendSheet(
           context,
           ConfirmSendScreenArgs(
             // Bind to the wallet that built `tx`, not `_coinSymbol` which the
@@ -601,17 +601,23 @@ class _SendScreenState extends State<SendScreen> {
             destinationContactName: _selectedContact?.name,
           ),
         );
-        if (committed == true) {
+        if (result == ConfirmSendResult.sent) {
           // The send went through: ask for a store review on a later launch.
           unawaited(StoreReview.markEligible());
         }
-        if (committed == true && mounted) {
+        // `sent` and `unresolved` are both terminal — route home. Only a clean
+        // send shows the success toast; an unresolved one was already warned about.
+        if ((result == ConfirmSendResult.sent || result == ConfirmSendResult.unresolved) &&
+            mounted) {
           Navigator.pushNamedAndRemoveUntil(
             context,
             '/coin_home',
             // remove until the coin home screen is reached
             (route) => route.settings.name == '/wallet_home',
-            arguments: CoinHomeScreenArgs(coinSymbol: _coinSymbol, showTxSuccessToast: true),
+            arguments: CoinHomeScreenArgs(
+              coinSymbol: _coinSymbol,
+              showTxSuccessToast: result == ConfirmSendResult.sent,
+            ),
           );
         }
       }

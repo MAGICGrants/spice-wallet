@@ -406,6 +406,7 @@
     }
   },
   "sendFailedToGetFeesError": "Não foi possível carregar taxas.",
+  "sendNoConnectionError": "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.",
   "torSettingsTitle": "Configurações do Tor",
   "torSettingsSheetSubtitle": "O Tor pode ocultar seu endereço IP dos servidores aos quais você se conecta. Isso não reduz as informações que ficam armazenadas em blockchains públicas. Alterar isto reconecta todas as redes.",
   "torSettingsModeBuiltIn": "Tor Integrado",

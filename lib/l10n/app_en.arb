@@ -420,6 +420,7 @@
     }
   },
   "sendFailedToGetFeesError": "Failed to get fees.",
+  "sendNoConnectionError": "Couldn't reach the server. Check your connection and try again.",
   "torSettingsTitle": "Tor Settings",
   "torSettingsSheetSubtitle": "Tor can hide your IP address from servers you connect to. This does not reduce the information that is stored on public blockchains. Changing this reconnects every chain.",
   "torSettingsModeBuiltIn": "Built-in Tor",
