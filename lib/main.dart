@@ -36,7 +36,7 @@ import 'package:spice_wallet/screens/wallet_home.dart';
 import 'package:spice_wallet/screens/welcome.dart';
 import 'package:spice_wallet/theme/brand.dart';
 import 'package:spice_wallet/theme/palette.dart';
-import 'package:wallet_ui/wallet_ui.dart' show OnboardingRadioCard;
+import 'package:wallet_ui/wallet_ui.dart' show OnboardingRadioCard, ReauthGate;
 import 'package:spice_wallet/screens/tor_settings.dart';
 import 'package:spice_wallet/screens/address_book.dart';
 import 'package:spice_wallet/screens/privacy_policy.dart';
@@ -297,7 +297,8 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     '/create_wallet_password': (context) => CreateWalletPasswordScreen(),
     '/create_wallet': (context) => CreateWalletScreen(),
     '/generate_seed': (context) => GenerateSeedScreen(),
-    '/lws_keys': (context) => LwsKeysScreen(),
+    '/lws_keys': (context) =>
+        ReauthGate(reason: AppLocalizations.of(context)!.settingsAppLockUnlockReason, child: LwsKeysScreen()),
     '/restore_wallet': (context) => RestoreWalletScreen(),
     '/unlock': (context) => UnlockScreen(),
     '/wallet_home': (context) => WalletHomeScreen(),
@@ -305,7 +306,8 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     '/coin_settings': (context) => const CoinSettingsScreen(),
     '/settings': (context) => SettingsScreen(),
     '/history': (context) => const HistoryScreen(),
-    '/reveal_seed': (context) => const RevealSeedScreen(),
+    '/reveal_seed': (context) =>
+        ReauthGate(reason: AppLocalizations.of(context)!.revealSeedAuthReason, child: const RevealSeedScreen()),
     '/send': (context) => SendScreen(),
     '/scan_qr': (context) => ScanQrScreen(),
     '/receive': (context) => ReceiveScreen(),
@@ -357,6 +359,11 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
         );
       },
       initialRoute: '/loading',
+      // Always boot through /loading (which runs init then routes to unlock/home).
+      // A cold-start deep link (the launch intent's `route` extra) arrives here as
+      // the initial route; it's dropped — the app exposes no deep-link destination,
+      // and letting one become the initial route would race boot and skip the lock.
+      onGenerateInitialRoutes: (_) => [_onGenerateRoute(const RouteSettings(name: '/loading'))!],
       locale: Locale.fromSubtags(languageCode: languageProvider.language),
       onGenerateRoute: _onGenerateRoute,
     );
