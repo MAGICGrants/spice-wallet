@@ -932,6 +932,14 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get scanQrUnexpectedCode => 'Esse QR não é um endereço ou código de pagamento válido.';
+
+  @override
+  String deepLinkCoinNotConfigured(String chain) {
+    return 'Por favor, configure sua conexão $chain primeiro.';
+  }
+
+  @override
   String get sendPriorityLow => 'Baixa';
 
   @override

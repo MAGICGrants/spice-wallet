@@ -381,6 +381,15 @@
       }
     }
   },
+  "scanQrUnexpectedCode": "That QR isn't a valid address or payment code.",
+  "deepLinkCoinNotConfigured": "Please configure your {chain} connection first.",
+  "@deepLinkCoinNotConfigured": {
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      }
+    }
+  },
   "sendPriorityLow": "Low",
   "sendPriorityNormal": "Normal",
   "sendPriorityHigh": "High",

@@ -13,6 +13,7 @@ import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/confirm_send.dart';
+import 'package:spice_wallet/screens/scan_qr.dart';
 import 'package:spice_wallet/screens/desktop/home_shell.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/format.dart';
@@ -248,39 +249,30 @@ class _SendScreenState extends State<SendScreen> {
 
   Future<void> _scanQrCode() async {
     final wallet = _wallet(context);
+    final i18n = AppLocalizations.of(context)!;
 
-    final result = await Navigator.pushNamed(context, '/scan_qr');
+    // The scanner only returns a code this coin claims — a standard payment URI
+    // (monero:/bitcoin:/ethereum:) or a bare address — and keeps scanning on
+    // anything else, so an unexpected QR never pops back to this form.
+    bool accept(String text) =>
+        parsePaymentUri(text, [wallet]) != null || wallet.isAddressValid(text);
+
+    final result = await Navigator.pushNamed(
+      context,
+      '/scan_qr',
+      arguments: ScanQrArgs(accept: accept, invalidMessage: i18n.scanQrUnexpectedCode),
+    );
 
     if (result == null || result is! String) return;
 
-    String address = '';
-    String? amount;
-    final uri = Uri.tryParse(result);
+    // Accepted, so it parses as a payment URI for this coin or is a bare address.
+    final request = parsePaymentUri(result, [wallet]);
+    final address = request?.address ?? result;
+    final amount = request?.amount;
 
-    if (uri != null && uri.scheme.toLowerCase() == wallet.coinSymbol.toLowerCase()) {
-      if (!wallet.isAddressValid(uri.path)) {
-        if (mounted) {
-          _destinationAddressController.text = uri.path;
-          _showInvalidAddressIfNeeded(uri.path);
-        }
-        return;
-      }
-
-      address = uri.path;
-
-      amount = uri.queryParameters['tx_amount'];
-    } else if (wallet.isAddressValid(result)) {
-      address = result;
-    } else {
-      if (mounted) {
-        _destinationAddressController.text = result;
-        _showInvalidAddressIfNeeded(result);
-      }
-      return;
-    }
-
+    if (!mounted) return;
     _destinationAddressController.text = address;
-    if (amount != null) {
+    if (amount != null && amount.isNotEmpty) {
       // A payment request is denominated in the coin, so entry switches to it.
       _amount.setCoinText(_asExactAmount(amount, wallet));
     }

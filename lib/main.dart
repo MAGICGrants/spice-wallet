@@ -36,7 +36,7 @@ import 'package:spice_wallet/screens/wallet_home.dart';
 import 'package:spice_wallet/screens/welcome.dart';
 import 'package:spice_wallet/theme/brand.dart';
 import 'package:spice_wallet/theme/palette.dart';
-import 'package:wallet_ui/wallet_ui.dart' show OnboardingRadioCard, ReauthGate;
+import 'package:wallet_ui/wallet_ui.dart' show OnboardingRadioCard, ReauthGate, showBrandToastOnOverlay;
 import 'package:spice_wallet/screens/tor_settings.dart';
 import 'package:spice_wallet/screens/address_book.dart';
 import 'package:spice_wallet/screens/privacy_policy.dart';
@@ -49,7 +49,7 @@ import 'package:spice_wallet/services/foreground_sync_service.dart';
 import 'package:spice_wallet/util/dirs.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/wallet_core_glue.dart';
-import 'package:wallet_domain/wallet_domain.dart' show WalletManager;
+import 'package:wallet_domain/wallet_domain.dart' show WalletManager, parsePaymentUri;
 import 'package:wallet_infra/wallet_infra.dart' show HostPlatform;
 
 void main() async {
@@ -146,6 +146,11 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
   int _lastAnnouncedTxCount = 0;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
+  // A payment deep link (monero:/bitcoin:/ethereum:) awaiting replay. Held until
+  // the app is past the lock, then opened on the send form — see _onRouteChanged.
+  String? _pendingPaymentUri;
+  static const _paymentUriSchemes = {'monero', 'bitcoin', 'ethereum'};
+
   /// Last resolved theme brightness, to detect a light↔dark flip.
   Brightness? _lastBrightness;
 
@@ -170,14 +175,80 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _routeObserver.current.addListener(_onRouteChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrap());
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _routeObserver.current.removeListener(_onRouteChanged);
     _announceManager?.removeListener(_announceNewTxsOnGrowth);
     super.dispose();
+  }
+
+  // A deep link that arrives while the app is running (warm start). Payment links
+  // open the send form; anything else is left to the default handling.
+  @override
+  Future<bool> didPushRouteInformation(RouteInformation routeInformation) async {
+    if (_handleDeepLink(routeInformation.uri.toString())) return true;
+    return super.didPushRouteInformation(routeInformation);
+  }
+
+  bool _isPaymentUri(String raw) {
+    final scheme = Uri.tryParse(raw.trim())?.scheme.toLowerCase();
+    return scheme != null && _paymentUriSchemes.contains(scheme);
+  }
+
+  // Open a payment link now if the app is past the lock, else hold it for replay.
+  bool _handleDeepLink(String raw) {
+    if (!_isPaymentUri(raw)) return false;
+    final current = _routeObserver.currentName;
+    if (!_walletExists || current == null || current == '/unlock' || current == '/loading') {
+      _pendingPaymentUri = raw;
+    } else {
+      _openPaymentUri(raw);
+    }
+    return true;
+  }
+
+  // Replay a held payment link the first time the app reaches home — after boot
+  // (no lock) or after unlock. The send form still reviews and authenticates the
+  // spend; the link only prefills it.
+  void _onRouteChanged() {
+    final raw = _pendingPaymentUri;
+    if (raw == null || _routeObserver.currentName != '/wallet_home') return;
+    _pendingPaymentUri = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _openPaymentUri(raw));
+  }
+
+  void _openPaymentUri(String raw) {
+    if (!mounted) return;
+    final manager = context.read<WalletManager>();
+    final request = parsePaymentUri(raw, manager.allWallets);
+    if (request == null) return;
+    final wallet = manager.getWallet(request.coinSymbol);
+    // A coin with no connection set up can't send; warn instead of opening a form
+    // that can't complete. The toast + l10n need a context below the MaterialApp,
+    // so they go through the navigator's overlay rather than this (root) context.
+    if (wallet == null || wallet.connectionAddress.isEmpty) {
+      final overlay = _navigatorKey.currentState?.overlay;
+      if (overlay == null) return;
+      final name = wallet?.blockchainName ?? request.coinSymbol;
+      showBrandToastOnOverlay(
+        overlay,
+        AppLocalizations.of(overlay.context)!.deepLinkCoinNotConfigured(name),
+      );
+      return;
+    }
+    _navigatorKey.currentState?.pushNamed(
+      '/send',
+      arguments: SendScreenArgs(
+        coinSymbol: request.coinSymbol,
+        destinationAddress: request.address,
+        amount: request.amount,
+      ),
+    );
   }
 
   @override
@@ -360,10 +431,14 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
       },
       initialRoute: '/loading',
       // Always boot through /loading (which runs init then routes to unlock/home).
-      // A cold-start deep link (the launch intent's `route` extra) arrives here as
-      // the initial route; it's dropped — the app exposes no deep-link destination,
-      // and letting one become the initial route would race boot and skip the lock.
-      onGenerateInitialRoutes: (_) => [_onGenerateRoute(const RouteSettings(name: '/loading'))!],
+      // A cold-start deep link arrives here as the initial route; capture a payment
+      // link for replay past the lock and never let it become the initial route,
+      // which would race boot and skip the lock. The `route` extra and any other
+      // target are ignored.
+      onGenerateInitialRoutes: (deepLink) {
+        if (_isPaymentUri(deepLink)) _pendingPaymentUri = deepLink;
+        return [_onGenerateRoute(const RouteSettings(name: '/loading'))!];
+      },
       locale: Locale.fromSubtags(languageCode: languageProvider.language),
       onGenerateRoute: _onGenerateRoute,
     );

@@ -1785,6 +1785,18 @@ abstract class AppLocalizations {
   /// **'Invalid {chain} address'**
   String invalidAddressForChain(String chain);
 
+  /// No description provided for @scanQrUnexpectedCode.
+  ///
+  /// In en, this message translates to:
+  /// **'That QR isn\'t a valid address or payment code.'**
+  String get scanQrUnexpectedCode;
+
+  /// No description provided for @deepLinkCoinNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Please configure your {chain} connection first.'**
+  String deepLinkCoinNotConfigured(String chain);
+
   /// No description provided for @sendPriorityLow.
   ///
   /// In en, this message translates to:
