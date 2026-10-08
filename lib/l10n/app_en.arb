@@ -441,6 +441,7 @@
   "torDisabledWalletsWarningBody": "Some wallets are set to connect over Tor. Disabling Tor will disconnect them, and they will stay disconnected until you reconfigure their connection.",
   "torDisabledWalletsWarningConfirm": "Disable Tor",
   "connectionRemoteIpNotAllowed": "Connections to remote IP addresses aren't allowed. Use a domain name or a local IP address.",
+  "connectionLocalOverTorNotAllowed": "A local address can't be reached through Tor. Turn Tor off, or use the server's onion address.",
   "connectionProtocolHttps": "Removing protocol. Using HTTPS for domains.",
   "connectionProtocolHttp": "Removing protocol. Using HTTP for local addresses.",
   "settingsTorSettingsLabel": "Tor Settings",
