@@ -51,11 +51,7 @@ class DesktopHomeView extends StatelessWidget {
     final configured = wallets.where((w) => w.connectionAddress.isNotEmpty).toList();
 
     // Newest-first timeline across every asset, capped for the home preview.
-    final recent = <TxEntry>[
-      for (final asset in manager.allWallets)
-        for (final tx in asset.txHistory) (tx: tx, asset: asset),
-    ]..sort((a, b) => b.tx.timestamp.compareTo(a.tx.timestamp));
-    final top = recent.take(6).toList();
+    final top = combinedTxTimeline(manager).take(6).toList();
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 36),
@@ -82,9 +78,14 @@ class DesktopHomeView extends StatelessWidget {
                 child: Text(i18n.homeNoTransactions, style: BrandText.bodyMuted),
               )
             else
-              for (final e in top) ...[
-                _ActivityCard(entry: e, fiatRate: fiatRate),
-                const SizedBox(height: 8),
+              for (final row in withDayHeaders(top, (e) => e.tx.timestamp)) ...[
+                if (row is String) ...[
+                  SectionHeader(label: row, padding: EdgeInsets.zero),
+                  const SizedBox(height: 8),
+                ] else ...[
+                  _ActivityCard(entry: row as TxEntry, fiatRate: fiatRate),
+                  const SizedBox(height: 8),
+                ],
               ],
           ],
         ),
@@ -135,11 +136,7 @@ class DesktopHomeView extends StatelessWidget {
     );
   }
 
-  Widget _totalBalance(
-    AppLocalizations i18n,
-    FiatRateModel fiatRate,
-    double totalFiat,
-  ) {
+  Widget _totalBalance(AppLocalizations i18n, FiatRateModel fiatRate, double totalFiat) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -149,7 +146,10 @@ class DesktopHomeView extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: BalanceText.split(formatFiat(totalFiat, fiatRate.fiatCurrency), style: _bigBalance),
+            child: BalanceText.split(
+              formatFiat(totalFiat, fiatRate.fiatCurrency),
+              style: _bigBalance,
+            ),
           )
         else
           Text('--', style: _bigBalance),
