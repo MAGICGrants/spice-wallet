@@ -12,6 +12,7 @@ import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/widgets/spinning_logo.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
+import 'package:wallet_fhse/security_keys_ui.dart' show walletNeedsSecurityKey;
 import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
 
 class UnlockScreen extends StatefulWidget {
@@ -99,7 +100,16 @@ class _UnlockScreenState extends State<UnlockScreen> {
 
     if (!mounted) return;
     final manager = Provider.of<WalletManager>(context, listen: false);
-    if (!await manager.loadMobileWalletPassword()) {
+    // With security keys on and the wallet closed, a key comes next.
+    if (await walletNeedsSecurityKey(context)) {
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/security_key_unlock', (route) => false);
+      }
+      return;
+    }
+    // Behind security keys a relock keeps the password in memory (the keystore
+    // has none to load); otherwise it comes back from the keystore.
+    if (!manager.hasPassword && !await manager.loadMobileWalletPassword()) {
       log(LogLevel.error, 'Biometric auth succeeded but no stored wallet password');
       _showError(i18n.unlockUnableToAuthError);
       return;

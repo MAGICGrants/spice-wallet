@@ -50,6 +50,7 @@ import 'package:spice_wallet/util/dirs.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/wallet_core_glue.dart';
 import 'package:wallet_domain/wallet_domain.dart' show WalletManager;
+import 'package:wallet_fhse/security_keys_ui.dart';
 import 'package:wallet_infra/wallet_infra.dart' show HostPlatform;
 
 void main() async {
@@ -63,6 +64,7 @@ void main() async {
       OnboardingRadioCard.selectedFill = () => BrandColors.card;
 
       installWalletCore();
+      installSecurityKeysUi();
 
       FlutterError.onError = (FlutterErrorDetails details) {
         log(LogLevel.error, 'Flutter error: ${details.exception}');
@@ -139,6 +141,8 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
   bool _startedServices = false;
   bool _walletExists = false;
   bool _relockPending = false;
+  // "Fully lock after", with security keys on.
+  final _fullLock = SecurityKeyFullLock();
   final _CurrentRouteObserver _routeObserver = _CurrentRouteObserver();
   // Desktop-only foreground announce: desktop has no background isolate, so the
   // foreground announces incoming txs when the wallets' history grows.
@@ -175,6 +179,7 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _fullLock.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _announceManager?.removeListener(_announceNewTxsOnGrowth);
     super.dispose();
@@ -185,13 +190,33 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     if (!isMobile) return;
     if (state == AppLifecycleState.paused) {
       _maybeArmRelock();
+      unawaited(_fullLock.onBackground(context));
       // Mark everything on screen as seen so a background isolate won't
       // re-announce a tx the user just watched arrive. Records only; fires no
       // notification (announce: false).
       if (_walletExists) {
         unawaited(context.read<WalletManager>().notifyNewIncomingTxsAll(announce: false));
       }
-    } else if (state == AppLifecycleState.resumed && _relockPending) {
+    } else if (state == AppLifecycleState.resumed) {
+      unawaited(_onResumed());
+    }
+  }
+
+  Future<void> _onResumed() async {
+    // Past "Fully lock after": the wallet is closed and its password gone, so
+    // the stack is replaced by the lock screens rather than covered by them.
+    if (await _fullLock.onResume(context)) {
+      _relockPending = false;
+      final appLock =
+          await SharedPreferencesService.get<bool>(SharedPreferencesKeys.appLockEnabled) ?? false;
+      _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        appLock ? '/unlock' : '/security_key_unlock',
+        (route) => false,
+      );
+      return;
+    }
+
+    if (_relockPending) {
       _relockPending = false;
       // Push the lock screen ON TOP of the current stack (rather than replacing
       // it) so unlocking pops straight back to the screen the user left — unless
@@ -227,8 +252,10 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
   Future<void> _bootstrap() async {
     try {
       final manager = context.read<WalletManager>();
+      final checkKey = securityKeyCheck(context);
       final prefs = await SharedPreferences.getInstance();
       final walletExists = await manager.hasAnyExistingWallet();
+      final needsSecurityKey = walletExists && isMobile && await checkKey();
 
       unawaited(manager.loadPreferences());
 
@@ -238,10 +265,13 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
 
       final appLockEnabled = prefs.getBool(SharedPreferencesKeys.appLockEnabled) ?? false;
 
-      // A desktop OS asks for the typed password at every launch.
+      // A desktop OS asks for the typed password at every launch. With
+      // security keys on, a key comes next (after App Lock when on).
       final initialRoute = walletExists
           ? appLockEnabled || isDesktopOS
                 ? '/unlock'
+                : needsSecurityKey
+                ? '/security_key_unlock'
                 : '/wallet_home'
           : '/welcome';
 
@@ -300,6 +330,8 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     '/lws_keys': (context) => LwsKeysScreen(),
     '/restore_wallet': (context) => RestoreWalletScreen(),
     '/unlock': (context) => UnlockScreen(),
+    '/security_key_unlock': (context) => const SecurityKeyUnlockScreen(),
+    '/advanced_security': (context) => const AdvancedSecurityScreen(),
     '/wallet_home': (context) => WalletHomeScreen(),
     '/coin_home': (context) => CoinHomeScreen(),
     '/coin_settings': (context) => const CoinSettingsScreen(),
@@ -328,7 +360,10 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
       navigatorKey: _navigatorKey,
       navigatorObservers: [_routeObserver],
       title: 'Spice Wallet',
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: const [
+        ...AppLocalizations.localizationsDelegates,
+        FhseLocalizations.delegate,
+      ],
       supportedLocales: AppLocalizations.supportedLocales,
       theme: _themeData,
       darkTheme: _darkThemeData,

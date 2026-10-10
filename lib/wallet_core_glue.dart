@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' show Color;
 
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/periodic_tasks.dart' show backgroundDispatcher;
@@ -19,6 +20,8 @@ import 'package:wallet_monero/wallet_monero.dart' show MoneroWallet;
 import 'package:wallet_bitcoin/wallet_bitcoin.dart' show BitcoinWallet, BitcoinTestnetWallet;
 import 'package:wallet_ethereum/wallet_ethereum.dart'
     show EthereumWallet, EthereumSepoliaWallet, DaiWallet, DaiSepoliaWallet;
+import 'package:wallet_fhse/security_keys_ui.dart' show SecurityKeysUi, SecurityKeysUiConfig;
+import 'package:wallet_fhse/wallet_fhse.dart' show FhseWalletGuard;
 import 'package:wallet_openalias/wallet_openalias.dart' show resolveOpenAlias;
 
 bool get _isMobile => Platform.isAndroid || Platform.isIOS;
@@ -59,6 +62,14 @@ void installWalletCore() {
 
   WalletAppConfig.install(WalletAppConfig.spice);
   CryptoWallet.aliasResolver = resolveOpenAlias;
+
+  // On mobile the wallet password is FHSE's root, derived from the seed, and
+  // security keys can later take it out of the keystore (Settings > Advanced
+  // security). One password, and so one FHSE file, covers every coin. Installed
+  // in every isolate, so background runs know when the password is behind keys
+  // and check in view-only instead (Monero's view key, Bitcoin's account xpub,
+  // the Ethereum address).
+  if (_isMobile) WalletManager.passwordGuard = const FhseWalletGuard();
 
   wcore.NotificationService.windowsAppName = 'Spice Wallet';
   wcore.NotificationService.windowsAppUserModelId = 'org.magicgrants.spice';
@@ -132,3 +143,16 @@ Future<bool> _ensureTorConnected() async {
 /// The wallet-core [WalletManager] provider.
 ChangeNotifierProvider<WalletManager> walletManagerProvider() =>
     ChangeNotifierProvider(create: (_) => WalletManager(coins: buildCoins));
+
+/// The shared security-key screens (wallet_fhse): Spice's name, mark and home
+/// route, and where they find the wallet manager. UI isolate only.
+void installSecurityKeysUi() {
+  SecurityKeysUi.install(
+    SecurityKeysUiConfig(
+      appName: 'Spice',
+      walletManagerOf: (context) => Provider.of<WalletManager>(context, listen: false),
+      homeRoute: '/wallet_home',
+      logo: (_) => SvgPicture.asset('assets/spice-mark.svg', width: 44, height: 44),
+    ),
+  );
+}

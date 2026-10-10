@@ -22,6 +22,9 @@ import 'package:spice_wallet/widgets/theme_language_sheets.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/screens/reveal_seed.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
+import 'package:wallet_fhse/security_keys_ui.dart'
+    show FhseLocalizations, SecurityKeysState, securityKeysState;
+import 'package:wallet_fhse/wallet_fhse.dart' show SecurityKeyService;
 import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
 
 /// Desktop: settings as a wide centered modal (opened from the sidebar); mobile
@@ -53,6 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   var _appLockEnabled = false;
   var _verboseLoggingEnabled = false;
   var _testnetCoinsEnabled = false;
+  SecurityKeysState? _securityKeys;
   FiatApiMode _fiatMode = FiatApiMode.torOnly;
   // Toggles animate only after the stored values have loaded, so they don't
   // slide from off→on when the screen first appears.
@@ -92,6 +96,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         false;
 
     final fiatMode = await FiatRateModel.loadFiatApiMode();
+    await _loadSecurityKeys();
 
     if (!mounted) return;
     setState(() {
@@ -105,6 +110,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() => _animateToggles = true);
     });
+  }
+
+  Future<void> _loadSecurityKeys() async {
+    if (!SecurityKeyService.isSupportedPlatform) return;
+    final state = await securityKeysState();
+    if (mounted) setState(() => _securityKeys = state);
+  }
+
+  Future<void> _openAdvancedSecurity() async {
+    await Navigator.pushNamed(context, '/advanced_security');
+    await _loadSecurityKeys();
+  }
+
+  String _securityKeysValue(FhseLocalizations i18n) {
+    final state = _securityKeys;
+    if (state == null || !state.engaged) return i18n.advancedSecurityOff;
+    return i18n.advancedSecurityKeyCount(state.keys.length);
   }
 
   void _setTestnetCoinsEnabled(bool value) async {
@@ -319,6 +341,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _appLockEnabled,
               onChanged: _setAppLockEnabled,
               animate: _animateToggles,
+            ),
+          if (SecurityKeyService.isSupportedPlatform)
+            SettingsNavTile(
+              title: FhseLocalizations.of(context).advancedSecurityLabel,
+              value: _securityKeysValue(FhseLocalizations.of(context)),
+              onTap: _openAdvancedSecurity,
             ),
           SettingsLinkTile(
             title: i18n.settingsTorSettingsLabel,
