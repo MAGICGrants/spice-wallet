@@ -12,7 +12,7 @@ import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/widgets/spinning_logo.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
-import 'package:wallet_fhse/security_keys_ui.dart' show walletNeedsSecurityKey;
+import 'package:wallet_fhse/security_keys_ui.dart' show waitForFullLock, walletNeedsSecurityKey;
 import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
 
 class UnlockScreen extends StatefulWidget {
@@ -46,7 +46,9 @@ class _UnlockScreenState extends State<UnlockScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_started || isDesktopOS) return;
+    // The typed password at every launch (Linux, Windows); App Lock's device
+    // prompt elsewhere, macOS included (Touch ID or the Mac's password).
+    if (_started || typesWalletPassword) return;
     _started = true;
     _resolveBiometricLabel();
     _promptUnlock();
@@ -107,6 +109,8 @@ class _UnlockScreenState extends State<UnlockScreen> {
       }
       return;
     }
+    // A full lock still closing the wallets finishes before they reopen.
+    await waitForFullLock();
     // Behind security keys a relock keeps the password in memory (the keystore
     // has none to load); otherwise it comes back from the keystore.
     if (!manager.hasPassword && !await manager.loadMobileWalletPassword()) {
@@ -168,7 +172,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
       ),
       // Password entry on a desktop OS. Everywhere else, the iOS build on a Mac
       // included, the password is in the keystore behind the device auth.
-      isDesktop: isDesktopOS,
+      isDesktop: typesWalletPassword,
       version: _version.isEmpty ? null : _version,
       passwordController: _passwordController,
       obscure: _obscure,

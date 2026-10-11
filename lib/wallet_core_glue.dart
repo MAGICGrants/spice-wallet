@@ -65,13 +65,15 @@ void installWalletCore() {
   WalletAppConfig.install(WalletAppConfig.spice);
   CryptoWallet.aliasResolver = resolveOpenAlias;
 
-  // On mobile the wallet password is FHSE's root, derived from the seed, and
-  // security keys can later take it out of the keystore (Settings > Advanced
-  // security). One password, and so one FHSE file, covers every coin. Installed
-  // in every isolate, so background runs know when the password is behind keys
-  // and check in view-only instead (Monero's view key, Bitcoin's account xpub,
-  // the Ethereum address).
-  if (_isMobile) WalletManager.passwordGuard = const FhseWalletGuard();
+  // Where the wallet password is generated (mobile and macOS) it is FHSE's
+  // root, derived from the seed, and security keys can later take it out of
+  // the keystore (Settings > Advanced security). One password, and so one FHSE
+  // file, covers every coin. Installed in every isolate, so background runs
+  // know when the password is behind keys and check in view-only instead
+  // (Monero's view key, Bitcoin's account xpub, the Ethereum address).
+  if (wcore.WalletSecrets.holdsWalletPassword) {
+    WalletManager.passwordGuard = const FhseWalletGuard();
+  }
 
   wcore.NotificationService.windowsAppName = 'Spice Wallet';
   wcore.NotificationService.windowsAppUserModelId = 'org.magicgrants.spice';

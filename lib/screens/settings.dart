@@ -24,7 +24,7 @@ import 'package:spice_wallet/screens/reveal_seed.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
 import 'package:wallet_backup_platform/backup_ui.dart' show BackupLocalizations;
 import 'package:wallet_fhse/security_keys_ui.dart'
-    show FhseLocalizations, SecurityKeysState, securityKeysState;
+    show DesktopAutoLockTile, FhseLocalizations, SecurityKeysState, securityKeysState;
 import 'package:wallet_fhse/wallet_fhse.dart' show SecurityKeyService;
 import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
 
@@ -284,7 +284,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// do that.
   void _revealSeed() async {
     final i18n = AppLocalizations.of(context)!;
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (usesDeviceLock) {
       final result = await BiometricAuth.authenticateIfAppLockEnabled(
         reason: i18n.revealSeedAuthReason,
       );
@@ -336,13 +336,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: _languageNames[language.language] ?? language.language.toUpperCase(),
             onTap: () => showLanguageSheet(context),
           ),
-          if (isMobile)
+          if (usesDeviceLock)
             SettingsToggleTile(
               title: i18n.settingsAppLockLabel,
               value: _appLockEnabled,
               onChanged: _setAppLockEnabled,
               animate: _animateToggles,
             ),
+          if (isDesktopOS) const DesktopAutoLockTile(),
           if (SecurityKeyService.isSupportedPlatform)
             SettingsNavTile(
               title: FhseLocalizations.of(context).advancedSecurityLabel,

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show HardwareKeyboard, KeyEvent;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -145,6 +146,8 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
   bool _relockPending = false;
   // "Fully lock after", with security keys on.
   final _fullLock = SecurityKeyFullLock();
+  // "Lock after" a time without use, on a desktop OS.
+  final _desktopLock = DesktopAutoLock();
   final _CurrentRouteObserver _routeObserver = _CurrentRouteObserver();
   // Desktop-only foreground announce: desktop has no background isolate, so the
   // foreground announces incoming txs when the wallets' history grows.
@@ -177,11 +180,17 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrap());
+    if (isDesktopOS) {
+      HardwareKeyboard.instance.addHandler(_onKey);
+      _desktopLock.start(_lockDesktop);
+    }
   }
 
   @override
   void dispose() {
     _fullLock.dispose();
+    _desktopLock.dispose();
+    if (isDesktopOS) HardwareKeyboard.instance.removeHandler(_onKey);
     WidgetsBinding.instance.removeObserver(this);
     _announceManager?.removeListener(_announceNewTxsOnGrowth);
     super.dispose();
@@ -189,6 +198,10 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (isDesktopOS) {
+      _onDesktopLifecycle(state);
+      return;
+    }
     if (!isMobile) return;
     if (state == AppLifecycleState.paused) {
       _maybeArmRelock();
@@ -243,6 +256,53 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     unawaited(manager.notifyNewIncomingTxsAll());
   }
 
+  /// A desktop OS. With App Lock (macOS), hiding the app re-locks it, as going
+  /// to the background does on mobile: macOS reports `hidden` when no window is
+  /// visible (hidden, minimised, covered, or the screen locked). "Lock after" is
+  /// checked as the app comes back, since its timer can stall while the
+  /// computer sleeps.
+  void _onDesktopLifecycle(AppLifecycleState state) {
+    if (state == AppLifecycleState.hidden && usesDeviceLock) {
+      unawaited(_maybeArmRelock());
+    } else if (state == AppLifecycleState.resumed) {
+      unawaited(_onDesktopResumed());
+    }
+  }
+
+  Future<void> _onDesktopResumed() async {
+    // May lock and replace the stack with the unlock screen.
+    await _desktopLock.check();
+    if (_relockPending) {
+      _relockPending = false;
+      if (_routeObserver.currentName != '/unlock') {
+        _navigatorKey.currentState?.pushNamed('/unlock');
+      }
+    }
+  }
+
+  /// "Lock after" ran out on a desktop OS. The unlock screen replaces the stack
+  /// first, then the wallets close and the password is forgotten.
+  Future<void> _lockDesktop() async {
+    if (!mounted || !await desktopAutoLockApplies(context)) return;
+    final appLock =
+        await SharedPreferencesService.get<bool>(SharedPreferencesKeys.appLockEnabled) ?? false;
+    if (!mounted) return;
+    // The typed password (Linux, Windows) or App Lock first; keys alone (macOS
+    // without App Lock) go straight to the key screen.
+    final lockRoute = typesWalletPassword || appLock ? '/unlock' : '/security_key_unlock';
+    _relockPending = false;
+    _navigatorKey.currentState?.pushNamedAndRemoveUntil(lockRoute, (route) => false);
+    await _desktopLock.lock(context);
+  }
+
+  // Use, for "Lock after": any key or pointer input reaching the app.
+  bool _onKey(KeyEvent event) {
+    _desktopLock.recordUse();
+    return false;
+  }
+
+  void _onPointer(PointerEvent event) => _desktopLock.recordUse();
+
   /// On background: if app lock is on and a wallet exists, clear the in-memory
   /// password and arm a re-lock so resume returns to the unlock screen. The
   /// decision itself lives in [WalletManager.armAppLockRelock], shared with
@@ -257,7 +317,7 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
       final checkKey = securityKeyCheck(context);
       final prefs = await SharedPreferences.getInstance();
       final walletExists = await manager.hasAnyExistingWallet();
-      final needsSecurityKey = walletExists && isMobile && await checkKey();
+      final needsSecurityKey = walletExists && usesDeviceLock && await checkKey();
 
       unawaited(manager.loadPreferences());
 
@@ -267,10 +327,10 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
 
       final appLockEnabled = prefs.getBool(SharedPreferencesKeys.appLockEnabled) ?? false;
 
-      // A desktop OS asks for the typed password at every launch. With
+      // Linux and Windows ask for the typed password at every launch. With
       // security keys on, a key comes next (after App Lock when on).
       final initialRoute = walletExists
-          ? appLockEnabled || isDesktopOS
+          ? appLockEnabled || typesWalletPassword
                 ? '/unlock'
                 : needsSecurityKey
                 ? '/security_key_unlock'
@@ -390,9 +450,19 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
         _lastBrightness = brightness;
         // Brand-tone skeletons (the default grey clashes with the scheme); the
         // token resolves to the current theme.
-        return SkeletonizerConfig(
+        final app = SkeletonizerConfig(
           data: SkeletonizerConfigData(effect: SoldColorEffect(color: BrandColors.surfaceMuted)),
           child: child ?? const SizedBox.shrink(),
+        );
+        if (!isDesktopOS) return app;
+        // Pointer input anywhere counts as use for "Lock after".
+        return Listener(
+          behavior: HitTestBehavior.translucent,
+          onPointerDown: _onPointer,
+          onPointerHover: _onPointer,
+          onPointerMove: _onPointer,
+          onPointerSignal: _onPointer,
+          child: app,
         );
       },
       initialRoute: '/loading',

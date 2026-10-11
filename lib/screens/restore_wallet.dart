@@ -81,9 +81,10 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
     if (_isLoading) return;
     if (!bip39.validateMnemonic(mnemonic)) return;
 
-    // Desktop (password-last flow): carry the seed to the password step, which
-    // encrypts and creates the wallet.
-    if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+    // Linux and Windows (password-last flow): carry the seed to the password
+    // step, which encrypts and creates the wallet. Elsewhere, macOS included,
+    // the password is generated.
+    if (typesWalletPassword) {
       Navigator.pushNamed(
         context,
         '/create_wallet_password',
