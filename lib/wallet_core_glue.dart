@@ -20,6 +20,8 @@ import 'package:wallet_monero/wallet_monero.dart' show MoneroWallet;
 import 'package:wallet_bitcoin/wallet_bitcoin.dart' show BitcoinWallet, BitcoinTestnetWallet;
 import 'package:wallet_ethereum/wallet_ethereum.dart'
     show EthereumWallet, EthereumSepoliaWallet, DaiWallet, DaiSepoliaWallet;
+import 'package:wallet_backup_platform/wallet_backup_platform.dart'
+    show MetadataBackupConfig, MetadataBackupSetup;
 import 'package:wallet_fhse/security_keys_ui.dart' show SecurityKeysUi, SecurityKeysUiConfig;
 import 'package:wallet_fhse/wallet_fhse.dart' show FhseWalletGuard;
 import 'package:wallet_openalias/wallet_openalias.dart' show resolveOpenAlias;
@@ -153,6 +155,20 @@ void installSecurityKeysUi() {
       walletManagerOf: (context) => Provider.of<WalletManager>(context, listen: false),
       homeRoute: '/wallet_home',
       logo: (_) => SvgPicture.asset('assets/spice-mark.svg', width: 44, height: 44),
+    ),
+  );
+}
+
+/// The metadata backup (wallet_backup): who each Monero payment went to, its
+/// transaction key, and the address book, encrypted with the seed and saved to
+/// iCloud on iOS and Android's Auto Backup on Android. UI isolate only, so a
+/// background run never writes a backup file.
+void installMetadataBackup() {
+  MetadataBackupSetup.install(
+    const MetadataBackupConfig(
+      appName: 'Spice',
+      iCloudContainer: 'iCloud.org.magicgrants.spicewallet',
+      exportFileStem: 'spice-backup',
     ),
   );
 }

@@ -22,6 +22,7 @@ import 'package:spice_wallet/widgets/theme_language_sheets.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/screens/reveal_seed.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
+import 'package:wallet_backup_platform/backup_ui.dart' show BackupLocalizations;
 import 'package:wallet_fhse/security_keys_ui.dart'
     show FhseLocalizations, SecurityKeysState, securityKeysState;
 import 'package:wallet_fhse/wallet_fhse.dart' show SecurityKeyService;
@@ -348,6 +349,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _securityKeysValue(FhseLocalizations.of(context)),
               onTap: _openAdvancedSecurity,
             ),
+          SettingsNavTile(
+            title: BackupLocalizations.of(context).backupTitle,
+            onTap: () => Navigator.pushNamed(context, '/metadata_backup'),
+          ),
           SettingsLinkTile(
             title: i18n.settingsTorSettingsLabel,
             subtitle: _torModeLabel(i18n),

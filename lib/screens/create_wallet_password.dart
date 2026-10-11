@@ -9,6 +9,7 @@ import 'package:spice_wallet/screens/desktop/create_password_view.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
+import 'package:wallet_backup_platform/backup_ui.dart' show scheduleBackupRestorePrompt;
 
 /// Desktop passes the generated/entered seed here so the wallet is created and
 /// encrypted at this final step (the design's password-last flow). Absent on
@@ -16,7 +17,11 @@ import 'package:wallet_domain/wallet_domain.dart';
 class CreateWalletPasswordArgs {
   final SeedSource seed;
   final RestorePoint from;
-  const CreateWalletPasswordArgs({required this.seed, required this.from});
+
+  /// A restore from an existing seed, as opposed to a new wallet: afterwards
+  /// the metadata backup reports what it found, or offers a backup file.
+  final bool restored;
+  const CreateWalletPasswordArgs({required this.seed, required this.from, this.restored = false});
 }
 
 class CreateWalletPasswordScreen extends StatefulWidget {
@@ -66,6 +71,7 @@ class _CreateWalletPasswordScreenState extends State<CreateWalletPasswordScreen>
     }
     manager.syncInBackground();
     if (mounted) {
+      if (args.restored) scheduleBackupRestorePrompt(context);
       Provider.of<FiatRateModel>(context, listen: false).startService(walletManager: manager);
       Navigator.pushNamedAndRemoveUntil(context, '/wallet_home', (route) => false);
     }

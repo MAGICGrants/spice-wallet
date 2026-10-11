@@ -17,6 +17,7 @@ import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
+import 'package:wallet_backup_platform/backup_ui.dart' show scheduleBackupRestorePrompt;
 
 class RestoreWalletScreen extends StatefulWidget {
   const RestoreWalletScreen({super.key});
@@ -87,6 +88,7 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
         context,
         '/create_wallet_password',
         arguments: CreateWalletPasswordArgs(
+          restored: true,
           seed: Bip39Seed(mnemonic),
           from: RestorePoint.date(_restoreDate ?? DateTime(2014, 4, 18)),
         ),
@@ -114,6 +116,8 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
 
     manager.syncInBackground();
     if (mounted) {
+      // Reports what the metadata backup brought back, or offers a backup file.
+      scheduleBackupRestorePrompt(context);
       Provider.of<FiatRateModel>(context, listen: false).startService(walletManager: manager);
       Navigator.pushNamedAndRemoveUntil(context, '/wallet_home', (route) => false);
     }

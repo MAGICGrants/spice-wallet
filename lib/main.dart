@@ -50,6 +50,7 @@ import 'package:spice_wallet/util/dirs.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/wallet_core_glue.dart';
 import 'package:wallet_domain/wallet_domain.dart' show WalletManager;
+import 'package:wallet_backup_platform/backup_ui.dart';
 import 'package:wallet_fhse/security_keys_ui.dart';
 import 'package:wallet_infra/wallet_infra.dart' show HostPlatform;
 
@@ -65,6 +66,7 @@ void main() async {
 
       installWalletCore();
       installSecurityKeysUi();
+      installMetadataBackup();
 
       FlutterError.onError = (FlutterErrorDetails details) {
         log(LogLevel.error, 'Flutter error: ${details.exception}');
@@ -332,6 +334,7 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     '/unlock': (context) => UnlockScreen(),
     '/security_key_unlock': (context) => const SecurityKeyUnlockScreen(),
     '/advanced_security': (context) => const AdvancedSecurityScreen(),
+    '/metadata_backup': (context) => const MetadataBackupScreen(),
     '/wallet_home': (context) => WalletHomeScreen(),
     '/coin_home': (context) => CoinHomeScreen(),
     '/coin_settings': (context) => const CoinSettingsScreen(),
@@ -363,6 +366,7 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
       localizationsDelegates: const [
         ...AppLocalizations.localizationsDelegates,
         FhseLocalizations.delegate,
+        BackupLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
       theme: _themeData,

@@ -15,7 +15,9 @@
         android:label="Spice Wallet"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:allowBackup="false"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:enableOnBackInvokedCallback="true">
 
         <!-- Use Skia instead of Impeller: Impeller has antialiasing gaps on
