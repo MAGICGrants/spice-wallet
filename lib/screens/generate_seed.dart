@@ -44,7 +44,11 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
 
     final manager = Provider.of<WalletManager>(context, listen: false);
     try {
-      await manager.restoreAll(seed: _seedSource!, from: RestorePoint.date(_restoreDate!));
+      await manager.restoreAll(
+        seed: _seedSource!,
+        from: RestorePoint.date(_restoreDate!),
+        freshSeed: true,
+      );
     } catch (error) {
       log(LogLevel.error, error.toString());
       if (mounted) {

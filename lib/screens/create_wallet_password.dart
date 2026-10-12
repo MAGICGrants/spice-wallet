@@ -56,7 +56,7 @@ class _CreateWalletPasswordScreenState extends State<CreateWalletPasswordScreen>
     final manager = Provider.of<WalletManager>(context, listen: false);
     manager.setWalletPassword(password);
     try {
-      await manager.restoreAll(seed: args.seed, from: args.from);
+      await manager.restoreAll(seed: args.seed, from: args.from, freshSeed: !args.restored);
     } catch (error) {
       log(LogLevel.error, error.toString());
       if (mounted) {
