@@ -113,7 +113,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
     await waitForFullLock();
     // Behind security keys a relock keeps the password in memory (the keystore
     // has none to load); otherwise it comes back from the keystore.
-    if (!manager.hasPassword && !await manager.loadMobileWalletPassword()) {
+    if (!manager.hasPassword && !await manager.loadStoredPassword()) {
       log(LogLevel.error, 'Biometric auth succeeded but no stored wallet password');
       _showError(i18n.unlockUnableToAuthError);
       return;
@@ -139,6 +139,13 @@ class _UnlockScreenState extends State<UnlockScreen> {
           _error = i18n.unlockIncorrectPasswordError;
           _isLoading = false;
         });
+      }
+      return;
+    }
+    // With security keys on, the password was right and a key comes next.
+    if (!manager.hasPassword) {
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/security_key_unlock', (route) => false);
       }
       return;
     }

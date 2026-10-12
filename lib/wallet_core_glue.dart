@@ -23,7 +23,7 @@ import 'package:wallet_ethereum/wallet_ethereum.dart'
 import 'package:wallet_backup_platform/wallet_backup_platform.dart'
     show MetadataBackupConfig, MetadataBackupSetup;
 import 'package:wallet_fhse/security_keys_ui.dart' show SecurityKeysUi, SecurityKeysUiConfig;
-import 'package:wallet_fhse/wallet_fhse.dart' show FhseWalletGuard;
+import 'package:wallet_fhse/wallet_fhse.dart' show FhseNative, FhseWalletGuard;
 import 'package:wallet_openalias/wallet_openalias.dart' show resolveOpenAlias;
 
 bool get _isMobile => Platform.isAndroid || Platform.isIOS;
@@ -70,8 +70,12 @@ void installWalletCore() {
   // the keystore (Settings > Advanced security). One password, and so one FHSE
   // file, covers every coin. Installed in every isolate, so background runs
   // know when the password is behind keys and check in view-only instead
-  // (Monero's view key, Bitcoin's account xpub, the Ethereum address).
-  if (wcore.WalletSecrets.holdsWalletPassword) {
+  // (Monero's view key, Bitcoin's account xpub, the Ethereum address). Where
+  // the user types it (Linux, Windows), a new wallet gets the same root and
+  // the typed password unlocks it, together with a key once keys are on; only
+  // where FHSE's library loads, so a computer without it keeps the typed
+  // password as the wallet password.
+  if (wcore.WalletSecrets.holdsWalletPassword || FhseNative.isAvailable) {
     WalletManager.passwordGuard = const FhseWalletGuard();
   }
 
