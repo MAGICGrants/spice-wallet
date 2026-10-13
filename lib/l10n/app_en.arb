@@ -178,7 +178,11 @@
   "homeSynced": "Synced",
   "homeTorConnected": "Tor · connected",
   "homeTorConnecting": "Tor · connecting",
+  "homeTorDisconnected": "Tor · disconnected",
   "homeTorOff": "Tor · off",
+  "homeTorExternalConnected": "External Tor · connected",
+  "homeTorExternalConnecting": "External Tor · connecting",
+  "homeTorExternalDisconnected": "External Tor · disconnected",
   "homeBlocksRemaining": "{count} blocks left",
   "@homeBlocksRemaining": {
     "placeholders": {
@@ -381,6 +385,15 @@
       }
     }
   },
+  "scanQrUnexpectedCode": "That QR isn't a valid address or payment code.",
+  "deepLinkCoinNotConfigured": "Please configure your {chain} connection first.",
+  "@deepLinkCoinNotConfigured": {
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      }
+    }
+  },
   "sendPriorityLow": "Low",
   "sendPriorityNormal": "Normal",
   "sendPriorityHigh": "High",
@@ -420,6 +433,7 @@
     }
   },
   "sendFailedToGetFeesError": "Failed to get fees.",
+  "sendNoConnectionError": "Couldn't reach the server. Check your connection and try again.",
   "torSettingsTitle": "Tor Settings",
   "torSettingsSheetSubtitle": "Tor can hide your IP address from servers you connect to. This does not reduce the information that is stored on public blockchains. Changing this reconnects every chain.",
   "torSettingsModeBuiltIn": "Built-in Tor",
@@ -431,6 +445,9 @@
   "torDisabledWalletsWarningBody": "Some wallets are set to connect over Tor. Disabling Tor will disconnect them, and they will stay disconnected until you reconfigure their connection.",
   "torDisabledWalletsWarningConfirm": "Disable Tor",
   "connectionRemoteIpNotAllowed": "Connections to remote IP addresses aren't allowed. Use a domain name or a local IP address.",
+  "connectionLocalOverTorNotAllowed": "A local address can't be reached through Tor. Turn Tor off, or use the server's onion address.",
+  "connectionTorUnavailable": "Tor isn't available right now. Make sure it's running, then try again.",
+  "connectionOnionNeedsTor": "An onion address can only be reached through Tor. Turn Tor on to use it.",
   "connectionProtocolHttps": "Removing protocol. Using HTTPS for domains.",
   "connectionProtocolHttp": "Removing protocol. Using HTTP for local addresses.",
   "settingsTorSettingsLabel": "Tor Settings",

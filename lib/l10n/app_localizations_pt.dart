@@ -489,7 +489,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get homeTorConnecting => 'Tor · conectando';
 
   @override
+  String get homeTorDisconnected => 'Tor · desconectado';
+
+  @override
   String get homeTorOff => 'Tor · desligado';
+
+  @override
+  String get homeTorExternalConnected => 'Tor externo · conectado';
+
+  @override
+  String get homeTorExternalConnecting => 'Tor externo · conectando';
+
+  @override
+  String get homeTorExternalDisconnected => 'Tor externo · desconectado';
 
   @override
   String homeBlocksRemaining(String count) {
@@ -932,6 +944,14 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get scanQrUnexpectedCode => 'Esse QR não é um endereço ou código de pagamento válido.';
+
+  @override
+  String deepLinkCoinNotConfigured(String chain) {
+    return 'Por favor, configure sua conexão $chain primeiro.';
+  }
+
+  @override
   String get sendPriorityLow => 'Baixa';
 
   @override
@@ -993,6 +1013,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sendFailedToGetFeesError => 'Não foi possível carregar taxas.';
 
   @override
+  String get sendNoConnectionError =>
+      'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.';
+
+  @override
   String get torSettingsTitle => 'Configurações do Tor';
 
   @override
@@ -1027,6 +1051,18 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get connectionRemoteIpNotAllowed =>
       'Conexões com endereços IP remotos não são permitidas. Use um nome de domínio ou um endereço IP local.';
+
+  @override
+  String get connectionLocalOverTorNotAllowed =>
+      'Um endereço local não pode ser acessado via Tor. Desative o Tor ou use o endereço onion do servidor.';
+
+  @override
+  String get connectionTorUnavailable =>
+      'O Tor não está disponível no momento. Verifique se ele está ativo e tente novamente.';
+
+  @override
+  String get connectionOnionNeedsTor =>
+      'Um endereço onion só pode ser acessado via Tor. Ative o Tor para usá-lo.';
 
   @override
   String get connectionProtocolHttps => 'Removendo protocolo. Usando HTTPS para domínios.';

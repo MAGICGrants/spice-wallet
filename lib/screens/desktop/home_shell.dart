@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -12,7 +10,6 @@ import 'package:spice_wallet/screens/settings.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
-import 'package:wallet_infra/wallet_infra.dart';
 
 /// The top-level desktop destinations. [coin] is a specific blockchain screen
 /// under the expandable Home group (its symbol in [DesktopShell.activeCoinSymbol]).
@@ -102,11 +99,6 @@ class _DesktopShellState extends State<DesktopShell> {
   static String _cachedVersion = '';
   String _version = _cachedVersion;
 
-  // TorService exposes no change notification, so poll its status and rebuild
-  // when it flips (e.g. connecting → connected after launch).
-  Timer? _torPoll;
-  TorConnectionStatus _torState = TorService.sharedInstance.status;
-
   @override
   void initState() {
     super.initState();
@@ -116,16 +108,6 @@ class _DesktopShellState extends State<DesktopShell> {
         if (mounted) setState(() => _version = _cachedVersion);
       });
     }
-    _torPoll = Timer.periodic(const Duration(seconds: 1), (_) {
-      final status = TorService.sharedInstance.status;
-      if (mounted && status != _torState) setState(() => _torState = status);
-    });
-  }
-
-  @override
-  void dispose() {
-    _torPoll?.cancel();
-    super.dispose();
   }
 
   void _go(String route) {
@@ -270,7 +252,17 @@ class _DesktopShellState extends State<DesktopShell> {
               onTap: () => showSettingsSheet(context),
             ),
             const SizedBox(height: 6),
-            _torStatus(),
+            TorStatusPill(
+              labels: TorStatusLabels(
+                connected: i18n.homeTorConnected,
+                connecting: i18n.homeTorConnecting,
+                disconnected: i18n.homeTorDisconnected,
+                off: i18n.homeTorOff,
+                externalConnected: i18n.homeTorExternalConnected,
+                externalConnecting: i18n.homeTorExternalConnecting,
+                externalDisconnected: i18n.homeTorExternalDisconnected,
+              ),
+            ),
             if (_version.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(left: 14, top: 1),
@@ -480,37 +472,6 @@ class _DesktopShellState extends State<DesktopShell> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _torStatus() {
-    final i18n = AppLocalizations.of(context)!;
-    final (Color color, String text) = switch (_torState) {
-      TorConnectionStatus.connected => (BrandColors.purple, i18n.homeTorConnected),
-      TorConnectionStatus.connecting => (BrandColors.warning, i18n.homeTorConnecting),
-      TorConnectionStatus.disconnected => (BrandColors.inkFaint, i18n.homeTorOff),
-    };
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-      child: Row(
-        children: [
-          Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 9),
-          Text(
-            text,
-            style: TextStyle(
-              fontFamily: 'Ubuntu',
-              fontSize: 12,
-              height: 1,
-              color: BrandColors.inkMuted,
-            ),
-          ),
-        ],
       ),
     );
   }
