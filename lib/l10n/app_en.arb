@@ -178,7 +178,11 @@
   "homeSynced": "Synced",
   "homeTorConnected": "Tor · connected",
   "homeTorConnecting": "Tor · connecting",
+  "homeTorDisconnected": "Tor · disconnected",
   "homeTorOff": "Tor · off",
+  "homeTorExternalConnected": "External Tor · connected",
+  "homeTorExternalConnecting": "External Tor · connecting",
+  "homeTorExternalDisconnected": "External Tor · disconnected",
   "homeBlocksRemaining": "{count} blocks left",
   "@homeBlocksRemaining": {
     "placeholders": {

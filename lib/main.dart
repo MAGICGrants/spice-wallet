@@ -166,10 +166,15 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
   void _startServicesOnce() {
     if (_startedServices) return;
     _startedServices = true;
-    TorSettingsService.sharedInstance.loadSettings();
-    // Fire-and-forget: a failed Tor bootstrap is logged inside start() and must
-    // not surface as an uncaught async error (nothing awaits this).
-    unawaited(TorService.sharedInstance.start().catchError((Object _) {}));
+    // Only the built-in Tor is ours to start; external/disabled must not spin up
+    // an embedded Tor, whose status would then misreport the external proxy.
+    // Fire-and-forget: a failed bootstrap is logged inside start().
+    unawaited(() async {
+      await TorSettingsService.sharedInstance.loadSettings();
+      if (TorSettingsService.sharedInstance.torMode == TorMode.builtIn) {
+        await TorService.sharedInstance.start();
+      }
+    }().catchError((Object _) {}));
   }
 
   @override

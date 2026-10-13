@@ -178,7 +178,11 @@
   "homeSynced": "Sincronizado",
   "homeTorConnected": "Tor · conectado",
   "homeTorConnecting": "Tor · conectando",
+  "homeTorDisconnected": "Tor · desconectado",
   "homeTorOff": "Tor · desligado",
+  "homeTorExternalConnected": "Tor externo · conectado",
+  "homeTorExternalConnecting": "Tor externo · conectando",
+  "homeTorExternalDisconnected": "Tor externo · desconectado",
   "homeBlocksRemaining": "{count} blocos restantes",
   "@homeBlocksRemaining": {
     "placeholders": {
