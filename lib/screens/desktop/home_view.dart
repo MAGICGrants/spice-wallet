@@ -135,11 +135,7 @@ class DesktopHomeView extends StatelessWidget {
     );
   }
 
-  Widget _totalBalance(
-    AppLocalizations i18n,
-    FiatRateModel fiatRate,
-    double totalFiat,
-  ) {
+  Widget _totalBalance(AppLocalizations i18n, FiatRateModel fiatRate, double totalFiat) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -149,7 +145,10 @@ class DesktopHomeView extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: BalanceText.split(formatFiat(totalFiat, fiatRate.fiatCurrency), style: _bigBalance),
+            child: BalanceText.split(
+              formatFiat(totalFiat, fiatRate.fiatCurrency),
+              style: _bigBalance,
+            ),
           )
         else
           Text('--', style: _bigBalance),

@@ -254,25 +254,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  /// Opens the seed screen, behind a device auth on mobile.
-  ///
-  /// Only when app lock is on: the prompt re-checks who is holding an already
-  /// unlocked phone, and with app lock off the user has said this app does not
-  /// do that.
+  /// Opens the seed screen. The device auth is enforced by the route's
+  /// ReauthGate, so every path to it (Settings, a deep link) prompts; the desktop
+  /// sheet stays behind the launch unlock.
   void _revealSeed() async {
-    final i18n = AppLocalizations.of(context)!;
-    if (Platform.isAndroid || Platform.isIOS) {
-      final result = await BiometricAuth.authenticateIfAppLockEnabled(
-        reason: i18n.revealSeedAuthReason,
-      );
-      if (result != BiometricAuthResult.authenticated) {
-        if (mounted) {
-          showBrandToast(context, i18n.settingsAppLockUnableToAuthError);
-        }
-        return;
-      }
-    }
-    if (!mounted) return;
     if (isDesktop) {
       await showRevealSeedSheet(context);
     } else {
@@ -412,10 +397,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (widget.asModal) return _modalBody(i18n, groups, versionFooter);
 
     final tiles = <Widget>[
-      for (var i = 0; i < groups.length; i++) ...[
-        if (i > 0) const SizedBox(height: 20),
-        groups[i],
-      ],
+      for (var i = 0; i < groups.length; i++) ...[if (i > 0) const SizedBox(height: 20), groups[i]],
       const SizedBox(height: 20),
       versionFooter,
     ];

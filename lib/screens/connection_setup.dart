@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
+import 'package:spice_wallet/services/foreground_sync_service.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/widgets/connection_settings_form.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -81,6 +82,9 @@ class _ConnectionSetupScreenState extends State<ConnectionSetupScreen> {
           await token.loadPersistedConnection();
           await token.load();
         }
+
+        // Restart the foreground service so its isolate re-reads the new server.
+        await restartForegroundSyncIfRunning();
       }());
 
       // Modal, or editing an existing connection: return to where it opened.

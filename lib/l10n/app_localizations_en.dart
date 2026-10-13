@@ -929,6 +929,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get scanQrUnexpectedCode => 'That QR isn\'t a valid address or payment code.';
+
+  @override
+  String deepLinkCoinNotConfigured(String chain) {
+    return 'Please configure your $chain connection first.';
+  }
+
+  @override
   String get sendPriorityLow => 'Low';
 
   @override
@@ -990,6 +998,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendFailedToGetFeesError => 'Failed to get fees.';
 
   @override
+  String get sendNoConnectionError =>
+      'Couldn\'t reach the server. Check your connection and try again.';
+
+  @override
   String get torSettingsTitle => 'Tor Settings';
 
   @override
@@ -1024,6 +1036,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get connectionRemoteIpNotAllowed =>
       'Connections to remote IP addresses aren\'t allowed. Use a domain name or a local IP address.';
+
+  @override
+  String get connectionLocalOverTorNotAllowed =>
+      'A local address can\'t be reached through Tor. Turn Tor off, or use the server\'s onion address.';
 
   @override
   String get connectionProtocolHttps => 'Removing protocol. Using HTTPS for domains.';

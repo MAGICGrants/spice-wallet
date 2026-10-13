@@ -367,6 +367,15 @@
       }
     }
   },
+  "scanQrUnexpectedCode": "Esse QR não é um endereço ou código de pagamento válido.",
+  "deepLinkCoinNotConfigured": "Por favor, configure sua conexão {chain} primeiro.",
+  "@deepLinkCoinNotConfigured": {
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      }
+    }
+  },
   "sendPriorityLow": "Baixa",
   "sendPriorityNormal": "Normal",
   "sendPriorityHigh": "Alta",
@@ -406,6 +415,7 @@
     }
   },
   "sendFailedToGetFeesError": "Não foi possível carregar taxas.",
+  "sendNoConnectionError": "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.",
   "torSettingsTitle": "Configurações do Tor",
   "torSettingsSheetSubtitle": "O Tor pode ocultar seu endereço IP dos servidores aos quais você se conecta. Isso não reduz as informações que ficam armazenadas em blockchains públicas. Alterar isto reconecta todas as redes.",
   "torSettingsModeBuiltIn": "Tor Integrado",
@@ -417,6 +427,7 @@
   "torDisabledWalletsWarningBody": "Algumas carteiras estão configuradas para conectar via Tor. Desativar o Tor irá desconectá-las, e elas permanecerão desconectadas até que você reconfigure a conexão delas.",
   "torDisabledWalletsWarningConfirm": "Desativar o Tor",
   "connectionRemoteIpNotAllowed": "Conexões com endereços IP remotos não são permitidas. Use um nome de domínio ou um endereço IP local.",
+  "connectionLocalOverTorNotAllowed": "Um endereço local não pode ser acessado via Tor. Desative o Tor ou use o endereço onion do servidor.",
   "connectionProtocolHttps": "Removendo protocolo. Usando HTTPS para domínios.",
   "connectionProtocolHttp": "Removendo protocolo. Usando HTTP para endereços locais.",
   "settingsTorSettingsLabel": "Configurações do Tor",

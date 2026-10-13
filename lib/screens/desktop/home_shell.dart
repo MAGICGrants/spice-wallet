@@ -86,12 +86,7 @@ class DesktopShell extends StatefulWidget {
   final String? activeCoinSymbol;
   final Widget child;
 
-  const DesktopShell({
-    super.key,
-    required this.active,
-    this.activeCoinSymbol,
-    required this.child,
-  });
+  const DesktopShell({super.key, required this.active, this.activeCoinSymbol, required this.child});
 
   @override
   State<DesktopShell> createState() => _DesktopShellState();
@@ -140,11 +135,7 @@ class _DesktopShellState extends State<DesktopShell> {
 
   void _goCoin(String symbol) {
     if (widget.active == DesktopNav.coin && widget.activeCoinSymbol == symbol) return;
-    Navigator.pushNamed(
-      context,
-      '/coin_home',
-      arguments: CoinHomeScreenArgs(coinSymbol: symbol),
-    );
+    Navigator.pushNamed(context, '/coin_home', arguments: CoinHomeScreenArgs(coinSymbol: symbol));
   }
 
   /// Readable cap for a screen's content so it doesn't span an ultra-wide window
@@ -160,12 +151,14 @@ class _DesktopShellState extends State<DesktopShell> {
     final fiatRate = context.watch<FiatRateModel>();
     bool isChain(CryptoWallet w) => !isTokenWallet(w) && w.connectionAddress.isNotEmpty;
 
-    final entries = [
-      for (final w in manager.allWallets.where(isChain))
-        (wallet: w, value: aggregateUnlockedFiat(manager, w, fiatRate.rateFor)),
-    ]..sort(
-      (a, b) => (b.value ?? double.negativeInfinity).compareTo(a.value ?? double.negativeInfinity),
-    );
+    final entries =
+        [
+          for (final w in manager.allWallets.where(isChain))
+            (wallet: w, value: aggregateUnlockedFiat(manager, w, fiatRate.rateFor)),
+        ]..sort(
+          (a, b) =>
+              (b.value ?? double.negativeInfinity).compareTo(a.value ?? double.negativeInfinity),
+        );
 
     return [
       for (final e in entries)
@@ -432,8 +425,7 @@ class _DesktopShellState extends State<DesktopShell> {
 
   Widget _coinTile(({CryptoWallet wallet, String? fiat}) item) {
     final wallet = item.wallet;
-    final active =
-        widget.active == DesktopNav.coin && widget.activeCoinSymbol == wallet.coinSymbol;
+    final active = widget.active == DesktopNav.coin && widget.activeCoinSymbol == wallet.coinSymbol;
     return Material(
       color: active ? BrandColors.paper : Colors.transparent,
       shape: RoundedRectangleBorder(
