@@ -194,7 +194,10 @@ class _TorModeSelectorState extends State<TorModeSelector> {
               ),
             ),
             const SizedBox(width: BrandSpacing.md),
-            TorTestChip(label: i18n.torSettingsTestConnectionButton, onTap: _testing ? null : _test),
+            TorTestChip(
+              label: i18n.torSettingsTestConnectionButton,
+              onTap: _testing ? null : _test,
+            ),
           ],
         ),
       ],
