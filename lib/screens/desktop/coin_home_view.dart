@@ -58,15 +58,7 @@ class DesktopCoinHomeView extends StatelessWidget {
           children: [
             DesktopBackLink(label: i18n.navigationBarHome, onTap: () => Navigator.pop(context)),
             const SizedBox(height: 18),
-            _headerCard(
-              context,
-              i18n,
-              wallet,
-              fiatRate,
-              totalFiat,
-              configured,
-              chainSymbol,
-            ),
+            _headerCard(context, i18n, wallet, fiatRate, totalFiat, configured, chainSymbol),
             const SizedBox(height: 28),
             if (hasTokens) ...[
               SectionHeader(label: i18n.coinHomeAssetsTitle, padding: EdgeInsets.zero),
@@ -96,15 +88,7 @@ class DesktopCoinHomeView extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            ..._activity(
-              context,
-              i18n,
-              wallet,
-              assets,
-              hasTokens,
-              fiatRate,
-              chainSymbol,
-            ),
+            ..._activity(context, i18n, wallet, assets, hasTokens, fiatRate, chainSymbol),
           ],
         ),
       ],
@@ -172,7 +156,10 @@ class DesktopCoinHomeView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (showFiat)
-                      BalanceText.split(formatFiat(totalFiat, fiatRate.fiatCurrency), style: _bigFiat)
+                      BalanceText.split(
+                        formatFiat(totalFiat, fiatRate.fiatCurrency),
+                        style: _bigFiat,
+                      )
                     else
                       Text(coinAmount, style: _bigFiat),
                     if (showFiat) ...[

@@ -123,10 +123,7 @@ class _RevealSeedScreenState extends State<RevealSeedScreen> with SecureScreenMi
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(hpad, 0, hpad, 16),
-            child: Text(
-              i18n.revealSeedSubtitleRevealed,
-              style: BrandText.bodyMuted,
-            ),
+            child: Text(i18n.revealSeedSubtitleRevealed, style: BrandText.bodyMuted),
           ),
           Flexible(
             child: SingleChildScrollView(
@@ -155,10 +152,7 @@ class _RevealSeedScreenState extends State<RevealSeedScreen> with SecureScreenMi
             const SizedBox(height: BrandSpacing.lg),
             Text(i18n.generateSeedTitleCovered, style: BrandText.title),
             const SizedBox(height: BrandSpacing.sm),
-            Text(
-              i18n.revealSeedSubtitleRevealed,
-              style: BrandText.bodyMuted,
-            ),
+            Text(i18n.revealSeedSubtitleRevealed, style: BrandText.bodyMuted),
             const SizedBox(height: BrandSpacing.xl),
             Expanded(child: SingleChildScrollView(child: _seedBody(i18n))),
             BrandButton.secondary(

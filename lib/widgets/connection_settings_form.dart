@@ -464,7 +464,9 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     }
 
     if (_useTor && addressIsLocal(daemonAddress)) {
-      setState(() => _errorMessage = AppLocalizations.of(context)!.connectionLocalOverTorNotAllowed);
+      setState(
+        () => _errorMessage = AppLocalizations.of(context)!.connectionLocalOverTorNotAllowed,
+      );
       return;
     }
 
