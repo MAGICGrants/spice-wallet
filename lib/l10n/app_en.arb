@@ -178,7 +178,11 @@
   "homeSynced": "Synced",
   "homeTorConnected": "Tor · connected",
   "homeTorConnecting": "Tor · connecting",
+  "homeTorDisconnected": "Tor · disconnected",
   "homeTorOff": "Tor · off",
+  "homeTorExternalConnected": "External Tor · connected",
+  "homeTorExternalConnecting": "External Tor · connecting",
+  "homeTorExternalDisconnected": "External Tor · disconnected",
   "homeBlocksRemaining": "{count} blocks left",
   "@homeBlocksRemaining": {
     "placeholders": {
@@ -442,6 +446,8 @@
   "torDisabledWalletsWarningConfirm": "Disable Tor",
   "connectionRemoteIpNotAllowed": "Connections to remote IP addresses aren't allowed. Use a domain name or a local IP address.",
   "connectionLocalOverTorNotAllowed": "A local address can't be reached through Tor. Turn Tor off, or use the server's onion address.",
+  "connectionTorUnavailable": "Tor isn't available right now. Make sure it's running, then try again.",
+  "connectionOnionNeedsTor": "An onion address can only be reached through Tor. Turn Tor on to use it.",
   "connectionProtocolHttps": "Removing protocol. Using HTTPS for domains.",
   "connectionProtocolHttp": "Removing protocol. Using HTTP for local addresses.",
   "settingsTorSettingsLabel": "Tor Settings",

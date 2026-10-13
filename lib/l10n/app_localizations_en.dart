@@ -487,7 +487,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTorConnecting => 'Tor · connecting';
 
   @override
+  String get homeTorDisconnected => 'Tor · disconnected';
+
+  @override
   String get homeTorOff => 'Tor · off';
+
+  @override
+  String get homeTorExternalConnected => 'External Tor · connected';
+
+  @override
+  String get homeTorExternalConnecting => 'External Tor · connecting';
+
+  @override
+  String get homeTorExternalDisconnected => 'External Tor · disconnected';
 
   @override
   String homeBlocksRemaining(String count) {
@@ -1040,6 +1052,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get connectionLocalOverTorNotAllowed =>
       'A local address can\'t be reached through Tor. Turn Tor off, or use the server\'s onion address.';
+
+  @override
+  String get connectionTorUnavailable =>
+      'Tor isn\'t available right now. Make sure it\'s running, then try again.';
+
+  @override
+  String get connectionOnionNeedsTor =>
+      'An onion address can only be reached through Tor. Turn Tor on to use it.';
 
   @override
   String get connectionProtocolHttps => 'Removing protocol. Using HTTPS for domains.';

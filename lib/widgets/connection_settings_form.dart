@@ -12,6 +12,7 @@ import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
+import 'package:wallet_infra/wallet_infra.dart' show isUnroutedOnion;
 
 const isDemoMode = String.fromEnvironment('DEMO_MODE') == 'true';
 
@@ -397,6 +398,17 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       return;
     }
 
+    if (isUnroutedOnion(
+      daemonAddress,
+      viaProxy: _useTor || _customProxyPortController.text.trim().isNotEmpty,
+    )) {
+      setState(() {
+        _hasTested = false;
+        _errorMessage = i18n.connectionOnionNeedsTor;
+      });
+      return;
+    }
+
     setState(() {
       _testCancelled = false;
       _hasTested = true;
@@ -409,6 +421,16 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     final stopwatch = Stopwatch()..start();
     try {
       final proxyPort = await _resolveProxyPort();
+      // Tor on but no proxy resolved (e.g. bootstrap failed): fail closed with a
+      // reason instead of probing clearnet and reporting it as Tor.
+      if (_useTor && (proxyPort == null || proxyPort.isEmpty)) {
+        if (!mounted || _testCancelled) return;
+        setState(() {
+          _hasTested = false;
+          _errorMessage = i18n.connectionTorUnavailable;
+        });
+        return;
+      }
       if (_isExplorer) {
         await wallet.testExplorerConnection(
           address: daemonAddress,
@@ -467,6 +489,11 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       setState(
         () => _errorMessage = AppLocalizations.of(context)!.connectionLocalOverTorNotAllowed,
       );
+      return;
+    }
+
+    if (isUnroutedOnion(daemonAddress, viaProxy: _useTor || proxyAddress.trim().isNotEmpty)) {
+      setState(() => _errorMessage = AppLocalizations.of(context)!.connectionOnionNeedsTor);
       return;
     }
 

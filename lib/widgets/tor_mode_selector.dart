@@ -100,7 +100,11 @@ class _TorModeSelectorState extends State<TorModeSelector> {
     });
     _emit();
     try {
-      final port = int.tryParse(_portController.text) ?? 9050;
+      final port = int.tryParse(_portController.text.trim());
+      if (port == null || port < 1 || port > 65535) {
+        if (mounted) setState(() => _testOk = false);
+        return;
+      }
       final proxy = (host: InternetAddress.loopbackIPv4, port: port);
       final response = await makeSocksHttpRequest(
         'GET',

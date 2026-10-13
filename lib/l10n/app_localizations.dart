@@ -987,11 +987,35 @@ abstract class AppLocalizations {
   /// **'Tor · connecting'**
   String get homeTorConnecting;
 
+  /// No description provided for @homeTorDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Tor · disconnected'**
+  String get homeTorDisconnected;
+
   /// No description provided for @homeTorOff.
   ///
   /// In en, this message translates to:
   /// **'Tor · off'**
   String get homeTorOff;
+
+  /// No description provided for @homeTorExternalConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'External Tor · connected'**
+  String get homeTorExternalConnected;
+
+  /// No description provided for @homeTorExternalConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'External Tor · connecting'**
+  String get homeTorExternalConnecting;
+
+  /// No description provided for @homeTorExternalDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'External Tor · disconnected'**
+  String get homeTorExternalDisconnected;
 
   /// No description provided for @homeBlocksRemaining.
   ///
@@ -1982,6 +2006,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A local address can\'t be reached through Tor. Turn Tor off, or use the server\'s onion address.'**
   String get connectionLocalOverTorNotAllowed;
+
+  /// No description provided for @connectionTorUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Tor isn\'t available right now. Make sure it\'s running, then try again.'**
+  String get connectionTorUnavailable;
+
+  /// No description provided for @connectionOnionNeedsTor.
+  ///
+  /// In en, this message translates to:
+  /// **'An onion address can only be reached through Tor. Turn Tor on to use it.'**
+  String get connectionOnionNeedsTor;
 
   /// No description provided for @connectionProtocolHttps.
   ///
