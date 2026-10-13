@@ -1983,6 +1983,18 @@ abstract class AppLocalizations {
   /// **'A local address can\'t be reached through Tor. Turn Tor off, or use the server\'s onion address.'**
   String get connectionLocalOverTorNotAllowed;
 
+  /// No description provided for @connectionTorUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Tor isn\'t available right now. Make sure it\'s running, then try again.'**
+  String get connectionTorUnavailable;
+
+  /// No description provided for @connectionOnionNeedsTor.
+  ///
+  /// In en, this message translates to:
+  /// **'An onion address can only be reached through Tor. Turn Tor on to use it.'**
+  String get connectionOnionNeedsTor;
+
   /// No description provided for @connectionProtocolHttps.
   ///
   /// In en, this message translates to:

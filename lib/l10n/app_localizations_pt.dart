@@ -1045,6 +1045,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Um endereço local não pode ser acessado via Tor. Desative o Tor ou use o endereço onion do servidor.';
 
   @override
+  String get connectionTorUnavailable =>
+      'O Tor não está disponível no momento. Verifique se ele está ativo e tente novamente.';
+
+  @override
+  String get connectionOnionNeedsTor =>
+      'Um endereço onion só pode ser acessado via Tor. Ative o Tor para usá-lo.';
+
+  @override
   String get connectionProtocolHttps => 'Removendo protocolo. Usando HTTPS para domínios.';
 
   @override
