@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/consts.dart' as consts;
@@ -129,11 +128,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     // Content gutter: the desktop shell caps width and wants wider margins.
     final gutter = isDesktop ? 44.0 : 20.0;
 
-    // Merge every asset's history into one newest-first timeline.
-    final all = <TxEntry>[
-      for (final asset in manager.allWallets)
-        for (final tx in asset.txHistory) (tx: tx, asset: asset),
-    ]..sort((a, b) => b.tx.timestamp.compareTo(a.tx.timestamp));
+    final all = combinedTxTimeline(manager);
 
     final entries = all.where((e) {
       if (_chainsHidden.contains(chainSymbolOf(e.asset))) return false;
@@ -434,18 +429,7 @@ class _Timeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Interleave day-header strings between the tx entries.
-    final rows = <Object>[];
-    DateTime? lastDay;
-    for (final e in entries) {
-      final d = DateTime.fromMillisecondsSinceEpoch(e.tx.timestamp * 1000);
-      final day = DateTime(d.year, d.month, d.day);
-      if (day != lastDay) {
-        rows.add(DateFormat('d MMMM').format(day).toUpperCase());
-        lastDay = day;
-      }
-      rows.add(e);
-    }
+    final rows = withDayHeaders(entries, (e) => e.tx.timestamp);
 
     return ListView.builder(
       padding: EdgeInsets.fromLTRB(gutter, 0, gutter, 24),
