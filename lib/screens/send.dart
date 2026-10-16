@@ -464,6 +464,8 @@ class _SendScreenState extends State<SendScreen> {
     });
     _feeRevision.value++;
 
+    final wallet = _wallet(context);
+    final amountUnits = _amount.baseUnits;
     final destinationAddress = await _resolveDestinationAddress();
 
     try {
@@ -480,11 +482,18 @@ class _SendScreenState extends State<SendScreen> {
 
         await Future<void>.delayed(Duration.zero);
 
-        // wallet-core prices a transaction by building it — there is no separate
-        // fee estimate — so build one per priority to read its fee.
-        final tx = await _createTxForPriority(destinationAddress, idx + 1);
+        // Estimate a normal send cheaply; build the tx for a sweep or when no
+        // estimate comes back, caching it for send to reuse.
+        BigInt? fee = _isSweepAll
+            ? null
+            : await wallet.estimateFee(destinationAddress, amountUnits, priority: idx + 1);
+        PendingTransaction? tx;
+        if (fee == null) {
+          tx = await _createTxForPriority(destinationAddress, idx + 1);
+          fee = tx?.feeBaseUnits;
+        }
         builtTxs[idx] = tx;
-        fees[idx] = tx?.feeBaseUnits;
+        fees[idx] = fee;
 
         if (currentRequest == _feeCalculationCounter && mounted) {
           setState(() {
