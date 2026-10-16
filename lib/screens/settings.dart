@@ -69,6 +69,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _loadPackageInfo() async {
     final packageInfo = await PackageInfo.fromPlatform();
+    if (!mounted) return;
     setState(() {
       _appVersion = packageInfo.version;
       _buildNumber = packageInfo.buildNumber;
@@ -124,6 +125,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _setTxNotificationsEnabled(bool value) async {
     if (value) {
       final isAllowed = await NotificationService().promptPermission();
+      if (!mounted) return;
       if (!isAllowed) {
         setState(() => _newTxNotificationsEnabled = false);
         return;
@@ -132,6 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } else {
       await SharedPreferencesService.set<bool>(SharedPreferencesKeys.notificationsEnabled, false);
     }
+    if (!mounted) return;
     setState(() => _newTxNotificationsEnabled = value);
     await applyBackgroundTaskRegistration();
   }
@@ -150,6 +153,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     }
 
+    if (!mounted) return;
     setState(() {
       _appLockEnabled = value;
     });

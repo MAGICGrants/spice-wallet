@@ -175,6 +175,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     final conn = await (_isExplorer
         ? wallet.getPersistedExplorerConnection()
         : wallet.getPersistedConnection());
+    if (!mounted) return;
 
     final options = _isExplorer ? const <String>[] : wallet.connectionTypeOptions;
 
@@ -205,6 +206,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     final i18n = AppLocalizations.of(context)!;
 
     final result = await Navigator.pushNamed(context, '/scan_qr');
+    if (!mounted) return;
 
     if (result != null && result is String) {
       final scannedAddress = cleanConnectionAddress(result);

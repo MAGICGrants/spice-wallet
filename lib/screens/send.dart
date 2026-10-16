@@ -380,6 +380,7 @@ class _SendScreenState extends State<SendScreen> {
 
     if (domainRegex.hasMatch(unresolvedDestinationAddress)) {
       destinationAddress = await _resolveAddressIfDomain(unresolvedDestinationAddress);
+      if (!mounted) return false;
 
       if (destinationAddress == '') {
         if (setErrors) {
@@ -537,6 +538,7 @@ class _SendScreenState extends State<SendScreen> {
     });
 
     final isValid = await _validateForm();
+    if (!mounted) return;
 
     if (!isValid) {
       setState(() {
@@ -576,6 +578,7 @@ class _SendScreenState extends State<SendScreen> {
         );
       }
 
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -614,6 +617,7 @@ class _SendScreenState extends State<SendScreen> {
         }
       }
     } catch (error) {
+      if (!mounted) return;
       if (error.toString().contains('Insufficient gas funds')) {
         setState(() {
           _amountError = i18n.sendInsufficientGasError;
@@ -635,6 +639,7 @@ class _SendScreenState extends State<SendScreen> {
       }
     }
 
+    if (!mounted) return;
     setState(() {
       _isLoading = false;
     });
