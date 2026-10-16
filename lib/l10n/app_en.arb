@@ -451,6 +451,7 @@
   "connectionTorDisabledWarning": "Tor is disabled, so this connection no longer works. Please reconfigure it.",
   "connectionProtocolHttps": "Removing protocol. Using HTTPS for domains.",
   "connectionProtocolHttp": "Removing protocol. Using HTTP for local addresses.",
+  "connectionProtocolHttpOnion": "Removing protocol. Onion addresses use HTTP over Tor.",
   "settingsTorSettingsLabel": "Tor Settings",
   "lwsSetupTorDisabledError": "Tor is disabled. Please go back and enable it.",
   "lwsSetupInvalidQrCode": "Invalid connection address.",

@@ -1072,6 +1072,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectionProtocolHttp => 'Removing protocol. Using HTTP for local addresses.';
 
   @override
+  String get connectionProtocolHttpOnion => 'Removing protocol. Onion addresses use HTTP over Tor.';
+
+  @override
   String get settingsTorSettingsLabel => 'Tor Settings';
 
   @override
