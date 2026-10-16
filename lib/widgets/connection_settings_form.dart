@@ -84,6 +84,10 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
   bool _initialBackgroundSync = false;
   bool _initialForegroundSync = false;
 
+  // The saved connection's raw Tor flag (before masking by the global Tor mode).
+  // Used to warn when a Tor connection was silently turned off by disabling Tor.
+  bool _savedConnectionUsedTor = false;
+
   /// Background / continuous sync only matter for a Monero **node** scan — the
   /// one heavy background job. LWS syncs server-side, so the toggles are hidden
   /// there (nothing to keep advancing in the background). Android-only.
@@ -182,6 +186,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       _addressController.text = conn.address;
       _customProxyPortController.text = conn.proxyPort;
       _useTor = useTor;
+      _savedConnectionUsedTor = conn.useTor;
       _connectionTypeOptions = options;
       _connectionType = type;
       _initialAddress = cleanConnectionAddress(conn.address);
@@ -332,6 +337,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       _addressController.text = conn.address;
       _customProxyPortController.text = conn.proxyPort;
       _useTor = useTor;
+      _savedConnectionUsedTor = conn.useTor;
       _hasTested = false;
       _connectionSuccess = false;
       _errorMessage = null;
@@ -600,6 +606,9 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       onAddressChanged: _onAddressChange,
       onScan: (Platform.isAndroid || Platform.isIOS) ? _scanQrCode : null,
       errorMessage: _errorMessage,
+      warning: (_savedConnectionUsedTor && torMode == TorMode.disabled)
+          ? i18n.connectionTorDisabledWarning
+          : null,
       proxyController: _customProxyPortController,
       onProxyChanged: _onProxyPortChange,
       proxyEnabled: !_useTor,

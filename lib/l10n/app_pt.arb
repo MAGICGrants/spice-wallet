@@ -434,6 +434,7 @@
   "connectionLocalOverTorNotAllowed": "Um endereço local não pode ser acessado via Tor. Desative o Tor ou use o endereço onion do servidor.",
   "connectionTorUnavailable": "O Tor não está disponível no momento. Verifique se ele está ativo e tente novamente.",
   "connectionOnionNeedsTor": "Um endereço onion só pode ser acessado via Tor. Ative o Tor para usá-lo.",
+  "connectionTorDisabledWarning": "O Tor está desativado, então esta conexão não funciona mais. Reconfigure-a.",
   "connectionProtocolHttps": "Removendo protocolo. Usando HTTPS para domínios.",
   "connectionProtocolHttp": "Removendo protocolo. Usando HTTP para endereços locais.",
   "settingsTorSettingsLabel": "Configurações do Tor",
