@@ -1065,10 +1065,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Um endereço onion só pode ser acessado via Tor. Ative o Tor para usá-lo.';
 
   @override
+  String get connectionTorDisabledWarning =>
+      'O Tor está desativado, então esta conexão não funciona mais. Reconfigure-a.';
+
+  @override
   String get connectionProtocolHttps => 'Removendo protocolo. Usando HTTPS para domínios.';
 
   @override
   String get connectionProtocolHttp => 'Removendo protocolo. Usando HTTP para endereços locais.';
+
+  @override
+  String get connectionProtocolHttpOnion =>
+      'Removendo protocolo. Endereços onion usam HTTP via Tor.';
 
   @override
   String get settingsTorSettingsLabel => 'Configurações do Tor';

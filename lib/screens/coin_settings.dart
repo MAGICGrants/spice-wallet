@@ -84,18 +84,25 @@ void showCoinSettingsSheet(BuildContext context, {required String coinSymbol}) {
   showBrandSheet<void>(
     context: context,
     isScrollControlled: true,
-    // Desktop-only: the modal card owns the edge padding.
-    builder: (sheetContext) => Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SheetHandle(),
-        Center(
-          child: CoinBadge(wallet: wallet, label: '${wallet.blockchainName} ${i18n.settingsTitle}'),
-        ),
-        const SizedBox(height: 18),
-        ...coinSettingsGroups(sheetContext, wallet),
-      ],
+    // Desktop-only: the modal card owns the edge padding. Rebuild on wallet
+    // changes so edits (e.g. a new connection address) show without reopening.
+    builder: (sheetContext) => ListenableBuilder(
+      listenable: wallet,
+      builder: (sheetContext, _) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SheetHandle(),
+          Center(
+            child: CoinBadge(
+              wallet: wallet,
+              label: '${wallet.blockchainName} ${i18n.settingsTitle}',
+            ),
+          ),
+          const SizedBox(height: 18),
+          ...coinSettingsGroups(sheetContext, wallet),
+        ],
+      ),
     ),
   );
 }

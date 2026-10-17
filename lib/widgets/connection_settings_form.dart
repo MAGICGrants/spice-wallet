@@ -12,7 +12,6 @@ import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
-import 'package:wallet_infra/wallet_infra.dart' show isUnroutedOnion;
 
 const isDemoMode = String.fromEnvironment('DEMO_MODE') == 'true';
 
@@ -83,6 +82,10 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
   String _initialConnectionType = '';
   bool _initialBackgroundSync = false;
   bool _initialForegroundSync = false;
+
+  // The saved connection's raw Tor flag (before masking by the global Tor mode).
+  // Used to warn when a Tor connection was silently turned off by disabling Tor.
+  bool _savedConnectionUsedTor = false;
 
   /// Background / continuous sync only matter for a Monero **node** scan — the
   /// one heavy background job. LWS syncs server-side, so the toggles are hidden
@@ -171,6 +174,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     final conn = await (_isExplorer
         ? wallet.getPersistedExplorerConnection()
         : wallet.getPersistedConnection());
+    if (!mounted) return;
 
     final options = _isExplorer ? const <String>[] : wallet.connectionTypeOptions;
 
@@ -182,6 +186,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       _addressController.text = conn.address;
       _customProxyPortController.text = conn.proxyPort;
       _useTor = useTor;
+      _savedConnectionUsedTor = conn.useTor;
       _connectionTypeOptions = options;
       _connectionType = type;
       _initialAddress = cleanConnectionAddress(conn.address);
@@ -200,6 +205,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     final i18n = AppLocalizations.of(context)!;
 
     final result = await Navigator.pushNamed(context, '/scan_qr');
+    if (!mounted) return;
 
     if (result != null && result is String) {
       final scannedAddress = cleanConnectionAddress(result);
@@ -221,33 +227,31 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
   }
 
   void _onAddressChange(String rawValue) {
-    final hadProtocol = RegExp(r'https?:\/\/').hasMatch(rawValue);
-    final value = cleanConnectionAddress(rawValue);
+    final input = analyzeAddressInput(rawValue);
+    final i18n = AppLocalizations.of(context)!;
 
     // Strip any http(s):// the user typed from the field itself so it's ignored.
-    if (_addressController.text != value) {
+    if (_addressController.text != input.cleaned) {
       _addressController.value = TextEditingValue(
-        text: value,
-        selection: TextSelection.collapsed(offset: value.length),
+        text: input.cleaned,
+        selection: TextSelection.collapsed(offset: input.cleaned.length),
       );
     }
 
-    final useTor = onionAddressRegex.hasMatch(value);
-    final i18n = AppLocalizations.of(context)!;
-
     // Never auto-disable Tor if the user already turned it on.
-    _setUseTor(useTor || _useTor);
+    _setUseTor(input.isOnion || _useTor);
 
     setState(() {
       _hasTested = false;
-      _errorMessage = isRemoteIp(value) ? i18n.connectionRemoteIpNotAllowed : null;
+      _errorMessage = input.isRemoteIp ? i18n.connectionRemoteIpNotAllowed : null;
     });
 
-    if (hadProtocol) {
-      showBrandToast(
-        context,
-        addressUsesSsl(value) ? i18n.connectionProtocolHttps : i18n.connectionProtocolHttp,
-      );
+    if (input.hadProtocol) {
+      showBrandToast(context, switch (input.protocolHint) {
+        AddressProtocolHint.onion => i18n.connectionProtocolHttpOnion,
+        AddressProtocolHint.secure => i18n.connectionProtocolHttps,
+        AddressProtocolHint.plain => i18n.connectionProtocolHttp,
+      });
     }
   }
 
@@ -258,7 +262,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
   }
 
   void _setUseTor(bool? value) {
-    if (TorSettingsService.sharedInstance.torMode == TorMode.disabled) {
+    if (value == true && TorSettingsService.sharedInstance.torMode == TorMode.disabled) {
       log(LogLevel.info, 'Tor is disabled. Not setting useTor to true.');
       value = false;
     }
@@ -332,6 +336,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       _addressController.text = conn.address;
       _customProxyPortController.text = conn.proxyPort;
       _useTor = useTor;
+      _savedConnectionUsedTor = conn.useTor;
       _hasTested = false;
       _connectionSuccess = false;
       _errorMessage = null;
@@ -348,6 +353,13 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
         return type;
     }
   }
+
+  String _connectionAddressErrorMessage(AppLocalizations i18n, ConnectionAddressError error) =>
+      switch (error) {
+        ConnectionAddressError.remoteIp => i18n.connectionRemoteIpNotAllowed,
+        ConnectionAddressError.localOverTor => i18n.connectionLocalOverTorNotAllowed,
+        ConnectionAddressError.onionNeedsTor => i18n.connectionOnionNeedsTor,
+      };
 
   /// Resolves the SOCKS proxy port to pass to `wallet.testConnection`.
   /// When the user enabled Tor, this comes from the running TorService;
@@ -377,35 +389,21 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       return;
     }
 
-    if (isRemoteIp(daemonAddress)) {
+    final addrError = validateConnectionAddress(
+      address: daemonAddress,
+      useTor: _useTor,
+      hasProxy: _customProxyPortController.text.trim().isNotEmpty,
+    );
+    if (addrError != null) {
       setState(() {
         _hasTested = false;
-        _errorMessage = i18n.connectionRemoteIpNotAllowed;
-      });
-      return;
-    }
-
-    if (_useTor && addressIsLocal(daemonAddress)) {
-      setState(() {
-        _hasTested = false;
-        _errorMessage = i18n.connectionLocalOverTorNotAllowed;
+        _errorMessage = _connectionAddressErrorMessage(i18n, addrError);
       });
       return;
     }
 
     if (_useTor && TorSettingsService.sharedInstance.torMode == TorMode.disabled) {
       showBrandToast(context, i18n.lwsSetupTorDisabledError);
-      return;
-    }
-
-    if (isUnroutedOnion(
-      daemonAddress,
-      viaProxy: _useTor || _customProxyPortController.text.trim().isNotEmpty,
-    )) {
-      setState(() {
-        _hasTested = false;
-        _errorMessage = i18n.connectionOnionNeedsTor;
-      });
       return;
     }
 
@@ -480,20 +478,18 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     final daemonAddress = cleanConnectionAddress(_addressController.text);
     final proxyAddress = _customProxyPortController.text;
 
-    if (isRemoteIp(daemonAddress)) {
-      setState(() => _errorMessage = AppLocalizations.of(context)!.connectionRemoteIpNotAllowed);
-      return;
-    }
-
-    if (_useTor && addressIsLocal(daemonAddress)) {
+    final addrError = validateConnectionAddress(
+      address: daemonAddress,
+      useTor: _useTor,
+      hasProxy: proxyAddress.trim().isNotEmpty,
+    );
+    if (addrError != null) {
       setState(
-        () => _errorMessage = AppLocalizations.of(context)!.connectionLocalOverTorNotAllowed,
+        () => _errorMessage = _connectionAddressErrorMessage(
+          AppLocalizations.of(context)!,
+          addrError,
+        ),
       );
-      return;
-    }
-
-    if (isUnroutedOnion(daemonAddress, viaProxy: _useTor || proxyAddress.trim().isNotEmpty)) {
-      setState(() => _errorMessage = AppLocalizations.of(context)!.connectionOnionNeedsTor);
       return;
     }
 
@@ -600,6 +596,9 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       onAddressChanged: _onAddressChange,
       onScan: (Platform.isAndroid || Platform.isIOS) ? _scanQrCode : null,
       errorMessage: _errorMessage,
+      warning: (_savedConnectionUsedTor && torMode == TorMode.disabled)
+          ? i18n.connectionTorDisabledWarning
+          : null,
       proxyController: _customProxyPortController,
       onProxyChanged: _onProxyPortChange,
       proxyEnabled: !_useTor,
