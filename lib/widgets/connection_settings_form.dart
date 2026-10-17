@@ -485,7 +485,10 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     );
     if (addrError != null) {
       setState(
-        () => _errorMessage = _connectionAddressErrorMessage(AppLocalizations.of(context)!, addrError),
+        () => _errorMessage = _connectionAddressErrorMessage(
+          AppLocalizations.of(context)!,
+          addrError,
+        ),
       );
       return;
     }
