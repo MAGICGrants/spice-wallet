@@ -12,9 +12,11 @@ navigation, branding, and app-support glue.
 
 ## How Spice consumes wallet-core
 
-- **Dependency**: the six wallet-core packages (`wallet_infra`, `wallet_domain`,
-  `wallet_monero`, `wallet_bitcoin`, `wallet_ethereum`, `wallet_openalias`) are
-  SHA-pinned in `pubspec.yaml`. Local dev redirects them to `../wallet-core` via
+- **Dependency**: all twelve wallet-core packages (`wallet_infra`,
+  `wallet_domain`, `wallet_monero`, `wallet_bitcoin`, `wallet_ethereum`,
+  `wallet_openalias`, `wallet_fhse`, `wallet_backup`, `wallet_backup_platform`,
+  `wallet_background`, `wallet_fiat`, `wallet_ui`) are SHA-pinned in
+  `pubspec.yaml`. Local dev redirects them to `../wallet-core` via
   the gitignored `pubspec_overrides.yaml`. **Wallet-core changes only reach a
   release build once the pin is bumped** — the override is dev-only.
 - **No adapter layer.** Screens bind **directly** to wallet-core's `CryptoWallet`
@@ -29,6 +31,12 @@ navigation, branding, and app-support glue.
   - `WalletAppConfig.spice` — file names (`mywallet_<coin>`) and `xmr_`-prefixed
     pref keys. **Neither app migrates on-disk state.**
   - `CryptoWallet.aliasResolver` → `resolveOpenAlias`
+  - `WalletManager.closeOrphanedWallets` → wallet_monero's
+    `closeOrphanedMoneroWallets`
+  - `WalletManager.passwordGuard` → wallet_fhse's `FhseWalletGuard` (security
+    keys), where the platform supports them
+  - `BackgroundSync.install` → wallet_background's view-only background runs
+  - `FiatRates.install` → wallet_fiat, with the Tor proxy
   - `WalletLog.sink` → routes into `lib/util/logging.dart`
   - `CryptoWallet.incomingTxNotifier` → builds coin-correct notification text
   - `NotificationService` Windows branding
