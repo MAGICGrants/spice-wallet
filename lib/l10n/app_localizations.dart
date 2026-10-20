@@ -510,13 +510,13 @@ abstract class AppLocalizations {
   /// No description provided for @createWalletDescription.
   ///
   /// In en, this message translates to:
-  /// **'A single seed phrase secures access to your wallet across all blockchain networks. Would you like to create a new wallet or restore an existing wallet?'**
+  /// **'A single recovery phrase secures access to your wallet across all blockchain networks. Would you like to create a new wallet or restore an existing wallet?'**
   String get createWalletDescription;
 
   /// No description provided for @createWalletRestoreExistingButton.
   ///
   /// In en, this message translates to:
-  /// **'Restore from a seed'**
+  /// **'Restore from a recovery phrase'**
   String get createWalletRestoreExistingButton;
 
   /// No description provided for @createWalletRestoreExistingDesc.
@@ -534,7 +534,7 @@ abstract class AppLocalizations {
   /// No description provided for @createWalletCreateNewDesc.
   ///
   /// In en, this message translates to:
-  /// **'Spice Wallet generates a 15-word BIP39 seed'**
+  /// **'Spice Wallet generates a 15-word BIP39 recovery phrase'**
   String get createWalletCreateNewDesc;
 
   /// No description provided for @createWalletPasswordTitle.
@@ -582,7 +582,7 @@ abstract class AppLocalizations {
   /// No description provided for @generateSeedTitleCovered.
   ///
   /// In en, this message translates to:
-  /// **'Seed Phrase'**
+  /// **'Recovery Phrase'**
   String get generateSeedTitleCovered;
 
   /// No description provided for @generateSeedSubtitleCovered.
@@ -666,13 +666,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingPasswordNoteLaunch.
   ///
   /// In en, this message translates to:
-  /// **'You need this password to open your wallet and to view your seed.'**
+  /// **'You need this password to open your wallet and to view your recovery phrase.'**
   String get onboardingPasswordNoteLaunch;
 
   /// No description provided for @onboardingPasswordNoteNotCloud.
   ///
   /// In en, this message translates to:
-  /// **'This password can\'t be recovered. If you lose it, restore your wallet from your seed phrase.'**
+  /// **'This password can\'t be recovered. If you lose it, restore your wallet from your recovery phrase.'**
   String get onboardingPasswordNoteNotCloud;
 
   /// No description provided for @onboardingPasswordStrong.
@@ -696,7 +696,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWalletNoteGenerated.
   ///
   /// In en, this message translates to:
-  /// **'Spice Wallet generates your seed on this device.'**
+  /// **'Spice Wallet generates your recovery phrase on this device.'**
   String get onboardingWalletNoteGenerated;
 
   /// No description provided for @onboardingWalletNoteRestore.
@@ -708,7 +708,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWalletCreateBullet1.
   ///
   /// In en, this message translates to:
-  /// **'A 15-word BIP39 seed'**
+  /// **'A 15-word BIP39 recovery phrase'**
   String get onboardingWalletCreateBullet1;
 
   /// No description provided for @onboardingWalletCreateBullet2.
@@ -762,7 +762,7 @@ abstract class AppLocalizations {
   /// No description provided for @restoreWalletSeedLength.
   ///
   /// In en, this message translates to:
-  /// **'Seed length'**
+  /// **'Number of words'**
   String get restoreWalletSeedLength;
 
   /// No description provided for @restoreWalletPaste.
@@ -846,7 +846,7 @@ abstract class AppLocalizations {
   /// No description provided for @restoreWalletChecksumError.
   ///
   /// In en, this message translates to:
-  /// **'This isn\'t a valid seed phrase — check the words and their order.'**
+  /// **'This isn\'t a valid recovery phrase — check the words and their order.'**
   String get restoreWalletChecksumError;
 
   /// No description provided for @restoreWalletRestoreButton.
@@ -1560,7 +1560,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSeedPhraseLabel.
   ///
   /// In en, this message translates to:
-  /// **'Seed Phrase'**
+  /// **'Recovery Phrase'**
   String get settingsSeedPhraseLabel;
 
   /// No description provided for @revealSeedSubtitleRevealed.
@@ -1584,7 +1584,7 @@ abstract class AppLocalizations {
   /// No description provided for @revealSeedAuthReason.
   ///
   /// In en, this message translates to:
-  /// **'Confirm it\'s you to view your seed phrase'**
+  /// **'Confirm it\'s you to view your recovery phrase'**
   String get revealSeedAuthReason;
 
   /// No description provided for @done.
@@ -1608,7 +1608,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDeleteWalletDialogText.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to delete your wallet? You will lose access to your funds unless you have backed up your seed phrase.'**
+  /// **'Are you sure you want to delete your wallet? You will lose access to your funds unless you have backed up your recovery phrase. This will not remove your address book and app settings.'**
   String get settingsDeleteWalletDialogText;
 
   /// No description provided for @settingsDeleteWalletDialogDeleteButton.
@@ -1616,6 +1616,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete'**
   String get settingsDeleteWalletDialogDeleteButton;
+
+  /// No description provided for @settingsDeleteAddressBookButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Address Book'**
+  String get settingsDeleteAddressBookButton;
+
+  /// No description provided for @settingsDeleteAddressBookDialogText.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete your address book? If automatic backup is turned on, it will also delete the address book in these automatic backups.'**
+  String get settingsDeleteAddressBookDialogText;
+
+  /// No description provided for @settingsDeleteAddressBookDialogDeleteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get settingsDeleteAddressBookDialogDeleteButton;
+
+  /// No description provided for @settingsAddressBookDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Address book deleted'**
+  String get settingsAddressBookDeleted;
 
   /// No description provided for @txDetailsTitle.
   ///
@@ -2160,7 +2184,7 @@ abstract class AppLocalizations {
   /// No description provided for @verifySeedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Verify seed phrase'**
+  /// **'Verify recovery phrase'**
   String get verifySeedTitle;
 
   /// No description provided for @homeIncomingTitle.
@@ -2226,7 +2250,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeChecklistVerifySeed.
   ///
   /// In en, this message translates to:
-  /// **'Verify your seed phrase'**
+  /// **'Verify your recovery phrase'**
   String get homeChecklistVerifySeed;
 
   /// No description provided for @homeChecklistAutoBackup.
@@ -2256,7 +2280,7 @@ abstract class AppLocalizations {
   /// No description provided for @verifySeedSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Input words {first}, {second} and {third} of your seed phrase below.'**
+  /// **'Input words {first}, {second} and {third} of your recovery phrase below.'**
   String verifySeedSubtitle(int first, int second, int third);
 
   /// No description provided for @verifySeedButton.
@@ -2274,7 +2298,7 @@ abstract class AppLocalizations {
   /// No description provided for @verifySeedWrongBody.
   ///
   /// In en, this message translates to:
-  /// **'Check the seed phrase you wrote down, then enter the three new words asked for. {count, plural, =1{1 try} other{{count} tries}} left before the app locks.'**
+  /// **'Check the recovery phrase you wrote down, then enter the three new words asked for. {count, plural, =1{1 try} other{{count} tries}} left before the app locks.'**
   String verifySeedWrongBody(int count);
 
   /// No description provided for @verifySeedTryAgain.
@@ -2286,13 +2310,13 @@ abstract class AppLocalizations {
   /// No description provided for @verifySeedUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'Your seed phrase can\'t be read right now. Try again after unlocking the wallet.'**
+  /// **'Your recovery phrase can\'t be read right now. Try again after unlocking the wallet.'**
   String get verifySeedUnavailable;
 
   /// No description provided for @verifySeedDone.
   ///
   /// In en, this message translates to:
-  /// **'Seed phrase verified'**
+  /// **'Recovery phrase verified'**
   String get verifySeedDone;
 
   /// No description provided for @homeIncomingTitleMore.

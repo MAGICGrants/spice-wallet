@@ -226,6 +226,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  void _showDeleteAddressBookDialog() {
+    final i18n = AppLocalizations.of(context)!;
+    showConfirmSheet(
+      context: context,
+      icon: Icons.delete_outline,
+      iconBg: BrandColors.errorBg,
+      iconColor: BrandColors.error,
+      title: i18n.settingsDeleteAddressBookButton,
+      body: i18n.settingsDeleteAddressBookDialogText,
+      confirmLabel: i18n.settingsDeleteAddressBookDialogDeleteButton,
+      cancelLabel: i18n.cancel,
+      onConfirm: _deleteAddressBook,
+    );
+  }
+
+  // Only the address book: deleting the wallet keeps it, and this keeps the
+  // wallet. A backup syncing to iCloud or Android backup records the deletions.
+  Future<void> _deleteAddressBook() async {
+    final i18n = AppLocalizations.of(context)!;
+    await Provider.of<ContactModel>(context, listen: false).deleteAll();
+    if (mounted) showBrandToast(context, i18n.settingsAddressBookDeleted);
+  }
+
   Future<void> _deleteWallet() async {
     final manager = Provider.of<WalletManager>(context, listen: false);
     // Tears down background sync *before* the files go, so the foreground
@@ -393,6 +416,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               linkLabel: i18n.settingsExportLogsButton,
               onTap: _exportLogs,
             ),
+          SettingsLinkTile(
+            title: i18n.settingsDeleteAddressBookButton,
+            titleColor: BrandColors.error,
+            onTap: _showDeleteAddressBookDialog,
+          ),
         ],
       ),
       SettingsGroup(

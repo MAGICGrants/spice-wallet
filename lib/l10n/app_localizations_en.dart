@@ -228,10 +228,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createWalletDescription =>
-      'A single seed phrase secures access to your wallet across all blockchain networks. Would you like to create a new wallet or restore an existing wallet?';
+      'A single recovery phrase secures access to your wallet across all blockchain networks. Would you like to create a new wallet or restore an existing wallet?';
 
   @override
-  String get createWalletRestoreExistingButton => 'Restore from a seed';
+  String get createWalletRestoreExistingButton => 'Restore from a recovery phrase';
 
   @override
   String get createWalletRestoreExistingDesc => 'Any BIP39 phrase';
@@ -240,7 +240,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createWalletCreateNewButton => 'Create a new wallet';
 
   @override
-  String get createWalletCreateNewDesc => 'Spice Wallet generates a 15-word BIP39 seed';
+  String get createWalletCreateNewDesc => 'Spice Wallet generates a 15-word BIP39 recovery phrase';
 
   @override
   String get createWalletPasswordTitle => 'Create Wallet Password';
@@ -265,7 +265,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get generateSeedTitle => 'Write these down, in order';
 
   @override
-  String get generateSeedTitleCovered => 'Seed Phrase';
+  String get generateSeedTitleCovered => 'Recovery Phrase';
 
   @override
   String get generateSeedSubtitleCovered =>
@@ -313,11 +313,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingPasswordNoteLaunch =>
-      'You need this password to open your wallet and to view your seed.';
+      'You need this password to open your wallet and to view your recovery phrase.';
 
   @override
   String get onboardingPasswordNoteNotCloud =>
-      'This password can\'t be recovered. If you lose it, restore your wallet from your seed phrase.';
+      'This password can\'t be recovered. If you lose it, restore your wallet from your recovery phrase.';
 
   @override
   String get onboardingPasswordStrong => 'Strong';
@@ -330,14 +330,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'I understand that no one, including the Spice Wallet team, can recover this password.';
 
   @override
-  String get onboardingWalletNoteGenerated => 'Spice Wallet generates your seed on this device.';
+  String get onboardingWalletNoteGenerated =>
+      'Spice Wallet generates your recovery phrase on this device.';
 
   @override
   String get onboardingWalletNoteRestore =>
       'When restoring, a scan-from date makes syncing faster.';
 
   @override
-  String get onboardingWalletCreateBullet1 => 'A 15-word BIP39 seed';
+  String get onboardingWalletCreateBullet1 => 'A 15-word BIP39 recovery phrase';
 
   @override
   String get onboardingWalletCreateBullet2 => 'Syncs from today';
@@ -365,7 +366,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get restoreWalletSubtitle => 'Any BIP39 phrase, from Spice Wallet or another wallet.';
 
   @override
-  String get restoreWalletSeedLength => 'Seed length';
+  String get restoreWalletSeedLength => 'Number of words';
 
   @override
   String get restoreWalletPaste => 'Paste';
@@ -414,7 +415,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restoreWalletChecksumError =>
-      'This isn\'t a valid seed phrase — check the words and their order.';
+      'This isn\'t a valid recovery phrase — check the words and their order.';
 
   @override
   String get restoreWalletRestoreButton => 'Restore';
@@ -810,7 +811,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguageSheetSubtitle => 'Pick your language and localization.';
 
   @override
-  String get settingsSeedPhraseLabel => 'Seed Phrase';
+  String get settingsSeedPhraseLabel => 'Recovery Phrase';
 
   @override
   String get revealSeedSubtitleRevealed =>
@@ -823,7 +824,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get revealSeedHideButton => 'Hide and go back';
 
   @override
-  String get revealSeedAuthReason => 'Confirm it\'s you to view your seed phrase';
+  String get revealSeedAuthReason => 'Confirm it\'s you to view your recovery phrase';
 
   @override
   String get done => 'Done';
@@ -836,10 +837,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsDeleteWalletDialogText =>
-      'Are you sure you want to delete your wallet? You will lose access to your funds unless you have backed up your seed phrase.';
+      'Are you sure you want to delete your wallet? You will lose access to your funds unless you have backed up your recovery phrase. This will not remove your address book and app settings.';
 
   @override
   String get settingsDeleteWalletDialogDeleteButton => 'Delete';
+
+  @override
+  String get settingsDeleteAddressBookButton => 'Delete Address Book';
+
+  @override
+  String get settingsDeleteAddressBookDialogText =>
+      'Are you sure you want to delete your address book? If automatic backup is turned on, it will also delete the address book in these automatic backups.';
+
+  @override
+  String get settingsDeleteAddressBookDialogDeleteButton => 'Delete';
+
+  @override
+  String get settingsAddressBookDeleted => 'Address book deleted';
 
   @override
   String get txDetailsTitle => 'Transaction Details';
@@ -1141,7 +1155,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get explorerRemovedMessage => 'Explorer removed.';
 
   @override
-  String get verifySeedTitle => 'Verify seed phrase';
+  String get verifySeedTitle => 'Verify recovery phrase';
 
   @override
   String get homeIncomingTitle => 'Incoming';
@@ -1186,7 +1200,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get homeChecklistVerifySeed => 'Verify your seed phrase';
+  String get homeChecklistVerifySeed => 'Verify your recovery phrase';
 
   @override
   String get homeChecklistAutoBackup => 'Turn on automatic backups';
@@ -1202,7 +1216,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String verifySeedSubtitle(int first, int second, int third) {
-    return 'Input words $first, $second and $third of your seed phrase below.';
+    return 'Input words $first, $second and $third of your recovery phrase below.';
   }
 
   @override
@@ -1219,7 +1233,7 @@ class AppLocalizationsEn extends AppLocalizations {
       other: '$count tries',
       one: '1 try',
     );
-    return 'Check the seed phrase you wrote down, then enter the three new words asked for. $_temp0 left before the app locks.';
+    return 'Check the recovery phrase you wrote down, then enter the three new words asked for. $_temp0 left before the app locks.';
   }
 
   @override
@@ -1227,10 +1241,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verifySeedUnavailable =>
-      'Your seed phrase can\'t be read right now. Try again after unlocking the wallet.';
+      'Your recovery phrase can\'t be read right now. Try again after unlocking the wallet.';
 
   @override
-  String get verifySeedDone => 'Seed phrase verified';
+  String get verifySeedDone => 'Recovery phrase verified';
 
   @override
   String homeIncomingTitleMore(int count) {
