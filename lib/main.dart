@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show HardwareKeyboard, KeyEvent;
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -39,7 +38,6 @@ import 'package:spice_wallet/theme/brand.dart';
 import 'package:spice_wallet/theme/palette.dart';
 import 'package:wallet_ui/wallet_ui.dart'
     show
-        AppLockCover,
         OnboardingRadioCard,
         PaymentLinkChannel,
         PaymentLinkGate,
@@ -61,7 +59,7 @@ import 'package:spice_wallet/wallet_core_glue.dart';
 import 'package:wallet_backup_platform/backup_ui.dart';
 import 'package:wallet_domain/wallet_domain.dart' show AppSession, WalletManager, parsePaymentUri;
 import 'package:wallet_fhse/security_keys_ui.dart';
-import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, HostPlatform;
+import 'package:wallet_infra/wallet_infra.dart' show HostPlatform;
 
 void main() async {
   runZonedGuarded(
@@ -148,25 +146,11 @@ class _RootApp extends StatefulWidget {
   State<_RootApp> createState() => _RootAppState();
 }
 
-class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
+class _RootAppState extends State<_RootApp>
+    with WidgetsBindingObserver, AppLockLifecycle<_RootApp> {
   bool _startedServices = false;
   bool _walletExists = false;
-  // App Lock (always on): its "Lock after" time in the background, on mobile.
-  final _appLock = AppLockTimer();
-  // Set when the app reaches `paused`, so the way back is noticed at its first
-  // step (`hidden`), before a link that resumed it could land.
-  bool _wasPaused = false;
-  // "Fully lock after", with security keys on.
-  final _fullLock = SecurityKeyFullLock();
-  // "Lock after" a time without use, on a desktop OS: the full close.
-  final _desktopLock = DesktopAutoLock();
-  // App Lock's shorter time without use, on a desktop OS: covers the app.
-  final _desktopAppLock = DesktopAutoLock.appLock();
   final _CurrentRouteObserver _routeObserver = _CurrentRouteObserver();
-  // App Lock over the screens the user left (a relock): drawn above the
-  // navigator ([AppLockCover]), so a screen finishing something under it
-  // cannot pop it the way it could pop a route.
-  final _cover = ValueNotifier<bool>(false);
   // Desktop-only foreground announce: desktop has no background isolate, so the
   // foreground announces incoming txs when the wallets' history grows.
   WalletManager? _announceManager;
@@ -231,21 +215,10 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     );
     unawaited(PaymentLinkChannel.listen(_paymentLinks.offer));
     WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrap());
-    if (isDesktopOS) {
-      HardwareKeyboard.instance.addHandler(_onKey);
-      _desktopLock.start(_lockDesktop);
-      _desktopAppLock.start(_coverDesktop);
-    }
   }
 
   @override
   void dispose() {
-    _cover.dispose();
-    _appLock.dispose();
-    _fullLock.dispose();
-    _desktopLock.dispose();
-    _desktopAppLock.dispose();
-    if (isDesktopOS) HardwareKeyboard.instance.removeHandler(_onKey);
     WidgetsBinding.instance.removeObserver(this);
     WidgetsBinding.instance.removeObserver(_routeLinkBlocker);
     _paymentLinks.dispose();
@@ -285,89 +258,23 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     );
   }
 
-  /// The system back button, while App Lock covers the app: swallowed. It
-  /// would otherwise pop a screen out of sight under the cover. Asked before
-  /// the MaterialApp's own handler, which registers after this one.
+  // App Lock and the full locks (AppLockLifecycle) run on this navigator.
   @override
-  Future<bool> didPopRoute() async => _cover.value;
-
-  /// App Lock over the screens the user left.
-  void _showCover() => _cover.value = true;
-
-  void _hideCover() => _cover.value = false;
-
-  /// From the cover: the wallet closed meanwhile and a key comes next.
-  void _coverNeedsKey() => _replaceStack('/security_key_unlock');
-
-  /// A lock screen replaces the stack. A cover that is up stays until that
-  /// screen is fully in, so nothing it covered shows on the way.
-  void _replaceStack(String lockRoute) {
-    _navigatorKey.currentState?.pushNamedAndRemoveUntil(lockRoute, (route) => false);
-    if (!_cover.value) return;
-    final top = _routeObserver.top;
-    final animation = top is ModalRoute ? top.animation : null;
-    if (animation == null || animation.isCompleted) return _hideCover();
-    void settled(AnimationStatus status) {
-      if (status.isAnimating) return;
-      animation.removeStatusListener(settled);
-      _hideCover();
-    }
-
-    animation.addStatusListener(settled);
-  }
+  NavigatorState? get appLockNavigator => _navigatorKey.currentState;
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (isDesktopOS) {
-      _onDesktopLifecycle(state);
-      return;
-    }
-    if (!isMobile) return;
-    if (state == AppLifecycleState.paused) {
-      _wasPaused = true;
-      // App Lock has to cover backgrounding, not just a cold start: once its
-      // time is up the password goes and the way back shows the lock. Not
-      // while it is showing: the device's own prompt can background the app.
-      if (_routeObserver.currentName != '/unlock' && !_cover.value) {
-        unawaited(_appLock.onBackground(context));
-      }
-      unawaited(_fullLock.onBackground(context));
-      // Mark everything on screen as seen so a background isolate won't
-      // re-announce a tx the user just watched arrive. Records only; fires no
-      // notification (announce: false).
-      if (_walletExists) {
-        unawaited(context.read<WalletManager>().notifyNewIncomingTxsAll(announce: false));
-      }
-    } else if (_wasPaused) {
-      // The first step back (`hidden`, then `inactive`, then `resumed`):
-      // before a payment link that brought the app back gets a frame to land.
-      _wasPaused = false;
-      _onReturn();
-    }
-  }
+  String? get appLockTopRouteName => _routeObserver.currentName;
 
-  void _onReturn() {
-    // Both decided at once, before anything is awaited; App Lock's locks the
-    // session ([AppSession]) as it decides.
-    final appLockDue = _appLock.takeDueOnReturn();
-    // Past "Fully lock after" (or locked by its timer while away): the lock
-    // screens replace the stack *before* the wallets close, which takes a
-    // while, so the screen being left is never usable with the password still
-    // in memory. App Lock comes first when its time is up too.
-    if (_fullLock.takeDueOnResume()) {
-      // App Lock first when it was showing too (its cover, or its screen):
-      // the way in still starts with the device's own check.
-      final appLockShowing = _cover.value || _routeObserver.currentName == '/unlock';
-      _replaceStack(appLockDue || appLockShowing ? '/unlock' : '/security_key_unlock');
-      unawaited(_fullLock.lock(context));
-      return;
-    }
+  @override
+  Route<dynamic>? get appLockTopRoute => _routeObserver.top;
 
-    if (appLockDue) {
-      // Over the current stack rather than replacing it, so unlocking returns
-      // straight to the screen the user left; not again over a lock screen.
-      if (_routeObserver.currentName != '/unlock') _showCover();
-      unawaited(_appLock.lock(context));
+  /// Mark everything on screen as seen so a background isolate won't
+  /// re-announce a tx the user just watched arrive. Records only; fires no
+  /// notification (announce: false).
+  @override
+  void onMobilePaused() {
+    if (_walletExists) {
+      unawaited(context.read<WalletManager>().notifyNewIncomingTxsAll(announce: false));
     }
   }
 
@@ -383,70 +290,6 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     if (count <= _lastAnnouncedTxCount) return;
     _lastAnnouncedTxCount = count;
     unawaited(manager.notifyNewIncomingTxsAll());
-  }
-
-  /// A desktop OS. App Lock covers the app after its time without use, or as
-  /// the window is hidden for "Immediately" (macOS reports `hidden` when no
-  /// window is visible: hidden, minimised, covered, or the screen locked).
-  /// Both "without use" clocks are checked as the app comes back, since their
-  /// timers can stall while the computer sleeps.
-  void _onDesktopLifecycle(AppLifecycleState state) {
-    if (state == AppLifecycleState.hidden) {
-      unawaited(_coverDesktopIfImmediate());
-    } else if (state == AppLifecycleState.resumed) {
-      unawaited(_onDesktopResumed());
-    }
-  }
-
-  Future<void> _coverDesktopIfImmediate() async {
-    if (await AppLockPreferences.minutes() == 0) await _coverDesktop();
-  }
-
-  Future<void> _onDesktopResumed() async {
-    // The full close first: it may replace the stack with the unlock screen,
-    // and then there is nothing left to cover.
-    await _desktopLock.check();
-    await _desktopAppLock.check();
-  }
-
-  /// App Lock on a desktop OS: the unlock screen goes over whatever is open,
-  /// and the wallets stay open and syncing behind it. Linux and Windows ask
-  /// for the password again; macOS asks for Touch ID or the Mac's password,
-  /// and drops the keychain password meanwhile ([lockAppLock]).
-  Future<void> _coverDesktop() async {
-    // Already at a lock screen, or onboarding with no wallet yet.
-    if (!mounted || !AppSession.isUnlocked) return;
-    // A Mac with no way to confirm its owner has nothing to ask.
-    if (usesDeviceLock && !await BiometricAuth.isAvailable()) return;
-    if (!mounted || !AppSession.isUnlocked) return;
-    AppSession.lock();
-    if (_routeObserver.currentName != '/unlock') _showCover();
-    await lockAppLock(context);
-  }
-
-  /// "Lock after" ran out on a desktop OS. The unlock screen replaces the stack
-  /// first, then the wallets close and the password is forgotten.
-  Future<void> _lockDesktop() async {
-    if (!mounted || !await desktopAutoLockApplies(context)) return;
-    if (!mounted) return;
-    // App Lock first (the typed password on Linux and Windows); a key follows
-    // when keys are on.
-    _replaceStack('/unlock');
-    await _desktopLock.lock(context);
-  }
-
-  // Use, for both "without use" clocks: any key or pointer input reaching the
-  // app.
-  bool _onKey(KeyEvent event) {
-    _recordUse();
-    return false;
-  }
-
-  void _onPointer(PointerEvent event) => _recordUse();
-
-  void _recordUse() {
-    _desktopLock.recordUse();
-    _desktopAppLock.recordUse();
   }
 
   Future<void> _bootstrap() async {
@@ -585,25 +428,17 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
           });
         }
         _lastBrightness = brightness;
-        // Brand-tone skeletons (the default grey clashes with the scheme); the
-        // token resolves to the current theme.
-        final app = AppLockCover(
-          shown: _cover,
-          cover: (_) => UnlockScreen(onUnlocked: _hideCover, onKeyNeeded: _coverNeedsKey),
+        // App Lock's cover above the navigator; on a desktop OS, input
+        // anywhere counts as use for "Lock after".
+        return buildAppLock(
+          cover: (_) =>
+              UnlockScreen(onUnlocked: hideAppLockCover, onKeyNeeded: appLockCoverNeedsKey),
+          // Brand-tone skeletons (the default grey clashes with the scheme); the
+          // token resolves to the current theme.
           child: SkeletonizerConfig(
             data: SkeletonizerConfigData(effect: SoldColorEffect(color: BrandColors.surfaceMuted)),
             child: child ?? const SizedBox.shrink(),
           ),
-        );
-        if (!isDesktopOS) return app;
-        // Pointer input anywhere counts as use for "Lock after".
-        return Listener(
-          behavior: HitTestBehavior.translucent,
-          onPointerDown: _onPointer,
-          onPointerHover: _onPointer,
-          onPointerMove: _onPointer,
-          onPointerSignal: _onPointer,
-          child: app,
         );
       },
       initialRoute: '/loading',
