@@ -13,6 +13,8 @@ analyzer:
   exclude:
     # Vendored cargokit build tooling (its own package); not our code.
     - plugins/**/cargokit/**
+    # The monero_c submodule, which the app consumes through pub; not linted here.
+    - monero_c/**
 
 linter:
   # The lint rules applied to this project can be customized in the

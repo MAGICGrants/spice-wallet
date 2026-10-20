@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/widgets/fiat_api_settings_sheet.dart';
+import 'package:spice_wallet/widgets/open_alias_sheet.dart';
 import 'package:spice_wallet/widgets/tor_settings_sheet.dart';
 import 'package:spice_wallet/models/language_model.dart';
 import 'package:spice_wallet/models/theme_model.dart';
@@ -22,6 +23,10 @@ import 'package:spice_wallet/widgets/theme_language_sheets.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/screens/reveal_seed.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
+import 'package:wallet_backup_platform/backup_ui.dart' show BackupLocalizations;
+import 'package:wallet_fhse/security_keys_ui.dart'
+    show AppLockTile, DesktopAutoLockTile, FhseLocalizations, SecurityKeysState, securityKeysState;
+import 'package:wallet_fhse/wallet_fhse.dart' show SecurityKeyService;
 import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
 
 /// Desktop: settings as a wide centered modal (opened from the sidebar); mobile
@@ -50,10 +55,11 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   var _newTxNotificationsEnabled = false;
-  var _appLockEnabled = false;
-  var _verboseLoggingEnabled = false;
+  var _loggingEnabled = false;
   var _testnetCoinsEnabled = false;
+  SecurityKeysState? _securityKeys;
   FiatApiMode _fiatMode = FiatApiMode.torOnly;
+  OpenAliasMode _openAliasMode = OpenAliasMode.torOnly;
   // Toggles animate only after the stored values have loaded, so they don't
   // slide from off→on when the screen first appears.
   var _animateToggles = false;
@@ -81,31 +87,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
         await SharedPreferencesService.get<bool>(SharedPreferencesKeys.notificationsEnabled) ??
         false;
 
-    final appLockEnabled =
-        await SharedPreferencesService.get<bool>(SharedPreferencesKeys.appLockEnabled) ?? false;
-
-    final verboseLoggingEnabled =
-        await SharedPreferencesService.get<bool>(SharedPreferencesKeys.verboseLoggingEnabled) ??
-        false;
+    final loggingEnabled =
+        await SharedPreferencesService.get<bool>(SharedPreferencesKeys.loggingEnabled) ?? false;
 
     final testnetCoinsEnabled =
         await SharedPreferencesService.get<bool>(SharedPreferencesKeys.testnetCoinsEnabled) ??
         false;
 
     final fiatMode = await FiatRateModel.loadFiatApiMode();
+    final openAliasMode = await OpenAliasMode.load();
+    await _loadSecurityKeys();
 
     if (!mounted) return;
     setState(() {
       _newTxNotificationsEnabled = newTxNotificationsEnabled;
-      _appLockEnabled = appLockEnabled;
-      _verboseLoggingEnabled = verboseLoggingEnabled;
+      _loggingEnabled = loggingEnabled;
       _testnetCoinsEnabled = testnetCoinsEnabled;
       _fiatMode = fiatMode;
+      _openAliasMode = openAliasMode;
     });
     // Enable animation a frame after the loaded values are painted.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() => _animateToggles = true);
     });
+  }
+
+  Future<void> _loadSecurityKeys() async {
+    if (!SecurityKeyService.isSupportedPlatform) return;
+    try {
+      final state = await securityKeysState();
+      if (mounted) setState(() => _securityKeys = state);
+    } catch (_) {
+      // Advanced Security says what went wrong; the rest of Settings loads.
+    }
+  }
+
+  Future<void> _openAdvancedSecurity() async {
+    await Navigator.pushNamed(context, '/advanced_security');
+    await _loadSecurityKeys();
+  }
+
+  String _securityKeysValue(FhseLocalizations i18n) {
+    final state = _securityKeys;
+    if (state == null || !state.engaged) return i18n.advancedSecurityOff;
+    if (state.unreadable) return i18n.advancedSecurityNeedsAttention;
+    return i18n.advancedSecurityKeyCount(state.keys.length);
   }
 
   void _setTestnetCoinsEnabled(bool value) async {
@@ -123,6 +149,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _setTxNotificationsEnabled(bool value) async {
+    // The notification check is view-only: its material follows this toggle
+    // (WalletManager.applySyncSettings).
+    final manager = Provider.of<WalletManager>(context, listen: false);
     if (value) {
       final isAllowed = await NotificationService().promptPermission();
       if (!mounted) return;
@@ -134,39 +163,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } else {
       await SharedPreferencesService.set<bool>(SharedPreferencesKeys.notificationsEnabled, false);
     }
+    // Needs no screen: done even if Settings closed meanwhile.
+    await manager.applySyncSettings();
     if (!mounted) return;
     setState(() => _newTxNotificationsEnabled = value);
     await applyBackgroundTaskRegistration();
   }
 
-  void _setAppLockEnabled(bool value) async {
-    final i18n = AppLocalizations.of(context)!;
-
-    if (value) {
-      final result = await BiometricAuth.authenticate(reason: i18n.settingsAppLockUnlockReason);
-      // Enabling app-lock is an explicit opt-in, so decline and error both report.
-      if (result != BiometricAuthResult.authenticated) {
-        if (mounted) {
-          showBrandToast(context, i18n.settingsAppLockUnableToAuthError);
-        }
-        return;
-      }
-    }
-
-    if (!mounted) return;
+  void _setLoggingEnabled(bool value) async {
     setState(() {
-      _appLockEnabled = value;
+      _loggingEnabled = value;
     });
 
-    await SharedPreferencesService.set<bool>(SharedPreferencesKeys.appLockEnabled, value);
-  }
-
-  void _setVerboseLoggingEnabled(bool value) async {
-    setState(() {
-      _verboseLoggingEnabled = value;
-    });
-
-    await SharedPreferencesService.set<bool>(SharedPreferencesKeys.verboseLoggingEnabled, value);
+    await SharedPreferencesService.set<bool>(SharedPreferencesKeys.loggingEnabled, value);
   }
 
   void _exportLogs() async {
@@ -236,6 +245,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void _showOpenAliasSettings() async {
+    final changed = await showOpenAliasSheet(context);
+    if (changed == true) {
+      final mode = await OpenAliasMode.load();
+      if (mounted) setState(() => _openAliasMode = mode);
+    }
+  }
+
+  String _openAliasModeLabel(AppLocalizations i18n) => switch (_openAliasMode) {
+    OpenAliasMode.torOnly => i18n.fiatApiSettingsModeTorOnly,
+    OpenAliasMode.clearnet => i18n.fiatApiSettingsModeClearnet,
+    OpenAliasMode.disabled => i18n.fiatApiSettingsModeDisabled,
+  };
+
   String _fiatModeLabel(AppLocalizations i18n) => switch (_fiatMode) {
     FiatApiMode.torOnly => i18n.fiatApiSettingsModeTorOnly,
     FiatApiMode.clearnet => i18n.fiatApiSettingsModeClearnet,
@@ -259,10 +282,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Opens the seed screen. The device auth is enforced by the route's
-  /// ReauthGate, so every path to it (Settings, a deep link) prompts; the desktop
-  /// sheet stays behind the launch unlock.
+  /// ReauthGate, so every path to it (Settings, a deep link) prompts. The desktop
+  /// sheet is not a route: where App Lock is the device's prompt (macOS, the iOS
+  /// build on a Mac) it prompts here; on Linux and Windows it stays behind the
+  /// unlock.
   void _revealSeed() async {
     if (isDesktop) {
+      if (usesDeviceLock) {
+        final i18n = AppLocalizations.of(context)!;
+        final result = await BiometricAuth.confirmOwner(reason: i18n.revealSeedAuthReason);
+        if (result != BiometricAuthResult.authenticated) {
+          if (mounted) showBrandToast(context, i18n.settingsAppLockUnableToAuthError);
+          return;
+        }
+        if (!mounted) return;
+      }
       await showRevealSeedSheet(context);
     } else {
       Navigator.pushNamed(context, '/reveal_seed');
@@ -302,12 +336,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: _languageNames[language.language] ?? language.language.toUpperCase(),
             onTap: () => showLanguageSheet(context),
           ),
-          if (isMobile)
-            SettingsToggleTile(
-              title: i18n.settingsAppLockLabel,
-              value: _appLockEnabled,
-              onChanged: _setAppLockEnabled,
-              animate: _animateToggles,
+          SettingsLinkTile(
+            title: i18n.settingsFiatApiSettingsLabel,
+            subtitle: fiatSubtitle,
+            linkLabel: i18n.settingsLwsViewKeysButton,
+            onTap: _showFiatApiSettings,
+          ),
+        ],
+      ),
+      SettingsGroup(
+        label: i18n.settingsSectionSecurityPrivacy,
+        tiles: [
+          // Always on: how long the app may be away before it asks again.
+          const AppLockTile(),
+          if (isDesktopOS) const DesktopAutoLockTile(),
+          if (SecurityKeyService.isSupportedPlatform)
+            SettingsNavTile(
+              title: FhseLocalizations.of(context).advancedSecurityLabel,
+              value: _securityKeysValue(FhseLocalizations.of(context)),
+              onTap: _openAdvancedSecurity,
             ),
           SettingsLinkTile(
             title: i18n.settingsTorSettingsLabel,
@@ -316,11 +363,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: _showTorSettings,
           ),
           SettingsLinkTile(
-            title: i18n.settingsFiatApiSettingsLabel,
-            subtitle: fiatSubtitle,
+            title: i18n.settingsOpenAliasSettingsLabel,
+            subtitle: _openAliasModeLabel(i18n),
             linkLabel: i18n.settingsLwsViewKeysButton,
-            onTap: _showFiatApiSettings,
+            onTap: _showOpenAliasSettings,
           ),
+        ],
+      ),
+      SettingsGroup(
+        label: i18n.settingsSectionData,
+        tiles: [
+          SettingsNavTile(
+            title: BackupLocalizations.of(context).backupTitle,
+            onTap: () => Navigator.pushNamed(context, '/metadata_backup'),
+          ),
+          SettingsToggleTile(
+            title: i18n.settingsLoggingLabel,
+            description: Platform.isIOS
+                ? i18n.settingsLoggingDescriptionIos
+                : i18n.settingsLoggingDescription,
+            value: _loggingEnabled,
+            onChanged: _setLoggingEnabled,
+            animate: _animateToggles,
+          ),
+          // Only meaningful with logs to export.
+          if (Platform.isIOS && _loggingEnabled)
+            SettingsLinkTile(
+              title: i18n.settingsExportLogsLabel,
+              linkLabel: i18n.settingsExportLogsButton,
+              onTap: _exportLogs,
+            ),
         ],
       ),
       SettingsGroup(
@@ -343,35 +415,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: _setTestnetCoinsEnabled,
             animate: _animateToggles,
           ),
-          SettingsToggleTile(
-            title: i18n.settingsVerboseLoggingLabel,
-            description: Platform.isIOS
-                ? i18n.settingsVerboseLoggingDescriptionIos
-                : i18n.settingsVerboseLoggingDescription,
-            value: _verboseLoggingEnabled,
-            onChanged: _setVerboseLoggingEnabled,
-            animate: _animateToggles,
-          ),
-          // Only meaningful with logs to export.
-          if (Platform.isIOS && _verboseLoggingEnabled)
-            SettingsLinkTile(
-              title: i18n.settingsExportLogsLabel,
-              linkLabel: i18n.settingsExportLogsButton,
-              onTap: _exportLogs,
-            ),
-        ],
-      ),
-      SettingsGroup(
-        label: i18n.settingsSectionAbout,
-        tiles: [
-          SettingsNavTile(
-            title: i18n.welcomeTermsLink,
-            onTap: () => Navigator.pushNamed(context, '/terms_of_service', arguments: true),
-          ),
-          SettingsNavTile(
-            title: i18n.welcomePrivacyLink,
-            onTap: () => Navigator.pushNamed(context, '/privacy_policy', arguments: true),
-          ),
         ],
       ),
       SettingsGroup(
@@ -386,6 +429,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: i18n.settingsDeleteWalletButton,
             titleColor: BrandColors.error,
             onTap: _showDeleteWalletDialog,
+          ),
+        ],
+      ),
+      SettingsGroup(
+        label: i18n.settingsSectionAbout,
+        tiles: [
+          SettingsNavTile(
+            title: i18n.welcomeTermsLink,
+            onTap: () => Navigator.pushNamed(context, '/terms_of_service', arguments: true),
+          ),
+          SettingsNavTile(
+            title: i18n.welcomePrivacyLink,
+            onTap: () => Navigator.pushNamed(context, '/privacy_policy', arguments: true),
+          ),
+          SettingsNavTile(
+            title: i18n.settingsLicensesLabel,
+            onTap: () => showLicensePage(
+              context: context,
+              applicationName: 'Spice Wallet',
+              applicationVersion: _appVersion,
+            ),
           ),
         ],
       ),

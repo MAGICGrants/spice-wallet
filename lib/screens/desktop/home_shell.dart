@@ -13,7 +13,7 @@ import 'package:wallet_domain/wallet_domain.dart';
 
 /// The top-level desktop destinations. [coin] is a specific blockchain screen
 /// under the expandable Home group (its symbol in [DesktopShell.activeCoinSymbol]).
-enum DesktopNav { home, coin, swap, history, addressBook, settings }
+enum DesktopNav { home, coin, history, addressBook, settings }
 
 /// Shared style for a desktop screen's large title (Settings, History, …).
 TextStyle get desktopTitleStyle => TextStyle(
@@ -227,13 +227,7 @@ class _DesktopShellState extends State<DesktopShell> {
             ),
             const SizedBox(height: 28),
             _homeGroup(i18n, chains),
-            const SizedBox(height: 2),
-            _navTile(
-              icon: Icons.swap_horiz,
-              label: i18n.coinHomeSwap,
-              active: false,
-              onTap: () => showBrandToast(context, i18n.coinHomeSwapComingSoon),
-            ),
+            // No Swap entry until swaps exist; the home's Swap button says so.
             const SizedBox(height: 2),
             _navItem(DesktopNav.history, Icons.history, i18n.navigationBarHistory, '/history'),
             const SizedBox(height: 2),

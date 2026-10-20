@@ -73,6 +73,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomePrivacyLink => 'Privacy Policy';
 
   @override
+  String get settingsLicensesLabel => 'Open-Source Licenses';
+
+  @override
   String get torChoiceTitle => 'Tor Connection Setup';
 
   @override
@@ -194,6 +197,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fiatModeDisabledDesc => 'No prices fetched, balances shown in crypto only';
 
   @override
+  String get settingsOpenAliasSettingsLabel => 'OpenAlias Settings';
+
+  @override
+  String get openAliasSettingsSheetSubtitle =>
+      'How names like name@example.com are looked up when you send.';
+
+  @override
+  String get openAliasModeTorOnlyDesc => 'Names looked up over Tor · recommended';
+
+  @override
+  String get openAliasModeClearnetDesc =>
+      'Not private, DNS servers see your IP address and the name';
+
+  @override
+  String get openAliasModeDisabledDesc => 'No lookups, send to addresses only';
+
+  @override
   String get fiatApiSettingsDisplayCurrencyLabel => 'Display Currency';
 
   @override
@@ -260,7 +280,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get generateSeedPasswordNote =>
-      'Spice Wallet asks for your password before ever showing them again.';
+      'Spice Wallet asks for your password before showing these words again.';
 
   @override
   String get generateSeedReveal => 'Tap to reveal';
@@ -280,50 +300,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingPriceNoteRatesOnly =>
-      'The price service is asked for rates only — never for addresses or amounts.';
+      'Only prices are requested. Your addresses and balances are not sent.';
 
   @override
-  String get onboardingPriceNoteTor => 'Routed over Tor by default, separately from chain traffic.';
+  String get onboardingPriceNoteTor => 'Prices are fetched over Tor by default.';
 
   @override
-  String get onboardingTorNotePrivacy =>
-      'Tor hides your address from the node you query — slower, and worth it.';
+  String get onboardingTorNotePrivacy => 'Connections over Tor can be slower.';
 
   @override
-  String get onboardingTorNoteChangeable =>
-      'Changeable later under Settings → Connections, per chain.';
+  String get onboardingTorNoteChangeable => 'You can change this later in Settings.';
 
   @override
   String get onboardingPasswordNoteLaunch =>
-      'Asked for at every launch, and before the seed is ever shown.';
+      'You need this password to open your wallet and to view your seed.';
 
   @override
   String get onboardingPasswordNoteNotCloud =>
-      'Not a cloud account. Losing it means restoring from your seed phrase.';
+      'This password can\'t be recovered. If you lose it, restore your wallet from your seed phrase.';
 
   @override
   String get onboardingPasswordStrong => 'Strong';
 
   @override
-  String get onboardingPasswordMatch => 'Both entries match';
+  String get onboardingPasswordMatch => 'Passwords match';
 
   @override
   String get onboardingPasswordAcknowledge =>
-      'I understand that no one — including the Spice Wallet team — can recover this password for me.';
+      'I understand that no one, including the Spice Wallet team, can recover this password.';
 
   @override
-  String get onboardingWalletNoteGenerated =>
-      'A new wallet’s seed is generated here, offline, and shown to you once.';
+  String get onboardingWalletNoteGenerated => 'Spice Wallet generates your seed on this device.';
 
   @override
   String get onboardingWalletNoteRestore =>
-      'Restoring asks roughly when the seed first held funds, to skip years of scanning.';
+      'When restoring, a scan-from date makes syncing faster.';
 
   @override
-  String get onboardingWalletCreateBullet1 => 'Fifteen words, shown once';
+  String get onboardingWalletCreateBullet1 => 'A 15-word BIP39 seed';
 
   @override
-  String get onboardingWalletCreateBullet2 => 'Starts empty, syncs from today';
+  String get onboardingWalletCreateBullet2 => 'Syncs from today';
 
   @override
   String get onboardingWalletCreateBullet3 => 'Takes about two minutes';
@@ -335,7 +352,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingWalletRestoreBullet2 => 'Optional scan-from date';
 
   @override
-  String get onboardingWalletRestoreBullet3 => 'Same password step afterwards';
+  String get onboardingWalletRestoreBullet3 => 'Recovers your balance and history';
 
   @override
   String get lwsDetailsDescription =>
@@ -413,6 +430,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get historyTitle => 'History';
+
+  @override
+  String get historyExportCsv => 'Export CSV';
+
+  @override
+  String get historyExported => 'History exported';
+
+  @override
+  String get historyExportFailed => 'Could not export the history';
 
   @override
   String get historyFilterBlockchain => 'Blockchain';
@@ -502,8 +528,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTorExternalDisconnected => 'External Tor · disconnected';
 
   @override
-  String homeBlocksRemaining(String count) {
-    return '$count blocks left';
+  String homeBlocksRemaining(int count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString blocks left',
+      one: '1 block left',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -631,6 +666,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendOpenAliasResolveError => 'Invalid OpenAlias.';
 
   @override
+  String get sendOpenAliasDisabledError => 'OpenAlias is turned off. Turn it on in Settings.';
+
+  @override
   String get sendContactsButton => 'Contacts';
 
   @override
@@ -650,7 +688,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSectionGeneral => 'General';
 
   @override
-  String get settingsSectionBehaviour => 'Behaviour';
+  String get settingsSectionSecurityPrivacy => 'Security and privacy';
+
+  @override
+  String get settingsSectionData => 'Data';
+
+  @override
+  String get settingsSectionBehaviour => 'Behavior';
 
   @override
   String get settingsSectionAbout => 'About';
@@ -689,17 +733,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsBackgroundSyncDescription =>
-      'Periodically sync your wallets in the background so they\'re up to date when you open the app.';
+      'Periodically sync your wallets in the background so they\'re up to date when you open the app. Uses view-only keys: it sees incoming payments but can never spend.';
 
   @override
   String get settingsForegroundSyncLabel => 'Continuous Sync';
 
   @override
   String get settingsForegroundSyncDescription =>
-      'Keep your wallets syncing continuously while the app runs in the background, with a persistent notification. Uses more battery.';
-
-  @override
-  String get settingsAppLockLabel => 'App Lock';
+      'Keep your wallets syncing continuously while the app runs in the background, with a persistent notification. Uses view-only keys: it sees incoming payments once confirmed but can never spend. Uses more battery.';
 
   @override
   String get settingsAppLockUnlockReason => 'Unlock wallet';
@@ -709,7 +750,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Unable to authenticate. Make sure you have device unlock set up.';
 
   @override
-  String get settingsVerboseLoggingLabel => 'Diagnostic Logs';
+  String get settingsLoggingLabel => 'Diagnostic Logs';
 
   @override
   String get settingsTestnetCoinsLabel => 'Testnet Coins';
@@ -719,11 +760,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Show testnet coins (e.g. Bitcoin Testnet) in your coin list.';
 
   @override
-  String get settingsVerboseLoggingDescription =>
+  String get settingsLoggingDescription =>
       'Log wallet operations to a text file in the app\'s data folder for debugging purposes.';
 
   @override
-  String get settingsVerboseLoggingDescriptionIos =>
+  String get settingsLoggingDescriptionIos =>
       'Log wallet operations and allow the logs to be exported to a text file.';
 
   @override
@@ -983,7 +1024,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sendIrreversibleNote =>
-      'Transactions are irreversible. The next step shows these details once more before anything is broadcast.';
+      'Transactions are irreversible. You can check these details again in the next step.';
 
   @override
   String get sendScanButton => 'Scan';
@@ -1098,4 +1139,107 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get explorerRemovedMessage => 'Explorer removed.';
+
+  @override
+  String get verifySeedTitle => 'Verify seed phrase';
+
+  @override
+  String get homeIncomingTitle => 'Incoming';
+
+  @override
+  String homeIncomingUnlocksIn(int minutes, int done, int needed) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutes',
+      one: '1 minute',
+    );
+    return 'Unlocks in about $_temp0 · $done of $needed';
+  }
+
+  @override
+  String homeIncomingConfirmations(int done, int needed) {
+    return '$done of $needed confirmations';
+  }
+
+  @override
+  String get homeChartTitle => 'Balance · 90 days';
+
+  @override
+  String get homeChartToday => 'Today';
+
+  @override
+  String get homeChartEachCoin => 'Each coin\'s balance';
+
+  @override
+  String get homeChartNew => 'New';
+
+  @override
+  String get homeChartEmpty => 'Your balance over time shows here after your first transaction.';
+
+  @override
+  String get homeChecklistTitle => 'Secure your wallet';
+
+  @override
+  String homeChecklistProgress(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get homeChecklistVerifySeed => 'Verify your seed phrase';
+
+  @override
+  String get homeChecklistAutoBackup => 'Turn on automatic backups';
+
+  @override
+  String get homeChecklistTor => 'Connect through Tor';
+
+  @override
+  String get homeChecklistPrivateLookups => 'Use Tor for price and OpenAlias lookups';
+
+  @override
+  String get homeChecklistSecurityKeys => 'Set up a security key';
+
+  @override
+  String verifySeedSubtitle(int first, int second, int third) {
+    return 'Input words $first, $second and $third of your seed phrase below.';
+  }
+
+  @override
+  String get verifySeedButton => 'Verify';
+
+  @override
+  String get verifySeedWrongTitle => 'Those words don\'t match';
+
+  @override
+  String verifySeedWrongBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tries',
+      one: '1 try',
+    );
+    return 'Check the seed phrase you wrote down, then enter the three new words asked for. $_temp0 left before the app locks.';
+  }
+
+  @override
+  String get verifySeedTryAgain => 'Try again';
+
+  @override
+  String get verifySeedUnavailable =>
+      'Your seed phrase can\'t be read right now. Try again after unlocking the wallet.';
+
+  @override
+  String get verifySeedDone => 'Seed phrase verified';
+
+  @override
+  String homeIncomingTitleMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Others',
+      one: '1 Other',
+    );
+    return 'Incoming (+$_temp0)';
+  }
 }

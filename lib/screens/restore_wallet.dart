@@ -17,6 +17,7 @@ import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
+import 'package:wallet_backup_platform/backup_ui.dart' show scheduleImportWalletData;
 
 class RestoreWalletScreen extends StatefulWidget {
   const RestoreWalletScreen({super.key});
@@ -81,13 +82,15 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
     if (_isLoading) return;
     if (!bip39.validateMnemonic(mnemonic)) return;
 
-    // Desktop (password-last flow): carry the seed to the password step, which
-    // encrypts and creates the wallet.
-    if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+    // Linux and Windows (password-last flow): carry the seed to the password
+    // step, which encrypts and creates the wallet. Elsewhere, macOS included,
+    // the password is generated.
+    if (typesWalletPassword) {
       Navigator.pushNamed(
         context,
         '/create_wallet_password',
         arguments: CreateWalletPasswordArgs(
+          restored: true,
           seed: Bip39Seed(mnemonic),
           from: RestorePoint.date(_restoreDate ?? DateTime(2014, 4, 18)),
         ),
@@ -115,6 +118,8 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
 
     manager.syncInBackground();
     if (mounted) {
+      // Asks whether to import wallet data (payment details, address book).
+      scheduleImportWalletData(context);
       Provider.of<FiatRateModel>(context, listen: false).startService(walletManager: manager);
       Navigator.pushNamedAndRemoveUntil(context, '/wallet_home', (route) => false);
     }

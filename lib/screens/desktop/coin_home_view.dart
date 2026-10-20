@@ -12,6 +12,7 @@ import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
+import 'package:spice_wallet/widgets/home_labels.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
@@ -49,6 +50,16 @@ class DesktopCoinHomeView extends StatelessWidget {
     final hasTokens = assets.length > 1;
     final configured = wallet.connectionAddress.isNotEmpty;
     final totalFiat = aggregateUnlockedFiat(manager, wallet, fiatRate.rateFor);
+    // This chain's own payments on their way in and balance chart: the chain
+    // coin (paying its tokens' gas) and each token as a line of its own.
+    final tokens = assets.where((a) => a != wallet).toList();
+    final coins = <HomeCoin>[
+      (wallet: wallet, tokens: tokens),
+      for (final t in tokens) (wallet: t, tokens: const <CryptoWallet>[]),
+    ];
+    final sections = HomeSections(activity: HomeActivity.shared, labels: homeLabels(i18n));
+    final incoming = sections.incoming(coins);
+    final chart = sections.chart(coins);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(44, 30, 44, 36),
@@ -59,6 +70,18 @@ class DesktopCoinHomeView extends StatelessWidget {
             DesktopBackLink(label: i18n.navigationBarHome, onTap: () => Navigator.pop(context)),
             const SizedBox(height: 18),
             _headerCard(context, i18n, wallet, fiatRate, totalFiat, configured, chainSymbol),
+            const SizedBox(height: 24),
+            if (incoming == null)
+              chart
+            else
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 100, child: incoming),
+                  const SizedBox(width: 20),
+                  Expanded(flex: 125, child: chart),
+                ],
+              ),
             const SizedBox(height: 28),
             if (hasTokens) ...[
               SectionHeader(label: i18n.coinHomeAssetsTitle, padding: EdgeInsets.zero),
@@ -258,9 +281,7 @@ class DesktopCoinHomeView extends StatelessWidget {
         final blocks = wallet.syncBlocksRemaining;
         return (
           BrandColors.warning,
-          blocks != null
-              ? i18n.homeBlocksRemaining(NumberFormat.decimalPattern().format(blocks))
-              : i18n.homeSyncing,
+          blocks != null ? i18n.homeBlocksRemaining(blocks) : i18n.homeSyncing,
         );
       case ConnectionIndicatorState.error:
         return (BrandColors.error, i18n.homeNoConnection);

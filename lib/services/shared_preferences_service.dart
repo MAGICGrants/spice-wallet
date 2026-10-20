@@ -14,8 +14,7 @@ class SharedPreferencesKeys {
   static const String fiatAutoDisabledByTor = SettingsKeys.fiatAutoDisabledByTor;
   static const String theme = SettingsKeys.theme;
   static const String notificationsEnabled = SettingsKeys.notificationsEnabled;
-  static const String appLockEnabled = SettingsKeys.appLockEnabled;
-  static const String verboseLoggingEnabled = SettingsKeys.verboseLoggingEnabled;
+  static const String loggingEnabled = SettingsKeys.loggingEnabled;
   static const String contacts = SettingsKeys.contacts;
   static const String torMode = SettingsKeys.torMode;
   static const String torSocksPort = SettingsKeys.torSocksPort;

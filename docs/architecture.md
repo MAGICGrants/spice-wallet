@@ -83,6 +83,19 @@ The only genuinely **spice-specific** part is that spice is multicoin:
   filters a heterogeneous set per window; the Background Sync toggle applies to
   XMR-node alone (BTC/ETH always qualify), and the connection form's sync toggles
   are shown for XMR-node only.
+- **Every background run is view-only, security keys or not**: XMR-node opens
+  its view-only background copy, XMR-LWS asks its server with the view key, BTC
+  checks with the account xpub and ETH with the address. No run loads the wallet
+  password or the seed (wallet-core's `WalletManager.isUnattendedRun`), and a
+  coin whose view-only material is not set up yet is skipped. The sync and
+  notification toggles set that material up as they change
+  (`WalletManager.applySyncSettings`).
+- **The app and the Continuous Sync service take turns** holding the wallets
+  (wallet_background's `SyncHandoff`, `ForegroundSyncLink`, installed in
+  `main.dart`): the service watches only while the app has nothing open, and
+  lets go before the app opens its wallets. A periodic run does the same
+  (`WalletHolders`): it skips while the app holds the wallets, and closes when
+  the app claims them.
 
 ## Testing
 

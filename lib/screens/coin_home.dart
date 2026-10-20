@@ -311,7 +311,7 @@ class _BalanceHero extends StatelessWidget {
                   const SizedBox(width: 10),
                   Flexible(
                     child: Text(
-                      i18n.homeBlocksRemaining(NumberFormat.decimalPattern().format(blocks)),
+                      i18n.homeBlocksRemaining(blocks),
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontFamily: 'Ubuntu Mono',

@@ -136,12 +136,14 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     final fg = _showSyncOptions && _foregroundSyncEnabled;
     // Capture before the await so context isn't used across an async gap. Seed
     // the notification "synced" only when every active wallet is caught up.
-    final active = fg
-        ? Provider.of<WalletManager>(context, listen: false).activeWallets
-        : const <CryptoWallet>[];
+    final manager = Provider.of<WalletManager>(context, listen: false);
+    final active = fg ? manager.activeWallets : const <CryptoWallet>[];
     final synced = active.isNotEmpty && active.every(isWalletFullySynced);
     await SharedPreferencesService.set<bool>(SharedPreferencesKeys.backgroundSyncEnabled, bg);
     await SharedPreferencesService.set<bool>(SharedPreferencesKeys.foregroundSyncEnabled, fg);
+    // Both syncs are view-only: the copy and the material they open exist
+    // before they start (WalletManager.applySyncSettings).
+    await manager.applySyncSettings();
     if (fg) {
       await startForegroundSync(synced: synced);
     } else {

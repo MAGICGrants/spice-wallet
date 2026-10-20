@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -40,10 +38,10 @@ class _FiatApiSetupScreenState extends State<FiatApiSetupScreen> {
     await FiatRateModel.clearPersistedRates();
 
     if (!mounted) return;
-    // Mobile auto-generates the wallet password (the user unlocks via the
-    // device). Desktop sets one at the end of onboarding (after the seed), so
-    // both go to the create/restore choice next.
-    if (Platform.isAndroid || Platform.isIOS) {
+    // Android, iOS and macOS generate the wallet password (the user unlocks via
+    // the device). Linux and Windows set one at the end of onboarding (after
+    // the seed), so both go to the create/restore choice next.
+    if (usesDeviceLock) {
       context.read<WalletManager>().useGeneratedPassword();
     }
     Navigator.pushNamed(context, '/create_wallet');
