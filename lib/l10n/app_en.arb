@@ -296,7 +296,6 @@
   "settingsForegroundSyncLabel": "Continuous Sync",
   "settingsForegroundSyncDescription": "Keep your wallets syncing continuously while the app runs in the background, with a persistent notification. Uses view-only keys: it sees incoming payments once confirmed but can never spend. Uses more battery.",
   "settingsAppLockUnlockReason": "Unlock wallet",
-  "settingsAppLockUnableToAuthError": "Unable to authenticate. Make sure you have device unlock set up.",
   "settingsLoggingLabel": "Diagnostic Logs",
   "settingsTestnetCoinsLabel": "Testnet Coins",
   "settingsTestnetCoinsDescription": "Show testnet coins (e.g. Bitcoin Testnet) in your coin list.",

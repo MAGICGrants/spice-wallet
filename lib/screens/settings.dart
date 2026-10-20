@@ -27,7 +27,6 @@ import 'package:wallet_backup_platform/backup_ui.dart' show BackupLocalizations;
 import 'package:wallet_fhse/security_keys_ui.dart'
     show AppLockTile, DesktopAutoLockTile, FhseLocalizations, SecurityKeysState, securityKeysState;
 import 'package:wallet_fhse/wallet_fhse.dart' show SecurityKeyService;
-import 'package:wallet_infra/wallet_infra.dart' show BiometricAuth, BiometricAuthResult;
 
 /// Desktop: settings as a wide centered modal (opened from the sidebar); mobile
 /// keeps the full-screen tab.
@@ -304,22 +303,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  /// Opens the seed screen. The device auth is enforced by the route's
-  /// ReauthGate, so every path to it (Settings, a deep link) prompts. The desktop
-  /// sheet is not a route: where App Lock is the device's prompt (macOS, the iOS
-  /// build on a Mac) it prompts here; on Linux and Windows it stays behind the
-  /// unlock.
+  /// Opens the recovery phrase, which needs a passing App Lock every time: the
+  /// `/reveal_seed` route is an AppLockGate, so every path to it (Settings, a
+  /// deep link) asks, and the desktop sheet ([showRevealSeedSheet]) asks itself.
   void _revealSeed() async {
     if (isDesktop) {
-      if (usesDeviceLock) {
-        final i18n = AppLocalizations.of(context)!;
-        final result = await BiometricAuth.confirmOwner(reason: i18n.revealSeedAuthReason);
-        if (result != BiometricAuthResult.authenticated) {
-          if (mounted) showBrandToast(context, i18n.settingsAppLockUnableToAuthError);
-          return;
-        }
-        if (!mounted) return;
-      }
       await showRevealSeedSheet(context);
     } else {
       Navigator.pushNamed(context, '/reveal_seed');

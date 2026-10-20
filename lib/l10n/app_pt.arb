@@ -282,7 +282,6 @@
   "settingsForegroundSyncLabel": "Sincronização Contínua",
   "settingsForegroundSyncDescription": "Mantém suas carteiras sincronizando continuamente enquanto o app roda em segundo plano, com uma notificação persistente. Usa só chaves de visualização: vê os pagamentos recebidos depois de confirmados, mas nunca pode gastar. Usa mais bateria.",
   "settingsAppLockUnlockReason": "Desbloquear carteira",
-  "settingsAppLockUnableToAuthError": "Não foi possível autenticar. Verifique se o desbloqueio de tela está configurado.",
   "settingsLoggingLabel": "Logs de Diagnóstico",
   "settingsTestnetCoinsLabel": "Moedas Testnet",
   "settingsTestnetCoinsDescription": "Mostrar moedas testnet (ex.: Bitcoin Testnet) na lista de moedas.",

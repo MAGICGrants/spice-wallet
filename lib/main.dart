@@ -43,7 +43,6 @@ import 'package:wallet_ui/wallet_ui.dart'
         OnboardingRadioCard,
         PaymentLinkChannel,
         PaymentLinkGate,
-        ReauthGate,
         RefusedRoute,
         RouteLinkBlocker,
         showBrandToastOnOverlay;
@@ -519,7 +518,7 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     '/create_wallet_password': (context) => CreateWalletPasswordScreen(),
     '/create_wallet': (context) => CreateWalletScreen(),
     '/generate_seed': (context) => GenerateSeedScreen(),
-    '/lws_keys': (context) => ReauthGate(
+    '/lws_keys': (context) => AppLockGate(
       reason: AppLocalizations.of(context)!.settingsAppLockUnlockReason,
       child: LwsKeysScreen(),
     ),
@@ -535,7 +534,7 @@ class _RootAppState extends State<_RootApp> with WidgetsBindingObserver {
     '/coin_settings': (context) => const CoinSettingsScreen(),
     '/settings': (context) => SettingsScreen(),
     '/history': (context) => const HistoryScreen(),
-    '/reveal_seed': (context) => ReauthGate(
+    '/reveal_seed': (context) => AppLockGate(
       reason: AppLocalizations.of(context)!.revealSeedAuthReason,
       child: const RevealSeedScreen(),
     ),
