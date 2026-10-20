@@ -148,7 +148,9 @@ class _SendScreenState extends State<SendScreen> {
         error = i18n.sendOpenAliasDisabledError;
         cache = false;
       } catch (e) {
-        log(LogLevel.warn, 'openalias resolve failed: $e', coin: wallet.coinSymbol);
+        // The wallet already logged why, with the alias fingerprinted; the
+        // message itself can name the recipient's domain.
+        log(LogLevel.warn, 'openalias resolve failed: ${e.runtimeType}', coin: wallet.coinSymbol);
         resolved = '';
         error = i18n.sendOpenAliasResolveError;
       } finally {
