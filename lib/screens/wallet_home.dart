@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/periodic_tasks.dart' show applyBackgroundTaskRegistration;
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
@@ -50,6 +51,9 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> with WidgetsBinding
     _checklist.refresh();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _bootstrapIfNeeded();
+      // Here a wallet exists and its connections are applied: the first time
+      // after onboarding, and after every unlock. Updates the tasks in place.
+      unawaited(applyBackgroundTaskRegistration());
       // Opening the app after a send is when a store review is asked for;
       // StoreReview decides whether one is due, once per launch.
       unawaited(StoreReview.requestIfDue(stillAppropriate: _stillOnHome));

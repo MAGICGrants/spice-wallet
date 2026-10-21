@@ -14,7 +14,7 @@ An open-source and self-custody wallet for Monero, Bitcoin, Ethereum, and Dai, b
 - **One seed, every asset.** Monero, Bitcoin, Ethereum, and Dai sit side by side, all secured by a single 15-word BIP39 seed phrase. Serai will be added as soon as it goes live.
 - **Built-in Tor.** Tor comes bundled. Connect only the services you need over Tor, disable it entirely, or point Spice Wallet at Orbot or a Tor daemon you run yourself.
 - **No more waiting to sync.** The servers you choose can do the scanning, so your history is ready when you open the app. Or scan locally on your device if you prefer.
-- **Background sync that can't spend.** Background sync (on Android and iPhone) and Continuous sync (on Android) keep your wallets current while you're away using view-only keys: they see incoming payments, but never hold a key that could spend.
+- **Background sync that can't spend.** Periodic sync (on Android and iPhone) and Continuous sync (on Android), set under Sync Frequency, keep your wallets current while you're away using view-only keys: they see incoming payments, but never hold a key that could spend.
 - **Your servers, your choice.** Spice Wallet ships with no default servers. Each asset connects through a server you specify: a light-wallet server (LWS) or Monero node for Monero, an Electrum server for Bitcoin, and an RPC endpoint for Ethereum and Dai.
 - **Reproducible builds**, so you can verify that the app you run matches the code in this repository.
 

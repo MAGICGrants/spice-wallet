@@ -19,9 +19,7 @@ class SharedPreferencesKeys {
   static const String torMode = SettingsKeys.torMode;
   static const String torSocksPort = SettingsKeys.torSocksPort;
   static const String torUseOrbot = SettingsKeys.torUseOrbot;
-  static const String backgroundSyncEnabled = SettingsKeys.backgroundSyncEnabled;
   static const String backgroundSyncIntervalMinutes = SettingsKeys.backgroundSyncIntervalMinutes;
-  static const String foregroundSyncEnabled = SettingsKeys.foregroundSyncEnabled;
 
   // Spice-specific (multicoin):
   static const String pendingOutgoingTxs = 'pendingOutgoingTxs';

@@ -14,11 +14,11 @@ import 'package:spice_wallet/widgets/tor_settings_sheet.dart';
 import 'package:spice_wallet/models/language_model.dart';
 import 'package:spice_wallet/models/theme_model.dart';
 import 'package:wallet_domain/wallet_domain.dart';
-import 'package:spice_wallet/periodic_tasks.dart';
 import 'package:spice_wallet/services/foreground_sync_service.dart';
 import 'package:spice_wallet/services/notifications_service.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
+import 'package:spice_wallet/widgets/sync_frequency_sheet.dart';
 import 'package:spice_wallet/widgets/theme_language_sheets.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/screens/reveal_seed.dart';
@@ -27,6 +27,7 @@ import 'package:wallet_backup_platform/backup_ui.dart' show BackupLocalizations;
 import 'package:wallet_fhse/security_keys_ui.dart'
     show AppLockTile, DesktopAutoLockTile, FhseLocalizations, SecurityKeysState, securityKeysState;
 import 'package:wallet_fhse/wallet_fhse.dart' show SecurityKeyService;
+import 'package:wallet_infra/wallet_infra.dart' show SyncFrequency, loadSyncFrequency;
 
 /// Desktop: settings as a wide centered modal (opened from the sidebar); mobile
 /// keeps the full-screen tab.
@@ -54,6 +55,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   var _newTxNotificationsEnabled = false;
+  var _syncFrequency = SyncFrequency.periodic;
   var _loggingEnabled = false;
   var _testnetCoinsEnabled = false;
   SecurityKeysState? _securityKeys;
@@ -95,6 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final fiatMode = await FiatRateModel.loadFiatApiMode();
     final openAliasMode = await OpenAliasMode.load();
+    final syncFrequency = await loadSyncFrequency();
     await _loadSecurityKeys();
 
     if (!mounted) return;
@@ -104,6 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _testnetCoinsEnabled = testnetCoinsEnabled;
       _fiatMode = fiatMode;
       _openAliasMode = openAliasMode;
+      _syncFrequency = syncFrequency;
     });
     // Enable animation a frame after the loaded values are painted.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -147,10 +151,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  /// Only whether a background run that finds a payment says so. Whether runs
+  /// happen at all is Sync Frequency's.
   void _setTxNotificationsEnabled(bool value) async {
-    // The notification check is view-only: its material follows this toggle
-    // (WalletManager.applySyncSettings).
-    final manager = Provider.of<WalletManager>(context, listen: false);
     if (value) {
       final isAllowed = await NotificationService().promptPermission();
       if (!mounted) return;
@@ -162,11 +165,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } else {
       await SharedPreferencesService.set<bool>(SharedPreferencesKeys.notificationsEnabled, false);
     }
-    // Needs no screen: done even if Settings closed meanwhile.
-    await manager.applySyncSettings();
     if (!mounted) return;
     setState(() => _newTxNotificationsEnabled = value);
-    await applyBackgroundTaskRegistration();
+  }
+
+  void _showSyncFrequency() async {
+    final frequency = await showSyncFrequencySettings(context);
+    if (frequency != null && mounted) setState(() => _syncFrequency = frequency);
   }
 
   void _setLoggingEnabled(bool value) async {
@@ -415,11 +420,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         label: i18n.settingsSectionBehaviour,
         tiles: [
           if (isMobile)
+            SettingsNavTile(
+              title: i18n.settingsSyncFrequencyLabel,
+              value: syncFrequencyLabels(i18n).nameOf(_syncFrequency),
+              onTap: _showSyncFrequency,
+            ),
+          if (isMobile)
             SettingsToggleTile(
               title: i18n.settingsNotifyNewTxsLabel,
-              description: Platform.isIOS
-                  ? i18n.settingsNotifyNewTxsDescriptionIos
-                  : i18n.settingsNotifyNewTxsDescription,
+              description: i18n.settingsNotifyNewTxsDescription,
               value: _newTxNotificationsEnabled,
               onChanged: _setTxNotificationsEnabled,
               animate: _animateToggles,

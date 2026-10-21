@@ -616,7 +616,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get receiveServerNoSubaddressesWarn =>
-      'Warning: This server does not support subaddresses. For better privacy, consider using a server that supports them. You are receiving to your primary address.';
+      'Warning: This server does not support subaddresses. For better privacy, consider using a server that supports them.';
+
+  @override
+  String get receiveSubaddressUnavailableWarn =>
+      'Warning: You need to configure Monero to enable subaddresses, which better protect your privacy.';
 
   @override
   String get receiveMaxSubaddressesReachedWarn =>
@@ -724,25 +728,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsNotifyNewTxsDescription =>
-      'Show a notification when you receive a transaction. When connected to a Monero node, Background Sync must also be enabled.';
+      'Show a notification when you receive a transaction. Increase the sync frequency setting to see them sooner.';
 
   @override
-  String get settingsNotifyNewTxsDescriptionIos =>
-      'Show a notification when you receive a transaction.';
+  String get settingsSyncFrequencyLabel => 'Sync Frequency';
 
   @override
-  String get settingsBackgroundSyncLabel => 'Background Sync';
+  String get syncFrequencySheetSubtitle => 'How often your wallets sync while the app is closed.';
 
   @override
-  String get settingsBackgroundSyncDescription =>
-      'Periodically sync your wallets in the background so they\'re up to date when you open the app. Uses view-only keys: it sees incoming payments but can never spend.';
+  String get syncFrequencyModeLabel => 'Frequency';
 
   @override
-  String get settingsForegroundSyncLabel => 'Continuous Sync';
+  String get syncFrequencyContinuous => 'Continuous';
 
   @override
-  String get settingsForegroundSyncDescription =>
-      'Keep your wallets syncing continuously while the app runs in the background, with a persistent notification. Uses view-only keys: it sees incoming payments once confirmed but can never spend. Uses more battery.';
+  String get syncFrequencyContinuousDesc =>
+      'Continuously sync your wallets in the background so they\'re always up to date when you open the app. Uses more battery and requires a persistent notification.';
+
+  @override
+  String get syncFrequencyPeriodic => 'Periodic';
+
+  @override
+  String get syncFrequencyPeriodicDesc =>
+      'Periodically sync your wallets in the background so they\'re usually up to date when you open the app. A Monero node only syncs while charging and on WiFi.';
+
+  @override
+  String get syncFrequencyPeriodicDescIos =>
+      'Periodically sync your wallets in the background so they\'re usually up to date when you open the app. A Monero node only syncs while charging.';
+
+  @override
+  String get syncFrequencyOff => 'Off';
+
+  @override
+  String get syncFrequencyOffDesc => 'Only syncs while the app is open.';
 
   @override
   String get settingsAppLockUnlockReason => 'Unlock wallet';
@@ -1114,6 +1133,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'An onion address can only be reached through Tor. Turn Tor on to use it.';
 
   @override
+  String get connectionPathNotSupported =>
+      'This server is reached at its root, so its address can\'t include a path like /wallet. Remove the path.';
+
+  @override
+  String get lwsAwaitingApprovalAccount =>
+      'Your light wallet server hasn\'t approved this wallet yet. Ask the server\'s operator to approve it so you can see your balance and transactions.';
+
+  @override
+  String get lwsAwaitingApprovalRestoreHeight =>
+      'Your light wallet server hasn\'t approved scanning from your restore height yet, so older transactions may be missing. Ask the server\'s operator to approve it.';
+
+  @override
   String get connectionTorDisabledWarning =>
       'Tor is disabled, so this connection no longer works. Please reconfigure it.';
 
@@ -1131,9 +1162,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lwsSetupTorDisabledError => 'Tor is disabled. Please go back and enable it.';
-
-  @override
-  String get lwsSetupInvalidQrCode => 'Invalid connection address.';
 
   @override
   String get save => 'Save';

@@ -1200,8 +1200,14 @@ abstract class AppLocalizations {
   /// No description provided for @receiveServerNoSubaddressesWarn.
   ///
   /// In en, this message translates to:
-  /// **'Warning: This server does not support subaddresses. For better privacy, consider using a server that supports them. You are receiving to your primary address.'**
+  /// **'Warning: This server does not support subaddresses. For better privacy, consider using a server that supports them.'**
   String get receiveServerNoSubaddressesWarn;
+
+  /// No description provided for @receiveSubaddressUnavailableWarn.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning: You need to configure Monero to enable subaddresses, which better protect your privacy.'**
+  String get receiveSubaddressUnavailableWarn;
 
   /// No description provided for @receiveMaxSubaddressesReachedWarn.
   ///
@@ -1398,38 +1404,68 @@ abstract class AppLocalizations {
   /// No description provided for @settingsNotifyNewTxsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Show a notification when you receive a transaction. When connected to a Monero node, Background Sync must also be enabled.'**
+  /// **'Show a notification when you receive a transaction. Increase the sync frequency setting to see them sooner.'**
   String get settingsNotifyNewTxsDescription;
 
-  /// No description provided for @settingsNotifyNewTxsDescriptionIos.
+  /// No description provided for @settingsSyncFrequencyLabel.
   ///
   /// In en, this message translates to:
-  /// **'Show a notification when you receive a transaction.'**
-  String get settingsNotifyNewTxsDescriptionIos;
+  /// **'Sync Frequency'**
+  String get settingsSyncFrequencyLabel;
 
-  /// No description provided for @settingsBackgroundSyncLabel.
+  /// No description provided for @syncFrequencySheetSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Background Sync'**
-  String get settingsBackgroundSyncLabel;
+  /// **'How often your wallets sync while the app is closed.'**
+  String get syncFrequencySheetSubtitle;
 
-  /// No description provided for @settingsBackgroundSyncDescription.
+  /// No description provided for @syncFrequencyModeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Periodically sync your wallets in the background so they\'re up to date when you open the app. Uses view-only keys: it sees incoming payments but can never spend.'**
-  String get settingsBackgroundSyncDescription;
+  /// **'Frequency'**
+  String get syncFrequencyModeLabel;
 
-  /// No description provided for @settingsForegroundSyncLabel.
+  /// No description provided for @syncFrequencyContinuous.
   ///
   /// In en, this message translates to:
-  /// **'Continuous Sync'**
-  String get settingsForegroundSyncLabel;
+  /// **'Continuous'**
+  String get syncFrequencyContinuous;
 
-  /// No description provided for @settingsForegroundSyncDescription.
+  /// No description provided for @syncFrequencyContinuousDesc.
   ///
   /// In en, this message translates to:
-  /// **'Keep your wallets syncing continuously while the app runs in the background, with a persistent notification. Uses view-only keys: it sees incoming payments once confirmed but can never spend. Uses more battery.'**
-  String get settingsForegroundSyncDescription;
+  /// **'Continuously sync your wallets in the background so they\'re always up to date when you open the app. Uses more battery and requires a persistent notification.'**
+  String get syncFrequencyContinuousDesc;
+
+  /// No description provided for @syncFrequencyPeriodic.
+  ///
+  /// In en, this message translates to:
+  /// **'Periodic'**
+  String get syncFrequencyPeriodic;
+
+  /// No description provided for @syncFrequencyPeriodicDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Periodically sync your wallets in the background so they\'re usually up to date when you open the app. A Monero node only syncs while charging and on WiFi.'**
+  String get syncFrequencyPeriodicDesc;
+
+  /// No description provided for @syncFrequencyPeriodicDescIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Periodically sync your wallets in the background so they\'re usually up to date when you open the app. A Monero node only syncs while charging.'**
+  String get syncFrequencyPeriodicDescIos;
+
+  /// No description provided for @syncFrequencyOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get syncFrequencyOff;
+
+  /// No description provided for @syncFrequencyOffDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Only syncs while the app is open.'**
+  String get syncFrequencyOffDesc;
 
   /// No description provided for @settingsAppLockUnlockReason.
   ///
@@ -2103,6 +2139,24 @@ abstract class AppLocalizations {
   /// **'An onion address can only be reached through Tor. Turn Tor on to use it.'**
   String get connectionOnionNeedsTor;
 
+  /// No description provided for @connectionPathNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This server is reached at its root, so its address can\'t include a path like /wallet. Remove the path.'**
+  String get connectionPathNotSupported;
+
+  /// No description provided for @lwsAwaitingApprovalAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Your light wallet server hasn\'t approved this wallet yet. Ask the server\'s operator to approve it so you can see your balance and transactions.'**
+  String get lwsAwaitingApprovalAccount;
+
+  /// No description provided for @lwsAwaitingApprovalRestoreHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Your light wallet server hasn\'t approved scanning from your restore height yet, so older transactions may be missing. Ask the server\'s operator to approve it.'**
+  String get lwsAwaitingApprovalRestoreHeight;
+
   /// No description provided for @connectionTorDisabledWarning.
   ///
   /// In en, this message translates to:
@@ -2138,12 +2192,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tor is disabled. Please go back and enable it.'**
   String get lwsSetupTorDisabledError;
-
-  /// No description provided for @lwsSetupInvalidQrCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid connection address.'**
-  String get lwsSetupInvalidQrCode;
 
   /// No description provided for @save.
   ///

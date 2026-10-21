@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import 'package:spice_wallet/widgets/lws_approval_notice.dart';
 import 'package:spice_wallet/screens/desktop/home_shell.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
@@ -50,6 +51,7 @@ class DesktopCoinHomeView extends StatelessWidget {
     final hasTokens = assets.length > 1;
     final configured = wallet.connectionAddress.isNotEmpty;
     final totalFiat = aggregateUnlockedFiat(manager, wallet, fiatRate.rateFor);
+    final notice = lwsApprovalNotice(i18n, wallet);
     // This chain's own payments on their way in and balance chart: the chain
     // coin (paying its tokens' gas) and each token as a line of its own.
     final tokens = assets.where((a) => a != wallet).toList();
@@ -69,6 +71,7 @@ class DesktopCoinHomeView extends StatelessWidget {
           children: [
             DesktopBackLink(label: i18n.navigationBarHome, onTap: () => Navigator.pop(context)),
             const SizedBox(height: 18),
+            if (notice != null) ...[notice, const SizedBox(height: 18)],
             _headerCard(context, i18n, wallet, fiatRate, totalFiat, configured, chainSymbol),
             const SizedBox(height: 24),
             if (incoming == null)

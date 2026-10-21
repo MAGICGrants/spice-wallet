@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
+import 'package:spice_wallet/widgets/lws_approval_notice.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
@@ -119,6 +120,7 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
     final assets = chainAssets(walletManager, wallet);
     final hasTokens = assets.length > 1;
     final totalFiat = aggregateUnlockedFiat(walletManager, wallet, fiatRate.rateFor);
+    final notice = lwsApprovalNotice(i18n, wallet);
 
     return Scaffold(
       backgroundColor: BrandColors.paper,
@@ -137,6 +139,11 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (notice != null)
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                                child: notice,
+                              ),
                             _BalanceHero(
                               wallet: wallet,
                               totalFiat: totalFiat,

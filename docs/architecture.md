@@ -84,20 +84,23 @@ and the native `AppDelegate.swift`/`Info.plist`.
 
 The only genuinely **spice-specific** part is that spice is multicoin:
 
-- **Node-mode XMR is the only heavy background scan.** BTC (Electrum), ETH (RPC)
-  and XMR-LWS are light server polls, so a background wake for them is just a
-  notification check.
+- **Node-mode XMR is the only full scan.** BTC (Electrum), ETH (RPC) and
+  XMR-LWS are checks of a server that already scanned. One app-wide **Sync
+  Frequency** setting (Settings > Behavior: Continuous, Periodic, Off) covers
+  every coin; under Periodic, checks run on any network and the XMR-node scan
+  only while charging (and on WiFi, on Android). wallet_background's README
+  has the table for every platform and coin combination.
 - `runTxNotifier` therefore opens **only the coins a window can sync** and
-  filters a heterogeneous set per window; the Background Sync toggle applies to
-  XMR-node alone (BTC/ETH always qualify), and the connection form's sync toggles
-  are shown for XMR-node only.
+  filters a heterogeneous set per window, and a background task is registered
+  only while some configured coin gives it work.
 - **Every background run is view-only, security keys or not**: XMR-node opens
   its view-only background copy, XMR-LWS asks its server with the view key, BTC
   checks with the account xpub and ETH with the address. No run loads the wallet
   password or the seed (wallet-core's `WalletManager.isUnattendedRun`), and a
-  coin whose view-only material is not set up yet is skipped. The sync and
-  notification toggles set that material up as they change
-  (`WalletManager.applySyncSettings`).
+  coin whose view-only material is not set up yet is skipped. Changing Sync
+  Frequency sets that material up (`applySyncFrequency`,
+  `WalletManager.applySyncSettings`). Transaction Notifications only decides
+  whether a run that finds a payment says so.
 - **The app and the Continuous Sync service take turns** holding the wallets
   (wallet_background's `SyncHandoff`, `ForegroundSyncLink`, installed in
   `main.dart`): the service watches only while the app has nothing open, and

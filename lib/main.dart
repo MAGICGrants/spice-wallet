@@ -93,6 +93,9 @@ void main() async {
         NotificationService().init();
       }
 
+      // Before anything reads Sync Frequency: the tasks, the service, a wallet open.
+      await migrateSyncSettings();
+
       if (Platform.isAndroid) {
         registerPeriodicTasks();
         startForegroundSyncIfEnabled();
@@ -101,8 +104,8 @@ void main() async {
 
       if (Platform.isIOS) {
         await cleanTorDirectoriesOnIOS();
-        // Background sync on iOS is BGTaskScheduler-driven and gated by the
-        // notifications toggle; see periodic_tasks._applyIosBackgroundTasks.
+        // BGTaskScheduler windows under Sync Frequency; see wallet_background's
+        // README.
         registerPeriodicTasks();
         NotificationService().init();
       }
