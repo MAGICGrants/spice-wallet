@@ -220,16 +220,23 @@ class _SendScreenState extends State<SendScreen> {
       coinDecimals: wallet?.baseUnitDecimals ?? 0,
     );
     _amount.addListener(_onAmountChanged);
-    _loadFormFromArgs(args);
+    _loadFormFromArgs(args, wallet);
   }
 
-  void _loadFormFromArgs(SendScreenArgs? args) {
+  void _loadFormFromArgs(SendScreenArgs? args, CryptoWallet? wallet) {
     if (args != null) {
       _destinationAddressController.text = args.destinationAddress;
       final amount = args.amount;
       if (amount != null && amount.isNotEmpty) _amount.setCoinText(amount);
       // Same pair the in-send picker sets, so the contact card renders here too.
-      _selectedContact = args.contact;
+      // Set after the text, so the listener cannot check it: check it here.
+      final contact = args.contact;
+      _selectedContact =
+          contact != null &&
+              wallet != null &&
+              contact.ownsAddress(chainSymbolOf(wallet), args.destinationAddress)
+          ? contact
+          : null;
       _allAssets = args.allAssets;
     }
   }
@@ -583,6 +590,8 @@ class _SendScreenState extends State<SendScreen> {
     }
 
     final destinationAddressUnresolved = _destinationAddressController.text;
+    // Read with the text: the form can change while the tx is being built.
+    final contact = _selectedContact;
     final amountUnits = _amount.baseUnits;
     String destinationAddress = '';
     String? destinationOpenAlias;
@@ -597,7 +606,10 @@ class _SendScreenState extends State<SendScreen> {
     try {
       PendingTransaction tx;
 
-      final currentFeeFetchKey = '${_destinationAddressController.text}-${_amount.coinText}';
+      // Keyed on the text resolved above, not the field's text now: the field
+      // can change during that lookup, and a tx cached for its new text would
+      // pay an address other than the one the confirm sheet shows.
+      final currentFeeFetchKey = '$destinationAddressUnresolved-${_amount.coinText}';
       final cachedTx = _feeTxs != null && _feeTxs!.length > _selectedPriority
           ? _feeTxs![_selectedPriority]
           : null;
@@ -628,7 +640,10 @@ class _SendScreenState extends State<SendScreen> {
             tx: tx,
             destinationAddress: destinationAddress,
             destinationOpenAlias: destinationOpenAlias,
-            destinationContactName: _selectedContact?.name,
+            // The sheet shows the name only if the tx pays this address (a
+            // token's contact address is its chain's).
+            destinationContactName: contact?.name,
+            destinationContactAddress: contact?.addressFor(chainSymbolOf(wallet)),
           ),
         );
         if (result == ConfirmSendResult.sent) {
@@ -709,6 +724,16 @@ class _SendScreenState extends State<SendScreen> {
     final text = _destinationAddressController.text;
     if (text == _lastAddressText) return;
     _lastAddressText = text;
+
+    // Anything but the contact's own address in the field (Paste on desktop,
+    // where the pill stays beside the contact card) ends the contact: the card
+    // turns back into the address field, and no name reaches the confirm sheet.
+    // _selectAsset switches the asset before it moves the contact to the new
+    // chain's address, so a moved contact matches here.
+    final contact = _selectedContact;
+    if (contact != null && !contact.ownsAddress(chainSymbolOf(_wallet(context)), text)) {
+      setState(() => _selectedContact = null);
+    }
 
     // Input changed: invalidate the resolution cache + clear any stale error.
     _resolveCacheInput = '';
