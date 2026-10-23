@@ -541,6 +541,7 @@ class _AddressRow extends StatelessWidget {
                 coinSymbol: coinSymbol,
                 destinationAddress: address,
                 contact: contact,
+                backLabel: i18n.addressBookTitle,
               ),
             ),
           ),

@@ -23,7 +23,12 @@ class ReceiveScreenArgs {
   /// dropdown so the user can pick which chain to receive on.
   final bool allAssets;
 
-  ReceiveScreenArgs({required this.coinSymbol, this.allAssets = false});
+  /// The desktop back link's label: where Back returns to. Null: the coin's
+  /// own page (its blockchain name), which is where Send and Receive open from
+  /// unless the caller says otherwise.
+  final String? backLabel;
+
+  ReceiveScreenArgs({required this.coinSymbol, this.allAssets = false, this.backLabel});
 }
 
 class ReceiveScreen extends StatefulWidget {
@@ -43,6 +48,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
 
   String _coinSymbol = 'XMR';
   bool _allAssets = false;
+  String? _backLabel;
   bool _argsLoaded = false;
 
   static bool get _isMobile => Platform.isAndroid || Platform.isIOS;
@@ -56,6 +62,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     if (args != null) {
       _coinSymbol = args.coinSymbol;
       _allAssets = args.allAssets;
+      _backLabel = args.backLabel;
     }
   }
 
@@ -196,6 +203,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
           coinSymbol: wallet.coinSymbol,
           iconAsset: wallet.iconAsset,
           coinName: wallet.blockchainName,
+          backLabel: _backLabel ?? wallet.blockchainName,
           blockchainSubtitle: i18n.receiveBlockchainSubtitle(wallet.blockchainName),
           ready: ready,
           address: address ?? '',

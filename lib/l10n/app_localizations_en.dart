@@ -339,24 +339,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'When restoring, a scan-from date makes syncing faster.';
 
   @override
-  String get onboardingWalletCreateBullet1 => 'A 15-word BIP39 recovery phrase';
-
-  @override
-  String get onboardingWalletCreateBullet2 => 'Syncs from today';
-
-  @override
-  String get onboardingWalletCreateBullet3 => 'Takes about two minutes';
-
-  @override
-  String get onboardingWalletRestoreBullet1 => 'Any BIP39 phrase';
-
-  @override
-  String get onboardingWalletRestoreBullet2 => 'Optional scan-from date';
-
-  @override
-  String get onboardingWalletRestoreBullet3 => 'Recovers your balance and history';
-
-  @override
   String get lwsDetailsDescription =>
       'If your Monero light wallet server (LWS) requires registration, you can use these details to add this wallet to that server. Not all servers require registration.';
 

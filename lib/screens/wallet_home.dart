@@ -163,12 +163,21 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> with WidgetsBinding
     void receive() => Navigator.pushNamed(
       context,
       '/receive',
-      arguments: ReceiveScreenArgs(coinSymbol: receiveSymbol, allAssets: true),
+      arguments: ReceiveScreenArgs(
+        coinSymbol: receiveSymbol,
+        allAssets: true,
+        backLabel: i18n.navigationBarHome,
+      ),
     );
     void send() => Navigator.pushNamed(
       context,
       '/send',
-      arguments: SendScreenArgs(coinSymbol: sendSymbol, destinationAddress: '', allAssets: true),
+      arguments: SendScreenArgs(
+        coinSymbol: sendSymbol,
+        destinationAddress: '',
+        allAssets: true,
+        backLabel: i18n.navigationBarHome,
+      ),
     );
     void swap() => showBrandToast(context, i18n.coinHomeSwapComingSoon);
     final incoming = sections.incoming(coins);

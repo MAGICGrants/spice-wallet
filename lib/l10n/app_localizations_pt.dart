@@ -341,24 +341,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Ao restaurar, uma data para escanear a partir dela torna a sincronização mais rápida.';
 
   @override
-  String get onboardingWalletCreateBullet1 => 'Uma frase de recuperação BIP39 de 15 palavras';
-
-  @override
-  String get onboardingWalletCreateBullet2 => 'Sincroniza a partir de hoje';
-
-  @override
-  String get onboardingWalletCreateBullet3 => 'Leva cerca de dois minutos';
-
-  @override
-  String get onboardingWalletRestoreBullet1 => 'Qualquer frase BIP39';
-
-  @override
-  String get onboardingWalletRestoreBullet2 => 'Data de escaneamento opcional';
-
-  @override
-  String get onboardingWalletRestoreBullet3 => 'Recupera seu saldo e histórico';
-
-  @override
   String get lwsDetailsDescription =>
       'Se o seu servidor Light Wallet Monero (LWS) exigir registro, você pode usar estes dados para adicionar esta carteira a esse servidor. Nem todos os servidores exigem registro.';
 

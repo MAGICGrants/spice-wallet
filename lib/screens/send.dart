@@ -37,12 +37,18 @@ class SendScreenArgs {
   /// sharing [coinSymbol]'s chain.
   final bool allAssets;
 
+  /// The desktop back link's label: where Back returns to. Null: the coin's
+  /// own page (its blockchain name), which is where Send and Receive open from
+  /// unless the caller says otherwise.
+  final String? backLabel;
+
   SendScreenArgs({
     required this.coinSymbol,
     required this.destinationAddress,
     this.amount,
     this.contact,
     this.allAssets = false,
+    this.backLabel,
   });
 }
 
@@ -96,6 +102,7 @@ class _SendScreenState extends State<SendScreen> {
   String _coinSymbol = 'XMR';
   bool _argsLoaded = false;
   bool _allAssets = false;
+  String? _backLabel;
 
   // Anchored "From" asset dropdown.
   final LayerLink _assetMenuLink = LayerLink();
@@ -238,6 +245,7 @@ class _SendScreenState extends State<SendScreen> {
           ? contact
           : null;
       _allAssets = args.allAssets;
+      _backLabel = args.backLabel;
     }
   }
 
@@ -262,9 +270,9 @@ class _SendScreenState extends State<SendScreen> {
     if (domainRegex.hasMatch(trimmed) && wallet.aliasAsset.isNotEmpty) return;
     if (!wallet.isAddressValid(trimmed)) {
       setState(
-        () => _destinationAddressError = AppLocalizations.of(
-          context,
-        )!.invalidAddressForChain(wallet.blockchainName),
+        () =>
+            _destinationAddressError = AppLocalizations.of(context)!
+                .invalidAddressForChain(wallet.blockchainName),
       );
     }
   }
@@ -929,7 +937,7 @@ class _SendScreenState extends State<SendScreen> {
                 Icon(Icons.chevron_left, size: 18, color: BrandColors.primary),
                 const SizedBox(width: 2),
                 Text(
-                  wallet.blockchainName,
+                  _backLabel ?? wallet.blockchainName,
                   style: TextStyle(
                     fontFamily: 'Ubuntu',
                     fontSize: 12.5,

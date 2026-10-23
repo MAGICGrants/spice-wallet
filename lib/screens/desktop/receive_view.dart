@@ -14,6 +14,9 @@ class DesktopReceiveView extends StatelessWidget {
   final String coinSymbol;
   final String iconAsset;
   final String coinName;
+
+  /// The back link's label: where Back returns to.
+  final String backLabel;
   final String? blockchainSubtitle;
   final bool ready;
   final String address;
@@ -35,6 +38,7 @@ class DesktopReceiveView extends StatelessWidget {
     required this.coinSymbol,
     required this.iconAsset,
     required this.coinName,
+    required this.backLabel,
     required this.blockchainSubtitle,
     required this.ready,
     required this.address,
@@ -59,7 +63,7 @@ class DesktopReceiveView extends StatelessWidget {
       return ListView(
         padding: const EdgeInsets.fromLTRB(44, 30, 44, 36),
         children: [
-          DesktopBackLink(label: coinName, onTap: onBack),
+          DesktopBackLink(label: backLabel, onTap: onBack),
           const SizedBox(height: 16),
           Text(title, style: desktopTitleStyle),
           const SizedBox(height: 24),
@@ -85,7 +89,7 @@ class DesktopReceiveView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(44, 30, 44, 36),
       children: [
-        DesktopBackLink(label: coinName, onTap: onBack),
+        DesktopBackLink(label: backLabel, onTap: onBack),
         const SizedBox(height: 16),
         Text(title, style: desktopTitleStyle),
         const SizedBox(height: 24),

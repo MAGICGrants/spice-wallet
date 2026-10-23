@@ -705,42 +705,6 @@ abstract class AppLocalizations {
   /// **'When restoring, a scan-from date makes syncing faster.'**
   String get onboardingWalletNoteRestore;
 
-  /// No description provided for @onboardingWalletCreateBullet1.
-  ///
-  /// In en, this message translates to:
-  /// **'A 15-word BIP39 recovery phrase'**
-  String get onboardingWalletCreateBullet1;
-
-  /// No description provided for @onboardingWalletCreateBullet2.
-  ///
-  /// In en, this message translates to:
-  /// **'Syncs from today'**
-  String get onboardingWalletCreateBullet2;
-
-  /// No description provided for @onboardingWalletCreateBullet3.
-  ///
-  /// In en, this message translates to:
-  /// **'Takes about two minutes'**
-  String get onboardingWalletCreateBullet3;
-
-  /// No description provided for @onboardingWalletRestoreBullet1.
-  ///
-  /// In en, this message translates to:
-  /// **'Any BIP39 phrase'**
-  String get onboardingWalletRestoreBullet1;
-
-  /// No description provided for @onboardingWalletRestoreBullet2.
-  ///
-  /// In en, this message translates to:
-  /// **'Optional scan-from date'**
-  String get onboardingWalletRestoreBullet2;
-
-  /// No description provided for @onboardingWalletRestoreBullet3.
-  ///
-  /// In en, this message translates to:
-  /// **'Recovers your balance and history'**
-  String get onboardingWalletRestoreBullet3;
-
   /// No description provided for @lwsDetailsDescription.
   ///
   /// In en, this message translates to:
