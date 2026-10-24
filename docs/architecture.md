@@ -12,9 +12,11 @@ navigation, branding, and app-support glue.
 
 ## How Spice consumes wallet-core
 
-- **Dependency**: the six wallet-core packages (`wallet_infra`, `wallet_domain`,
-  `wallet_monero`, `wallet_bitcoin`, `wallet_ethereum`, `wallet_openalias`) are
-  SHA-pinned in `pubspec.yaml`. Local dev redirects them to `../wallet-core` via
+- **Dependency**: all twelve wallet-core packages (`wallet_infra`,
+  `wallet_domain`, `wallet_monero`, `wallet_bitcoin`, `wallet_ethereum`,
+  `wallet_openalias`, `wallet_fhse`, `wallet_backup`, `wallet_backup_platform`,
+  `wallet_background`, `wallet_fiat`, `wallet_ui`) are SHA-pinned in
+  `pubspec.yaml`. Local dev redirects them to `../wallet-core` via
   the gitignored `pubspec_overrides.yaml`. **Wallet-core changes only reach a
   release build once the pin is bumped** — the override is dev-only.
 - **No adapter layer.** Screens bind **directly** to wallet-core's `CryptoWallet`
@@ -29,6 +31,12 @@ navigation, branding, and app-support glue.
   - `WalletAppConfig.spice` — file names (`mywallet_<coin>`) and `xmr_`-prefixed
     pref keys. **Neither app migrates on-disk state.**
   - `CryptoWallet.aliasResolver` → `resolveOpenAlias`
+  - `WalletManager.closeOrphanedWallets` → wallet_monero's
+    `closeOrphanedMoneroWallets`
+  - `WalletManager.passwordGuard` → wallet_fhse's `FhseWalletGuard` (security
+    keys), where the platform supports them
+  - `BackgroundSync.install` → wallet_background's view-only background runs
+  - `FiatRates.install` → wallet_fiat, with the Tor proxy
   - `WalletLog.sink` → routes into `lib/util/logging.dart`
   - `CryptoWallet.incomingTxNotifier` → builds coin-correct notification text
   - `NotificationService` Windows branding
@@ -76,13 +84,29 @@ and the native `AppDelegate.swift`/`Info.plist`.
 
 The only genuinely **spice-specific** part is that spice is multicoin:
 
-- **Node-mode XMR is the only heavy background scan.** BTC (Electrum), ETH (RPC)
-  and XMR-LWS are light server polls, so a background wake for them is just a
-  notification check.
+- **Node-mode XMR is the only full scan.** BTC (Electrum), ETH (RPC) and
+  XMR-LWS are checks of a server that already scanned. One app-wide **Sync
+  Frequency** setting (Settings > Behavior: Continuous, Periodic, Off) covers
+  every coin; under Periodic, checks run on any network and the XMR-node scan
+  only while charging (and on WiFi, on Android). wallet_background's README
+  has the table for every platform and coin combination.
 - `runTxNotifier` therefore opens **only the coins a window can sync** and
-  filters a heterogeneous set per window; the Background Sync toggle applies to
-  XMR-node alone (BTC/ETH always qualify), and the connection form's sync toggles
-  are shown for XMR-node only.
+  filters a heterogeneous set per window, and a background task is registered
+  only while some configured coin gives it work.
+- **Every background run is view-only, security keys or not**: XMR-node opens
+  its view-only background copy, XMR-LWS asks its server with the view key, BTC
+  checks with the account xpub and ETH with the address. No run loads the wallet
+  password or the seed (wallet-core's `WalletManager.isUnattendedRun`), and a
+  coin whose view-only material is not set up yet is skipped. Changing Sync
+  Frequency sets that material up (`applySyncFrequency`,
+  `WalletManager.applySyncSettings`). Transaction Notifications only decides
+  whether a run that finds a payment says so.
+- **The app and the Continuous Sync service take turns** holding the wallets
+  (wallet_background's `SyncHandoff`, `ForegroundSyncLink`, installed in
+  `main.dart`): the service watches only while the app has nothing open, and
+  lets go before the app opens its wallets. A periodic run does the same
+  (`WalletHolders`): it skips while the app holds the wallets, and closes when
+  the app claims them.
 
 ## Testing
 

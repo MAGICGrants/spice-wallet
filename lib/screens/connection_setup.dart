@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/periodic_tasks.dart' show applyBackgroundTaskRegistration;
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/services/foreground_sync_service.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
@@ -85,6 +86,10 @@ class _ConnectionSetupScreenState extends State<ConnectionSetupScreen> {
 
         // Restart the foreground service so its isolate re-reads the new server.
         await restartForegroundSyncIfRunning();
+        // Only now, with the wallet rebuilt for the new server: a background
+        // task is registered only while some coin gives it work, and this
+        // server may be the first (or the last) one that does.
+        await applyBackgroundTaskRegistration();
       }());
 
       // Modal, or editing an existing connection: return to where it opened.

@@ -44,7 +44,11 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
 
     final manager = Provider.of<WalletManager>(context, listen: false);
     try {
-      await manager.restoreAll(seed: _seedSource!, from: RestorePoint.date(_restoreDate!));
+      await manager.restoreAll(
+        seed: _seedSource!,
+        from: RestorePoint.date(_restoreDate!),
+        freshSeed: true,
+      );
     } catch (error) {
       log(LogLevel.error, error.toString());
       if (mounted) {
@@ -73,6 +77,7 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
       context,
       '/create_wallet_password',
       arguments: CreateWalletPasswordArgs(
+        restored: false,
         seed: _seedSource!,
         from: RestorePoint.date(_restoreDate!),
       ),
@@ -97,13 +102,13 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
             ? DateFormat.yMMM(Localizations.localeOf(context).toString()).format(_restoreDate!)
             : null,
         confirmLabel: i18n.generateSeedConfirm,
-        passwordNote: isDesktopOS ? i18n.generateSeedPasswordNote : null,
+        passwordNote: typesWalletPassword ? i18n.generateSeedPasswordNote : null,
         revealLabel: i18n.generateSeedReveal,
         continueText: i18n.generateSeedContinueButton,
         loading: _isCreating,
         // The iOS build on a Mac shows this layout but keeps the mobile wallet
         // password, so it creates the wallet here with no password step.
-        onContinue: isDesktopOS ? _continueDesktop : _continue,
+        onContinue: typesWalletPassword ? _continueDesktop : _continue,
         onBack: () => Navigator.pop(context),
       );
     }

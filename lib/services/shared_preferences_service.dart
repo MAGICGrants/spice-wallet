@@ -14,15 +14,12 @@ class SharedPreferencesKeys {
   static const String fiatAutoDisabledByTor = SettingsKeys.fiatAutoDisabledByTor;
   static const String theme = SettingsKeys.theme;
   static const String notificationsEnabled = SettingsKeys.notificationsEnabled;
-  static const String appLockEnabled = SettingsKeys.appLockEnabled;
-  static const String verboseLoggingEnabled = SettingsKeys.verboseLoggingEnabled;
+  static const String loggingEnabled = SettingsKeys.loggingEnabled;
   static const String contacts = SettingsKeys.contacts;
   static const String torMode = SettingsKeys.torMode;
   static const String torSocksPort = SettingsKeys.torSocksPort;
   static const String torUseOrbot = SettingsKeys.torUseOrbot;
-  static const String backgroundSyncEnabled = SettingsKeys.backgroundSyncEnabled;
   static const String backgroundSyncIntervalMinutes = SettingsKeys.backgroundSyncIntervalMinutes;
-  static const String foregroundSyncEnabled = SettingsKeys.foregroundSyncEnabled;
 
   // Spice-specific (multicoin):
   static const String pendingOutgoingTxs = 'pendingOutgoingTxs';

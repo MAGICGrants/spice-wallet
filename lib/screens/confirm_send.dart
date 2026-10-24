@@ -16,12 +16,17 @@ class ConfirmSendScreenArgs {
   final String? destinationOpenAlias;
   final String? destinationContactName;
 
+  /// The address [destinationContactName] belongs to; the name is shown only
+  /// when it is [destinationAddress].
+  final String? destinationContactAddress;
+
   ConfirmSendScreenArgs({
     required this.coinSymbol,
     required this.tx,
     required this.destinationAddress,
     this.destinationOpenAlias,
     this.destinationContactName,
+    this.destinationContactAddress,
   });
 }
 
@@ -99,6 +104,7 @@ Future<ConfirmSendResult> showConfirmSendSheet(
     address: args.destinationAddress,
     openAlias: args.destinationOpenAlias,
     contactName: args.destinationContactName,
+    contactAddress: args.destinationContactAddress,
     showHighFeeWarning: showHighFeeWarning,
     highFeeWarning: showHighFeeWarning ? i18n.confirmSendHighFeeWarning(_highFeeToken) : null,
     highFeeToken: _highFeeToken,

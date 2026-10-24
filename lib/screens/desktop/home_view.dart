@@ -1,111 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
-import 'package:spice_wallet/screens/receive.dart';
-import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
-import 'package:spice_wallet/widgets/tx_details.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 
-/// Desktop main home body (rendered inside [DesktopShell]): total balance and
-/// Receive/Send, the chain cards, and a recent-activity list. Mirrors the mobile
-/// [WalletHomeScreen] logic; only the layout is desktop-specific.
-class DesktopHomeView extends StatelessWidget {
-  const DesktopHomeView({super.key});
+/// The chain cards on the desktop home: two columns where there is room, one
+/// otherwise, cards in a row sharing the tallest one's height. Tokens live
+/// inside their parent chain's card.
+class DesktopCoinGrid extends StatelessWidget {
+  final WalletManager manager;
+  final FiatRateModel fiatRate;
+  final List<CryptoWallet> chains;
 
-  // Getters, not const: BrandColors.ink is a runtime (palette/brightness) value.
-  static TextStyle get _bigBalance => const TextStyle(
-    fontFamily: 'Ubuntu Mono',
-    fontSize: 44,
-    height: 1,
-    fontWeight: FontWeight.w700,
-    fontFeatures: [FontFeature.tabularFigures()],
-  ).copyWith(color: BrandColors.ink);
+  const DesktopCoinGrid({
+    super.key,
+    required this.manager,
+    required this.fiatRate,
+    required this.chains,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final i18n = AppLocalizations.of(context)!;
-    final manager = context.watch<WalletManager>();
-    final fiatRate = context.watch<FiatRateModel>();
-
-    final ratesBySymbol = <String, double?>{
-      for (final w in manager.allWallets) w.coinSymbol: fiatRate.rateFor(w.coinSymbol),
-    };
-    final totalFiat = manager.totalUnlockedFiat(ratesBySymbol);
-
-    // Configured chains sort first; tokens live inside their parent chain.
-    final wallets = manager.allWallets.where((w) => !isTokenWallet(w)).toList()
-      ..sort((a, b) {
-        final aOn = a.connectionAddress.isNotEmpty;
-        final bOn = b.connectionAddress.isNotEmpty;
-        if (aOn != bOn) return aOn ? -1 : 1;
-        return 0;
-      });
-    final configured = wallets.where((w) => w.connectionAddress.isNotEmpty).toList();
-
-    // Newest-first timeline across every asset, capped for the home preview.
-    final top = combinedTxTimeline(manager).take(6).toList();
-
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 36),
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(child: _totalBalance(i18n, fiatRate, totalFiat)),
-                const SizedBox(width: 24),
-                _actions(context, i18n, configured),
-              ],
-            ),
-            const SizedBox(height: 30),
-            _coinGrid(context, manager, wallets, fiatRate),
-            const SizedBox(height: 20),
-            SectionHeader(label: i18n.coinHomeActivityTitle, padding: EdgeInsets.zero),
-            const SizedBox(height: 12),
-            if (top.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Text(i18n.homeNoTransactions, style: BrandText.bodyMuted),
-              )
-            else
-              for (final row in withDayHeaders(top, (e) => e.tx.timestamp)) ...[
-                if (row is String) ...[
-                  SectionHeader(label: row, padding: EdgeInsets.zero),
-                  const SizedBox(height: 8),
-                ] else ...[
-                  _ActivityCard(entry: row as TxEntry, fiatRate: fiatRate),
-                  const SizedBox(height: 8),
-                ],
-              ],
-          ],
-        ),
-      ],
-    );
-  }
-
-  // Two columns, collapsing to one when the pane gets narrow. Cards in a row
-  // share the tallest one's height (IntrinsicHeight + stretch).
-  Widget _coinGrid(
-    BuildContext context,
-    WalletManager manager,
-    List<CryptoWallet> wallets,
-    FiatRateModel fiatRate,
-  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         const gap = 10.0;
-        // Two columns only when each card still gets a comfortable width;
-        // otherwise fall back to a single-column list.
+        // Two columns only when each card still gets a comfortable width.
         const twoColMinWidth = 600.0;
         final cols = constraints.maxWidth >= twoColMinWidth ? 2 : 1;
         Widget card(CryptoWallet w) => _DesktopCoinCard(
@@ -115,14 +39,12 @@ class DesktopHomeView extends StatelessWidget {
           fiatOverride: aggregateUnlockedFiat(manager, w, fiatRate.rateFor),
         );
         final rows = <Widget>[];
-        for (var i = 0; i < wallets.length; i += cols) {
+        for (var i = 0; i < chains.length; i += cols) {
           final cells = <Widget>[];
           for (var c = 0; c < cols; c++) {
             if (c > 0) cells.add(const SizedBox(width: gap));
             final idx = i + c;
-            cells.add(
-              Expanded(child: idx < wallets.length ? card(wallets[idx]) : const SizedBox()),
-            );
+            cells.add(Expanded(child: idx < chains.length ? card(chains[idx]) : const SizedBox()));
           }
           if (rows.isNotEmpty) rows.add(const SizedBox(height: gap));
           rows.add(
@@ -133,100 +55,6 @@ class DesktopHomeView extends StatelessWidget {
         }
         return Column(children: rows);
       },
-    );
-  }
-
-  Widget _totalBalance(AppLocalizations i18n, FiatRateModel fiatRate, double totalFiat) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionHeader(label: i18n.homeTotalBalanceLabel, padding: EdgeInsets.zero),
-        const SizedBox(height: 12),
-        if (!fiatRate.isDisabled)
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: BalanceText.split(
-              formatFiat(totalFiat, fiatRate.fiatCurrency),
-              style: _bigBalance,
-            ),
-          )
-        else
-          Text('--', style: _bigBalance),
-      ],
-    );
-  }
-
-  /// Receive/Send are multicoin here (no precedent on mobile home). Rather than
-  /// pick the asset first, they open the screen with the asset dropdown enabled
-  /// (defaulting to a configured chain), so selection happens there.
-  Widget _actions(BuildContext context, AppLocalizations i18n, List<CryptoWallet> configured) {
-    final defaultCoin = configured.isNotEmpty ? configured.first.coinSymbol : 'XMR';
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        BrandButton.secondary(
-          label: i18n.receiveTitle,
-          icon: Icons.south_west,
-          expand: false,
-          onPressed: () => Navigator.pushNamed(
-            context,
-            '/receive',
-            arguments: ReceiveScreenArgs(coinSymbol: defaultCoin, allAssets: true),
-          ),
-        ),
-        const SizedBox(width: 10),
-        BrandButton.secondary(
-          label: i18n.sendTitle,
-          icon: Icons.north_east,
-          expand: false,
-          onPressed: () => Navigator.pushNamed(
-            context,
-            '/send',
-            arguments: SendScreenArgs(
-              coinSymbol: defaultCoin,
-              destinationAddress: '',
-              allAssets: true,
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        // Swap has no screen yet; mirrors the coin home's "coming soon".
-        BrandButton.secondary(
-          label: i18n.coinHomeSwap,
-          icon: Icons.swap_horiz,
-          expand: false,
-          onPressed: () => showBrandToast(context, i18n.coinHomeSwapComingSoon),
-        ),
-      ],
-    );
-  }
-}
-
-class _ActivityCard extends StatelessWidget {
-  final TxEntry entry;
-  final FiatRateModel fiatRate;
-
-  const _ActivityCard({required this.entry, required this.fiatRate});
-
-  @override
-  Widget build(BuildContext context) {
-    final i18n = AppLocalizations.of(context)!;
-    return Container(
-      decoration: BoxDecoration(
-        color: BrandColors.card,
-        border: Border.all(color: BrandColors.border),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      child: TxActivityRow(
-        tx: entry.tx,
-        asset: entry.asset,
-        labels: TxActivityLabels(received: i18n.coinHomeReceived, sent: i18n.coinHomeSent),
-        fiatRate: fiatRate,
-        showDivider: false,
-        onTap: () => TxDetailsDialog.show(context, entry.asset, entry.tx),
-      ),
     );
   }
 }
@@ -279,9 +107,7 @@ class _DesktopCoinCard extends StatelessWidget {
         return (BrandColors.success, '$assets${i18n.homeSynced}');
       case ConnectionIndicatorState.loading:
         final blocks = wallet.syncBlocksRemaining;
-        final text = blocks != null
-            ? i18n.homeBlocksRemaining(NumberFormat.decimalPattern().format(blocks))
-            : i18n.homeSyncing;
+        final text = blocks != null ? i18n.homeBlocksRemaining(blocks) : i18n.homeSyncing;
         return (BrandColors.warning, '$assets$text');
       case ConnectionIndicatorState.error:
         return (BrandColors.error, '$assets${i18n.homeNoConnection}');

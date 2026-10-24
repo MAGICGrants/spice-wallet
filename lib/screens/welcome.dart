@@ -26,17 +26,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   Future<void> _pushHomeIfWalletExists() async {
     final manager = Provider.of<WalletManager>(context, listen: false);
-    if (await manager.hasAnyExistingWallet()) {
-      // A desktop OS opens nothing until the user types the password.
-      if (!isDesktopOS) await manager.openAll();
-      if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          isDesktopOS ? '/unlock' : '/wallet_home',
-          (route) => false,
-        );
-      }
-    }
+    if (!await manager.hasAnyExistingWallet() || !mounted) return;
+    // Through the same locks as a launch, never straight home: App Lock (always
+    // on; the typed password on Linux and Windows), then a key when security
+    // keys are on.
+    Navigator.pushNamedAndRemoveUntil(context, '/unlock', (route) => false);
   }
 
   @override

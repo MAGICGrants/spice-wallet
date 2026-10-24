@@ -2,22 +2,30 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/periodic_tasks.dart' show applyBackgroundTaskRegistration;
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
 import 'package:spice_wallet/screens/desktop/home_shell.dart';
 import 'package:spice_wallet/screens/desktop/home_view.dart';
+import 'package:spice_wallet/screens/receive.dart';
+import 'package:spice_wallet/screens/send.dart';
+import 'package:spice_wallet/screens/verify_seed.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
+import 'package:spice_wallet/widgets/home_labels.dart';
+import 'package:spice_wallet/widgets/open_alias_sheet.dart';
+import 'package:spice_wallet/widgets/tor_settings_sheet.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
+import 'package:wallet_backup_platform/wallet_backup_platform.dart' show MetadataBackupSetup;
 import 'package:wallet_domain/wallet_domain.dart';
+import 'package:wallet_fhse/security_keys_ui.dart' show securityKeysOn;
 import 'package:wallet_infra/wallet_infra.dart' show StoreReview;
 
 class WalletHomeScreen extends StatefulWidget {
@@ -27,16 +35,47 @@ class WalletHomeScreen extends StatefulWidget {
   State<WalletHomeScreen> createState() => _WalletHomeScreenState();
 }
 
-class _WalletHomeScreenState extends State<WalletHomeScreen> {
+class _WalletHomeScreenState extends State<WalletHomeScreen> with WidgetsBindingObserver {
+  late final SecurityChecklist _checklist = SecurityChecklist(
+    autoBackupOn: MetadataBackupSetup.automaticBackupOn,
+    securityKeysOn: securityKeysOn,
+    // A wallet from before the seed was kept has no words to ask for.
+    canVerifySeed: SeedStore.exists,
+  );
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _checklist.addListener(_onChecklistChanged);
+    _checklist.refresh();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _bootstrapIfNeeded();
+      // Here a wallet exists and its connections are applied: the first time
+      // after onboarding, and after every unlock. Updates the tasks in place.
+      unawaited(applyBackgroundTaskRegistration());
       // Opening the app after a send is when a store review is asked for;
       // StoreReview decides whether one is due, once per launch.
       unawaited(StoreReview.requestIfDue(stillAppropriate: _stillOnHome));
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _checklist.removeListener(_onChecklistChanged);
+    _checklist.dispose();
+    super.dispose();
+  }
+
+  // A setting may have changed in the system settings (iCloud) meanwhile.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _checklist.refresh();
+  }
+
+  void _onChecklistChanged() {
+    if (mounted) setState(() {});
   }
 
   // Still the screen in front, with the app in the foreground: the review
@@ -59,12 +98,18 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     unawaited(manager.bootstrap());
   }
 
+  Future<void> _openStep(SecurityStep step) => switch (step) {
+    SecurityStep.verifySeed =>
+      isDesktop ? showVerifySeedSheet(context) : Navigator.pushNamed(context, '/verify_seed'),
+    SecurityStep.autoBackup => Navigator.pushNamed(context, '/metadata_backup'),
+    SecurityStep.tor => showTorSettingsSheet(context),
+    SecurityStep.privateLookups => showPrivateLookupSheets(context),
+    SecurityStep.securityKeys => Navigator.pushNamed(context, '/advanced_security'),
+  };
+
   @override
   Widget build(BuildContext context) {
-    if (isDesktop) {
-      return const DesktopShell(active: DesktopNav.home, child: DesktopHomeView());
-    }
-
+    final i18n = AppLocalizations.of(context)!;
     final walletManager = context.watch<WalletManager>();
     final fiatRate = context.watch<FiatRateModel>();
 
@@ -75,133 +120,128 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
     // Tokens (DAI/SDAI) don't get their own row — they live inside their parent
     // chain's assets list. The parent row shows the aggregate value instead.
-    final wallets = walletManager.allWallets.where((w) => !isTokenWallet(w)).toList()
-      ..sort((a, b) {
-        final aConfigured = a.connectionAddress.isNotEmpty;
-        final bConfigured = b.connectionAddress.isNotEmpty;
-        if (aConfigured != bConfigured) return aConfigured ? -1 : 1;
-        return 0;
-      });
+    final chains = receivableChains(walletManager);
+    final configured = chains.where((w) => w.connectionAddress.isNotEmpty);
+    // The total shows once a price has come in (or with nothing to price);
+    // the shares only once every configured chain has one.
+    final anyPrice =
+        configured.isEmpty || configured.any((w) => fiatRate.rateFor(w.coinSymbol) != null);
+    final pricesKnown = configured.every((w) => fiatRate.rateFor(w.coinSymbol) != null);
+    final chainCoins = <HomeCoin>[
+      for (final c in chains) (wallet: c, tokens: tokensOf(walletManager, c.coinSymbol)),
+    ];
+    final coins = <HomeCoin>[
+      for (final c in chainCoins) ...[
+        c,
+        for (final t in c.tokens) (wallet: t, tokens: const <CryptoWallet>[]),
+      ],
+    ];
+    final sections = HomeSections(activity: HomeActivity.shared, labels: homeLabels(i18n));
 
-    return Scaffold(
-      backgroundColor: BrandColors.paper,
-      bottomNavigationBar: const WalletNavigationBar(selectedIndex: 0),
-      body: SafeArea(
-        bottom: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 700),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const _Header(),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.only(bottom: BrandSpacing.lg),
-                    children: [
-                      _TotalBalanceHeader(totalFiat: totalFiat, fiatRate: fiatRate),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        child: Column(
-                          children: [
-                            for (final wallet in wallets) ...[
-                              _CoinCard(
-                                wallet: wallet,
-                                fiatRate: fiatRate,
-                                tokenCount: tokensOf(walletManager, wallet.coinSymbol).length,
-                                fiatOverride: aggregateUnlockedFiat(
-                                  walletManager,
-                                  wallet,
-                                  fiatRate.rateFor,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+    // Send and Receive open on the asset last sent or received (Receive on its
+    // chain: a token arrives at its chain's address), and offer every other.
+    final assets = sendableAssets(walletManager);
+    final recent = HomeActivity.mostRecent(assets.where((w) => w.connectionAddress.isNotEmpty));
+    final sendSymbol = (recent ?? assets.firstOrNull)?.coinSymbol ?? 'XMR';
+    final receiveSymbol = recent != null
+        ? chainSymbolOf(recent)
+        : (chains.firstOrNull?.coinSymbol ?? 'XMR');
+
+    // Without prices there is no total across different coins; each chain
+    // card still shows its own amount.
+    final hero = fiatRate.isDisabled
+        ? null
+        : HomeBalanceHero(
+            label: i18n.homeTotalBalanceLabel,
+            fiatRate: fiatRate,
+            fiatTotal: anyPrice ? totalFiat : null,
+            fiatErrorTooltip: i18n.homeFiatApiError,
+            footer: pricesKnown && totalFiat > 0
+                ? AllocationBar(slices: HomeSections.allocation(chainCoins, fiatRate.rateFor))
+                : null,
+          );
+    void receive() => Navigator.pushNamed(
+      context,
+      '/receive',
+      arguments: ReceiveScreenArgs(
+        coinSymbol: receiveSymbol,
+        allAssets: true,
+        backLabel: i18n.navigationBarHome,
+      ),
+    );
+    void send() => Navigator.pushNamed(
+      context,
+      '/send',
+      arguments: SendScreenArgs(
+        coinSymbol: sendSymbol,
+        destinationAddress: '',
+        allAssets: true,
+        backLabel: i18n.navigationBarHome,
+      ),
+    );
+    void swap() => showBrandToast(context, i18n.coinHomeSwapComingSoon);
+    final incoming = sections.incoming(coins);
+    final chart = sections.chart(coins);
+    final checklist = securityChecklistCard(
+      checklist: _checklist,
+      labels: securityChecklistLabels(i18n),
+      onStep: _openStep,
+    );
+
+    if (isDesktop) {
+      return DesktopShell(
+        active: DesktopNav.home,
+        child: DesktopHomeLayout(
+          balance: hero ?? const SizedBox.shrink(),
+          actions: DesktopHomeActions(
+            receiveLabel: i18n.homeReceive,
+            sendLabel: i18n.homeSend,
+            swapLabel: i18n.coinHomeSwap,
+            onReceive: receive,
+            onSend: send,
+            onSwap: swap,
           ),
+          wide: [
+            ?incoming,
+            DesktopCoinGrid(manager: walletManager, fiatRate: fiatRate, chains: chains),
+          ],
+          side: checklist,
+          full: [chart],
         ),
+      );
+    }
+
+    return WalletHomeView(
+      header: HomeHeader(
+        logo: SvgPicture.asset('assets/spice-icon.svg', width: 32, height: 32),
+        title: 'Spice Wallet',
+        titleColor: BrandColors.primaryDeep,
       ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 2),
-      child: Row(
+      balance: hero,
+      actions: HomeActionRow(
+        receiveLabel: i18n.homeReceive,
+        sendLabel: i18n.homeSend,
+        swapLabel: i18n.coinHomeSwap,
+        onReceive: receive,
+        onSend: send,
+        onSwap: swap,
+      ),
+      incoming: incoming,
+      accounts: Column(
+        spacing: 10,
         children: [
-          SvgPicture.asset('assets/spice-icon.svg', width: 30, height: 30),
-          const SizedBox(width: 9),
-          Text(
-            'Spice Wallet',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 17,
-              height: 1,
-              color: BrandColors.primaryDeep,
+          for (final c in chainCoins)
+            _CoinCard(
+              wallet: c.wallet,
+              fiatRate: fiatRate,
+              tokenCount: c.tokens.length,
+              fiatOverride: aggregateUnlockedFiat(walletManager, c.wallet, fiatRate.rateFor),
             ),
-          ),
         ],
       ),
-    );
-  }
-}
-
-class _TotalBalanceHeader extends StatelessWidget {
-  final double totalFiat;
-  final FiatRateModel fiatRate;
-
-  const _TotalBalanceHeader({required this.totalFiat, required this.fiatRate});
-
-  @override
-  Widget build(BuildContext context) {
-    final i18n = AppLocalizations.of(context)!;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 32, 20, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SectionHeader(label: i18n.homeTotalBalanceLabel, padding: EdgeInsets.zero),
-          const SizedBox(height: 11),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (!fiatRate.isDisabled)
-                Flexible(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: BalanceText.split(formatFiat(totalFiat, fiatRate.fiatCurrency)),
-                  ),
-                )
-              else
-                Text('--', style: BrandText.balance),
-              if (fiatRate.hasFailed && !fiatRate.isDisabled) ...[
-                const SizedBox(width: 8),
-                Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Tooltip(
-                    message: i18n.homeFiatApiError,
-                    child: Icon(Icons.warning_rounded, size: 18, color: BrandColors.warning),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
+      chart: chart,
+      checklist: checklist,
+      bottomNavigationBar: const WalletNavigationBar(selectedIndex: 0),
     );
   }
 }
@@ -264,9 +304,7 @@ class _CoinCard extends StatelessWidget {
       case ConnectionIndicatorState.loading:
         // Monero node syncing exposes a block count; show "x blocks left".
         final blocks = wallet.syncBlocksRemaining;
-        final text = blocks != null
-            ? i18n.homeBlocksRemaining(NumberFormat.decimalPattern().format(blocks))
-            : i18n.homeSyncing;
+        final text = blocks != null ? i18n.homeBlocksRemaining(blocks) : i18n.homeSyncing;
         return (BrandColors.warning, '$assets$text');
       case ConnectionIndicatorState.error:
         return (BrandColors.error, '$assets${i18n.homeNoConnection}');
