@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:timeago/timeago.dart' as timeago;
 
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/util/platform.dart';
@@ -81,8 +80,6 @@ void main() async {
           FlutterError.dumpErrorToConsole(details);
         }
       };
-
-      timeago.setLocaleMessages('pt', timeago.PtBrMessages());
 
       if (Platform.isLinux) {
         await createAppDir();
