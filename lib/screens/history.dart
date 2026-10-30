@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -15,9 +16,11 @@ import 'package:spice_wallet/widgets/tx_details.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
 import 'package:wallet_domain/wallet_domain.dart';
+import 'package:wallet_infra/wallet_infra.dart' show LogLevel, exportFileName, log, saveExportFile;
 
-/// A single, filterable timeline of every transaction across all chains/assets.
-/// A top-level destination reachable from the navigation bar.
+/// A single, filterable timeline of every transaction across all chains/assets,
+/// exportable as CSV (the filtered ones, or all of them with no filter). A
+/// top-level destination reachable from the navigation bar.
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
@@ -119,6 +122,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _recipientCoin = null;
     _recipientInvalid = false;
   });
+
+  /// Saves [entries], the transactions the filters let through, as CSV.
+  /// [anchor] is the button, for the iPad share popover.
+  Future<void> _export(List<TxEntry> entries, BuildContext anchor) async {
+    final i18n = AppLocalizations.of(context)!;
+    final box = anchor.findRenderObject() as RenderBox?;
+    final origin = box == null ? null : box.localToGlobal(Offset.zero) & box.size;
+    try {
+      final saved = await saveExportFile(
+        name: exportFileName('spice-history', 'csv', DateTime.now()),
+        bytes: utf8.encode(txHistoryCsv(entries)),
+        typeLabel: 'CSV',
+        extension: 'csv',
+        mimeType: 'text/csv',
+        sharePositionOrigin: origin,
+      );
+      if (saved && mounted) showBrandToast(context, i18n.historyExported);
+    } catch (e) {
+      log(LogLevel.error, '[History] CSV export failed: $e');
+      if (mounted) showBrandToast(context, i18n.historyExportFailed);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -246,6 +271,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
             onTapTx: (asset, tx) => TxDetailsDialog.show(context, asset, tx),
           );
 
+    final canExport = entries.isNotEmpty;
+    void export(BuildContext anchor) {
+      if (canExport) _export(entries, anchor);
+    }
+
     final filters = <Widget>[
       // Scrolls to allow extending off the screen
       SingleChildScrollView(
@@ -352,7 +382,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(44, 30, 44, 20),
-              child: Text(i18n.historyTitle, style: desktopTitleStyle),
+              child: Row(
+                children: [
+                  Expanded(child: Text(i18n.historyTitle, style: desktopTitleStyle)),
+                  Builder(
+                    builder: (anchor) => BrandButton.secondary(
+                      label: i18n.historyExportCsv,
+                      icon: Icons.file_download_outlined,
+                      expand: false,
+                      onPressed: canExport ? () => export(anchor) : null,
+                    ),
+                  ),
+                ],
+              ),
             ),
             ...filters,
           ],
@@ -375,6 +417,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   child: BrandScreenHeader(
                     center: Text(i18n.historyTitle, style: BrandText.appBar.copyWith(fontSize: 16)),
+                    action: Tooltip(
+                      message: i18n.historyExportCsv,
+                      child: Opacity(
+                        opacity: canExport ? 1 : 0.4,
+                        child: Builder(
+                          builder: (anchor) => IconCircleButton(
+                            icon: Icons.file_download_outlined,
+                            onPressed: canExport ? () => export(anchor) : null,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),

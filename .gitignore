@@ -46,3 +46,7 @@ app.*.map.json
 
 # Local dev dependency redirects (points at ../wallet-core)
 pubspec_overrides.yaml
+
+# monero_c for macOS, built locally (scripts/build-moneroc.sh): it embeds the
+# build path, so it is never committed
+/macos/Frameworks/

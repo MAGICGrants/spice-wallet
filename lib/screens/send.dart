@@ -37,12 +37,18 @@ class SendScreenArgs {
   /// sharing [coinSymbol]'s chain.
   final bool allAssets;
 
+  /// The desktop back link's label: where Back returns to. Null: the coin's
+  /// own page (its blockchain name), which is where Send and Receive open from
+  /// unless the caller says otherwise.
+  final String? backLabel;
+
   SendScreenArgs({
     required this.coinSymbol,
     required this.destinationAddress,
     this.amount,
     this.contact,
     this.allAssets = false,
+    this.backLabel,
   });
 }
 
@@ -96,6 +102,7 @@ class _SendScreenState extends State<SendScreen> {
   String _coinSymbol = 'XMR';
   bool _argsLoaded = false;
   bool _allAssets = false;
+  String? _backLabel;
 
   // Anchored "From" asset dropdown.
   final LayerLink _assetMenuLink = LayerLink();
@@ -132,25 +139,40 @@ class _SendScreenState extends State<SendScreen> {
       // overlap (validate, fee calc, send), so the spinner stays up until all
       // finish.
       if (mounted) setState(() => _openAliasResolving++);
+      // The asset this lookup is for: the user may switch to another before
+      // the answer comes back, and that answer must not land on it.
+      final asset = _coinSymbol;
       String resolved = '';
       String error = '';
+      var cache = true;
       try {
         resolved = (await wallet.resolveAlias(value))?.address ?? '';
+        if (resolved.isNotEmpty && !wallet.isAddressValid(resolved)) resolved = '';
         error = resolved.isEmpty ? i18n.sendOpenAliasResolveError : '';
+      } on AliasLookupDisabledException {
+        // Turned off in Settings: say so, and do not cache it, so turning it
+        // back on takes effect here.
+        error = i18n.sendOpenAliasDisabledError;
+        cache = false;
       } catch (e) {
-        log(LogLevel.warn, 'openalias resolve failed: $e', coin: wallet.coinSymbol);
+        // The wallet already logged why, with the alias fingerprinted; the
+        // message itself can name the recipient's domain.
+        log(LogLevel.warn, 'openalias resolve failed: ${e.runtimeType}', coin: wallet.coinSymbol);
         resolved = '';
         error = i18n.sendOpenAliasResolveError;
       } finally {
         if (mounted) {
           setState(() {
             _openAliasResolving--;
-            _destinationAddressError = error;
+            if (asset == _coinSymbol) _destinationAddressError = error;
           });
         }
       }
-      _resolveCacheInput = value;
-      _resolveCacheOutput = resolved;
+      if (asset != _coinSymbol) return '';
+      if (cache) {
+        _resolveCacheInput = value;
+        _resolveCacheOutput = resolved;
+      }
       return resolved;
     }
     return value;
@@ -205,17 +227,25 @@ class _SendScreenState extends State<SendScreen> {
       coinDecimals: wallet?.baseUnitDecimals ?? 0,
     );
     _amount.addListener(_onAmountChanged);
-    _loadFormFromArgs(args);
+    _loadFormFromArgs(args, wallet);
   }
 
-  void _loadFormFromArgs(SendScreenArgs? args) {
+  void _loadFormFromArgs(SendScreenArgs? args, CryptoWallet? wallet) {
     if (args != null) {
       _destinationAddressController.text = args.destinationAddress;
       final amount = args.amount;
       if (amount != null && amount.isNotEmpty) _amount.setCoinText(amount);
       // Same pair the in-send picker sets, so the contact card renders here too.
-      _selectedContact = args.contact;
+      // Set after the text, so the listener cannot check it: check it here.
+      final contact = args.contact;
+      _selectedContact =
+          contact != null &&
+              wallet != null &&
+              contact.ownsAddress(chainSymbolOf(wallet), args.destinationAddress)
+          ? contact
+          : null;
       _allAssets = args.allAssets;
+      _backLabel = args.backLabel;
     }
   }
 
@@ -240,9 +270,9 @@ class _SendScreenState extends State<SendScreen> {
     if (domainRegex.hasMatch(trimmed) && wallet.aliasAsset.isNotEmpty) return;
     if (!wallet.isAddressValid(trimmed)) {
       setState(
-        () => _destinationAddressError = AppLocalizations.of(
-          context,
-        )!.invalidAddressForChain(wallet.blockchainName),
+        () =>
+            _destinationAddressError = AppLocalizations.of(context)!
+                .invalidAddressForChain(wallet.blockchainName),
       );
     }
   }
@@ -250,12 +280,18 @@ class _SendScreenState extends State<SendScreen> {
   Future<void> _scanQrCode() async {
     final wallet = _wallet(context);
     final i18n = AppLocalizations.of(context)!;
+    // Any asset the From card offers may claim the code, the current one
+    // first: a payment request for another asset switches the form to it.
+    final manager = Provider.of<WalletManager>(context, listen: false);
+    final offered = _allAssets ? sendableAssets(manager) : assetsOnChainOf(manager, wallet);
+    final candidates = [wallet, ...offered.where((w) => w != wallet)];
 
-    // The scanner only returns a code this coin claims — a standard payment URI
-    // (monero:/bitcoin:/ethereum:) or a bare address — and keeps scanning on
-    // anything else, so an unexpected QR never pops back to this form.
+    // The scanner only returns a code one of these claims — a standard payment
+    // URI (monero:/bitcoin:/ethereum:) or a bare address for this coin — and
+    // keeps scanning on anything else, so an unexpected QR never pops back to
+    // this form.
     bool accept(String text) =>
-        parsePaymentUri(text, [wallet]) != null || wallet.isAddressValid(text);
+        parsePaymentUri(text, candidates) != null || wallet.isAddressValid(text);
 
     final result = await Navigator.pushNamed(
       context,
@@ -265,16 +301,21 @@ class _SendScreenState extends State<SendScreen> {
 
     if (result == null || result is! String) return;
 
-    // Accepted, so it parses as a payment URI for this coin or is a bare address.
-    final request = parsePaymentUri(result, [wallet]);
+    // Accepted, so it parses as a payment URI for an offered asset or is a
+    // bare address for this one.
+    final request = parsePaymentUri(result, candidates);
     final address = request?.address ?? result;
     final amount = request?.amount;
 
     if (!mounted) return;
+    if (request != null && request.coinSymbol != _coinSymbol) {
+      _clearSelectedContact();
+      _selectAsset(request.coinSymbol);
+    }
     _destinationAddressController.text = address;
     if (amount != null && amount.isNotEmpty) {
       // A payment request is denominated in the coin, so entry switches to it.
-      _amount.setCoinText(_asExactAmount(amount, wallet));
+      _amount.setCoinText(_asExactAmount(amount, _wallet(context)));
     }
   }
 
@@ -557,6 +598,8 @@ class _SendScreenState extends State<SendScreen> {
     }
 
     final destinationAddressUnresolved = _destinationAddressController.text;
+    // Read with the text: the form can change while the tx is being built.
+    final contact = _selectedContact;
     final amountUnits = _amount.baseUnits;
     String destinationAddress = '';
     String? destinationOpenAlias;
@@ -571,7 +614,10 @@ class _SendScreenState extends State<SendScreen> {
     try {
       PendingTransaction tx;
 
-      final currentFeeFetchKey = '${_destinationAddressController.text}-${_amount.coinText}';
+      // Keyed on the text resolved above, not the field's text now: the field
+      // can change during that lookup, and a tx cached for its new text would
+      // pay an address other than the one the confirm sheet shows.
+      final currentFeeFetchKey = '$destinationAddressUnresolved-${_amount.coinText}';
       final cachedTx = _feeTxs != null && _feeTxs!.length > _selectedPriority
           ? _feeTxs![_selectedPriority]
           : null;
@@ -602,7 +648,10 @@ class _SendScreenState extends State<SendScreen> {
             tx: tx,
             destinationAddress: destinationAddress,
             destinationOpenAlias: destinationOpenAlias,
-            destinationContactName: _selectedContact?.name,
+            // The sheet shows the name only if the tx pays this address (a
+            // token's contact address is its chain's).
+            destinationContactName: contact?.name,
+            destinationContactAddress: contact?.addressFor(chainSymbolOf(wallet)),
           ),
         );
         if (result == ConfirmSendResult.sent) {
@@ -683,6 +732,16 @@ class _SendScreenState extends State<SendScreen> {
     final text = _destinationAddressController.text;
     if (text == _lastAddressText) return;
     _lastAddressText = text;
+
+    // Anything but the contact's own address in the field (Paste on desktop,
+    // where the pill stays beside the contact card) ends the contact: the card
+    // turns back into the address field, and no name reaches the confirm sheet.
+    // _selectAsset switches the asset before it moves the contact to the new
+    // chain's address, so a moved contact matches here.
+    final contact = _selectedContact;
+    if (contact != null && !contact.ownsAddress(chainSymbolOf(_wallet(context)), text)) {
+      setState(() => _selectedContact = null);
+    }
 
     // Input changed: invalidate the resolution cache + clear any stale error.
     _resolveCacheInput = '';
@@ -878,7 +937,7 @@ class _SendScreenState extends State<SendScreen> {
                 Icon(Icons.chevron_left, size: 18, color: BrandColors.primary),
                 const SizedBox(width: 2),
                 Text(
-                  wallet.blockchainName,
+                  _backLabel ?? wallet.blockchainName,
                   style: TextStyle(
                     fontFamily: 'Ubuntu',
                     fontSize: 12.5,
@@ -1350,13 +1409,20 @@ class _SendScreenState extends State<SendScreen> {
     );
   }
 
-  /// Switches the send form to a different asset on the same chain. The picker
-  /// only offers same-chain assets (all EVM), which share an address format, so
-  /// the destination is kept; the fee state resets, and so does a coin amount.
-  /// A fiat amount carries over (`$100` of ETH becomes `$100` of DAI).
+  /// Switches the send form to another asset. The fee state resets, and so
+  /// does a coin amount; a fiat amount carries over (`$100` of ETH becomes
+  /// `$100` of DAI). Assets on one chain share an address format, so the
+  /// destination stays. From the home every asset is offered, so the chain can
+  /// change too: a picked contact then moves to its address on the new chain
+  /// (or is dropped without one), and a typed address is checked again.
   void _selectAsset(String coinSymbol) {
     if (coinSymbol == _coinSymbol) return;
+    final previousChain = chainSymbolOf(_wallet(context));
     setState(() {
+      // An OpenAlias name resolves per asset (xmr, btc, eth, dai).
+      _resolveCacheInput = '';
+      _resolveCacheOutput = '';
+      _destinationAddressError = '';
       _coinSymbol = coinSymbol;
       _isSweepAll = false;
       _fees = null;
@@ -1369,6 +1435,18 @@ class _SendScreenState extends State<SendScreen> {
     });
     _feeCalculationCounter++;
     final wallet = _wallet(context);
+    final chain = chainSymbolOf(wallet);
+    if (chain != previousChain) {
+      final contact = _selectedContact;
+      final contactAddress = contact?.addressFor(chain);
+      if (contact == null) {
+        _showInvalidAddressIfNeeded(_destinationAddressController.text);
+      } else if (contactAddress != null) {
+        _destinationAddressController.text = contactAddress;
+      } else {
+        _clearSelectedContact();
+      }
+    }
     // Notifies → _onAmountChanged → revalidates for the new asset.
     _amount.setCoin(wallet.coinSymbol, wallet.baseUnitDecimals);
   }

@@ -11,10 +11,14 @@ import 'package:spice_wallet/util/secure_screen.dart';
 import 'package:spice_wallet/widgets/seed_grid.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
+import 'package:wallet_fhse/security_keys_ui.dart' show passAppLock;
 
-/// Desktop: the seed phrase as a centered modal (opened from Settings); mobile
-/// keeps the full-screen route.
-Future<void> showRevealSeedSheet(BuildContext context) {
+/// Desktop: the recovery phrase as a centered modal (opened from Settings), once
+/// App Lock passes ([passAppLock]): a sheet is not a route, so the
+/// `/reveal_seed` AppLockGate does not cover it. Mobile keeps that route.
+Future<void> showRevealSeedSheet(BuildContext context) async {
+  final reason = AppLocalizations.of(context)!.revealSeedAuthReason;
+  if (!await passAppLock(context, reason: reason) || !context.mounted) return;
   return showBrandSheet<void>(
     context: context,
     isScrollControlled: true,

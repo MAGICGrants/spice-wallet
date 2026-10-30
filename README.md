@@ -14,6 +14,7 @@ An open-source and self-custody wallet for Monero, Bitcoin, Ethereum, and Dai, b
 - **One seed, every asset.** Monero, Bitcoin, Ethereum, and Dai sit side by side, all secured by a single 15-word BIP39 seed phrase. Serai will be added as soon as it goes live.
 - **Built-in Tor.** Tor comes bundled. Connect only the services you need over Tor, disable it entirely, or point Spice Wallet at Orbot or a Tor daemon you run yourself.
 - **No more waiting to sync.** The servers you choose can do the scanning, so your history is ready when you open the app. Or scan locally on your device if you prefer.
+- **Background sync that can't spend.** Periodic sync (on Android and iPhone) and Continuous sync (on Android), set under Sync Frequency, keep your wallets current while you're away using view-only keys: they see incoming payments, but never hold a key that could spend.
 - **Your servers, your choice.** Spice Wallet ships with no default servers. Each asset connects through a server you specify: a light-wallet server (LWS) or Monero node for Monero, an Electrum server for Bitcoin, and an RPC endpoint for Ethereum and Dai.
 - **Reproducible builds**, so you can verify that the app you run matches the code in this repository.
 
@@ -29,6 +30,14 @@ Spice Wallet shares its wallet engine with [Skylight Wallet](https://github.com/
 </div>
 
 Android APKs are also available from the [latest release](https://github.com/MAGICGrants/spice-wallet/releases/latest).
+
+### Requirements
+
+- **iOS:** iOS 16 or later.
+- **Android:** Android 7.0 (API 24) or later.
+- **macOS:** macOS 13 Ventura or later, on Apple silicon. There is no macOS release yet; build from source.
+- **Windows:** Windows 10 or 11, 64-bit. Security keys need Windows 11, version 22H2 or later.
+- **Linux:** 64-bit (x86_64). Security keys need libfido2 (`libfido2-1`, which the ``.deb`` recommends).
 
 ### Desktop
 
@@ -82,11 +91,12 @@ A successful verification prints `Good signature from "MAGIC Grants <info@magicg
 
 Before you begin, ensure you have the following installed:
 
-- **Flutter SDK** (3.8.1 or higher) - [Installation guide](https://docs.flutter.dev/get-started/install)
-- **Dart SDK** (3.8.1 or higher) - Usually comes with Flutter
+- **Flutter SDK** (3.47.7, the version pinned in `pubspec.yaml`) - [Installation guide](https://docs.flutter.dev/get-started/install)
+- **Dart SDK** (3.13.5) - Comes with Flutter
 - **Android Studio** - For Android development
-- **Android SDK** - API level 21+ (Android 5.0 Lollipop or higher)
-- **Java JDK** - Version 11 or higher
+- **Android SDK** - API level 24+ (Android 7.0 or higher)
+- **Java JDK** - Version 17
+- **Xcode** (26 or later) and **CocoaPods** (1.17) - For iOS and macOS builds
 
 ## Getting Started
 
@@ -139,6 +149,25 @@ flutter run -d <device_id>
 ```
 
 Make sure you have an Android emulator running or a physical device connected before running the app.
+
+### Memory safety settings
+
+The release builds turn on the platforms' strictest native-memory checks, for
+the C and C++ in the app (the Flutter engine, Monero, Tor, FHSE):
+
+- **Android** (`android/app/src/main/AndroidManifest.xml`): Arm MTE in sync
+  mode (Pixel 8 and later, when MTE is on), GWP-ASan on every launch, and
+  zeroed heap allocations.
+- **iOS and macOS** (`Runner.entitlements`, `Release.entitlements`): the
+  hardened process with a hardened heap, and Memory Integrity Enforcement
+  (hardware memory tagging on A19 iPhones and M5 Macs) enforced rather than
+  in soft mode.
+
+These stop a use-after-free or overflow at the faulting access. The cost is
+that a latent heap bug in any of that native code, harmless elsewhere, ends
+the app on that hardware, unlock included. A crash there that does not happen
+on other devices points here first: the crash report names a tag mismatch or
+GWP-ASan.
 
 ## Building for Android
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' show Color;
 
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/periodic_tasks.dart' show backgroundDispatcher;
@@ -15,10 +16,14 @@ import 'package:wallet_background/wallet_background.dart' show BackgroundSync, N
 import 'package:wallet_fiat/wallet_fiat.dart' show FiatRates;
 import 'package:wallet_domain/wallet_domain.dart'
     show WalletAppConfig, WalletManager, CryptoWallet, baseUnitsToDecimalString;
-import 'package:wallet_monero/wallet_monero.dart' show MoneroWallet;
+import 'package:wallet_monero/wallet_monero.dart' show MoneroWallet, closeOrphanedMoneroWallets;
 import 'package:wallet_bitcoin/wallet_bitcoin.dart' show BitcoinWallet, BitcoinTestnetWallet;
 import 'package:wallet_ethereum/wallet_ethereum.dart'
     show EthereumWallet, EthereumSepoliaWallet, DaiWallet, DaiSepoliaWallet;
+import 'package:wallet_backup_platform/wallet_backup_platform.dart'
+    show MetadataBackupConfig, MetadataBackupSetup;
+import 'package:wallet_fhse/security_keys_ui.dart' show SecurityKeysUi, SecurityKeysUiConfig;
+import 'package:wallet_fhse/wallet_fhse.dart' show FhseNative, FhseWalletGuard;
 import 'package:wallet_openalias/wallet_openalias.dart' show resolveOpenAlias;
 
 bool get _isMobile => Platform.isAndroid || Platform.isIOS;
@@ -59,6 +64,23 @@ void installWalletCore() {
 
   WalletAppConfig.install(WalletAppConfig.spice);
   CryptoWallet.aliasResolver = resolveOpenAlias;
+  // Android: native Monero wallets an app isolate left open when it was
+  // destroyed (swiped away) are closed by whoever takes over.
+  WalletManager.closeOrphanedWallets = closeOrphanedMoneroWallets;
+
+  // Where the wallet password is generated (mobile and macOS) it is FHSE's
+  // root, derived from the seed, and security keys can later take it out of
+  // the keystore (Settings > Advanced Security). One password, and so one FHSE
+  // file, covers every coin. Installed in every isolate, so background runs
+  // know when the password is behind keys and check in view-only instead
+  // (Monero's view key, Bitcoin's account xpub, the Ethereum address). Where
+  // the user types it (Linux, Windows), a new wallet gets the same root and
+  // the typed password unlocks it, together with a key once keys are on; only
+  // where FHSE's library loads, so a computer without it keeps the typed
+  // password as the wallet password.
+  if (wcore.WalletSecrets.holdsWalletPassword || FhseNative.isAvailable) {
+    WalletManager.passwordGuard = const FhseWalletGuard();
+  }
 
   wcore.NotificationService.windowsAppName = 'Spice Wallet';
   wcore.NotificationService.windowsAppUserModelId = 'org.magicgrants.spice';
@@ -84,14 +106,13 @@ void installWalletCore() {
   FiatRates.install(getTorProxy: TorSettingsService.sharedInstance.getProxy);
 
   // The whole logger lives in wallet-core now: console + file sinks fan out
-  // from one installed sink; the file sink is verbose-gated internally.
+  // from one installed sink; the file sink writes only with logging on.
   wcore.WalletLog.sink = wcore.CompositeLogSink([
     const wcore.DebugPrintLogSink(),
     wcore.FileLogSink(),
   ]);
-  wcore.WalletLog.isVerbose = () async =>
-      await SharedPreferencesService.get<bool>(SharedPreferencesKeys.verboseLoggingEnabled) ??
-      false;
+  wcore.WalletLog.isLoggingOn = () async =>
+      await SharedPreferencesService.get<bool>(SharedPreferencesKeys.loggingEnabled) ?? false;
 
   CryptoWallet.incomingTxNotifier = (tx, coinSymbol) {
     final decimals = _baseUnitDecimals[coinSymbol] ?? 0;
@@ -132,3 +153,31 @@ Future<bool> _ensureTorConnected() async {
 /// The wallet-core [WalletManager] provider.
 ChangeNotifierProvider<WalletManager> walletManagerProvider() =>
     ChangeNotifierProvider(create: (_) => WalletManager(coins: buildCoins));
+
+/// The shared security-key screens (wallet_fhse): Spice's name, mark and home
+/// route, and where they find the wallet manager. UI isolate only.
+void installSecurityKeysUi() {
+  SecurityKeysUi.install(
+    SecurityKeysUiConfig(
+      appName: 'Spice',
+      walletManagerOf: (context) => Provider.of<WalletManager>(context, listen: false),
+      homeRoute: '/wallet_home',
+      logo: (_) => SvgPicture.asset('assets/spice-mark.svg', width: 44, height: 44),
+    ),
+  );
+}
+
+/// The metadata backup (wallet_backup): who each Monero payment went to, its
+/// transaction key, and the address book, encrypted with the seed. Off until the
+/// user turns it on in Settings > Backup; then saved on this device, and to
+/// iCloud (iOS) or Android's Auto Backup (Android) only if the user turns that
+/// on too. UI isolate only, so a background run never writes a backup file.
+void installMetadataBackup() {
+  MetadataBackupSetup.install(
+    const MetadataBackupConfig(
+      appName: 'Spice',
+      iCloudContainer: 'iCloud.org.magicgrants.spicewallet',
+      exportFileStem: 'spice-backup',
+    ),
+  );
+}

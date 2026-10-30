@@ -7,13 +7,18 @@ import 'package:spice_wallet/util/secure_screen.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_monero/wallet_monero.dart' show MoneroWallet;
 import 'package:wallet_domain/wallet_domain.dart';
+import 'package:wallet_fhse/security_keys_ui.dart' show passAppLock;
 
 /// Shows the Monero wallet's LWS details (primary address, secret view key,
 /// restore height) so the user can whitelist the wallet on a light-wallet
 /// server. Read-only with copy buttons; the view key is hidden until tapped.
-/// Desktop: LWS keys as a modal (opened from the coin-settings modal).
-void showLwsKeysSheet(BuildContext context) {
-  showBrandSheet<void>(
+/// Desktop: LWS keys as a modal (opened from the coin-settings modal), once App
+/// Lock passes ([passAppLock]): a sheet is not a route, so the `/lws_keys`
+/// AppLockGate does not cover it.
+Future<void> showLwsKeysSheet(BuildContext context) async {
+  final reason = AppLocalizations.of(context)!.settingsAppLockUnlockReason;
+  if (!await passAppLock(context, reason: reason) || !context.mounted) return;
+  await showBrandSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (ctx) => ConstrainedBox(
