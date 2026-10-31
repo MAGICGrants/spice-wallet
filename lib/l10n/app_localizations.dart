@@ -1383,12 +1383,6 @@ abstract class AppLocalizations {
   /// **'How often your wallets sync while the app is closed.'**
   String get syncFrequencySheetSubtitle;
 
-  /// No description provided for @syncFrequencyModeLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Frequency'**
-  String get syncFrequencyModeLabel;
-
   /// No description provided for @syncFrequencyContinuous.
   ///
   /// In en, this message translates to:

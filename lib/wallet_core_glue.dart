@@ -8,7 +8,6 @@ import 'package:spice_wallet/periodic_tasks.dart' show backgroundDispatcher;
 import 'package:spice_wallet/services/foreground_sync_service.dart' show foregroundSyncCallback;
 import 'package:spice_wallet/services/notifications_service.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
-import 'package:spice_wallet/services/tor_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 
 import 'package:wallet_infra/wallet_infra.dart' as wcore;
@@ -92,7 +91,7 @@ void installWalletCore() {
     coins: buildCoins,
     workmanagerCallback: backgroundDispatcher,
     foregroundCallback: foregroundSyncCallback,
-    ensureTorConnected: _ensureTorConnected,
+    ensureTorConnected: TorSettingsService.sharedInstance.ensureConnected,
     iosBundleId: 'org.magicgrants.spicewallet',
     foregroundTitle: 'Spice Wallet',
     // Spice's spiral mark (white silhouette) as the sync notification's small
@@ -132,22 +131,6 @@ void installWalletCore() {
       if (on ?? false) show();
     });
   };
-}
-
-/// Brings spice's Tor up and reports whether it connected — the seam
-/// `wallet_background` uses so a background isolate starts the *same* Tor the
-/// wallet connects through.
-Future<bool> _ensureTorConnected() async {
-  final settings = TorSettingsService.sharedInstance;
-  await settings.ensureLoaded();
-  if (settings.torMode != TorMode.builtIn) {
-    return settings.torMode == TorMode.external;
-  }
-
-  await TorService.sharedInstance.start();
-  // The wait is bounded by the service itself and reports whether Tor came up,
-  // so there is no outer `.timeout()` and no status read afterwards.
-  return TorService.sharedInstance.waitUntilConnected(timeout: const Duration(minutes: 2));
 }
 
 /// The wallet-core [WalletManager] provider.

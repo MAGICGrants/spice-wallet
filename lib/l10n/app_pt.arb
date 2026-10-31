@@ -273,7 +273,6 @@
   "settingsNotifyNewTxsDescription": "Mostrar uma notificação quando você receber uma transação. Aumente a frequência de sincronização para vê-las mais cedo.",
   "settingsSyncFrequencyLabel": "Frequência de sincronização",
   "syncFrequencySheetSubtitle": "Com que frequência suas carteiras sincronizam enquanto o app está fechado.",
-  "syncFrequencyModeLabel": "Frequência",
   "syncFrequencyContinuous": "Contínua",
   "syncFrequencyContinuousDesc": "Sincroniza suas carteiras continuamente em segundo plano para que estejam sempre atualizadas ao abrir o app. Usa mais bateria e exige uma notificação persistente.",
   "syncFrequencyPeriodic": "Periódica",
