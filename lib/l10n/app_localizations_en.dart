@@ -719,9 +719,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncFrequencySheetSubtitle => 'How often your wallets sync while the app is closed.';
 
   @override
-  String get syncFrequencyModeLabel => 'Frequency';
-
-  @override
   String get syncFrequencyContinuous => 'Continuous';
 
   @override

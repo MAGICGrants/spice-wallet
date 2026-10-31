@@ -287,7 +287,6 @@
   "settingsNotifyNewTxsDescription": "Show a notification when you receive a transaction. Increase the sync frequency setting to see them sooner.",
   "settingsSyncFrequencyLabel": "Sync Frequency",
   "syncFrequencySheetSubtitle": "How often your wallets sync while the app is closed.",
-  "syncFrequencyModeLabel": "Frequency",
   "syncFrequencyContinuous": "Continuous",
   "syncFrequencyContinuousDesc": "Continuously sync your wallets in the background so they're always up to date when you open the app. Uses more battery and requires a persistent notification.",
   "syncFrequencyPeriodic": "Periodic",

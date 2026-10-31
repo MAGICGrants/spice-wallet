@@ -471,11 +471,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           SettingsNavTile(
             title: i18n.settingsLicensesLabel,
-            onTap: () => showLicensePage(
-              context: context,
-              applicationName: 'Spice Wallet',
-              applicationVersion: _appVersion,
-            ),
+            onTap: () => Navigator.pushNamed(context, '/open_source_licenses', arguments: true),
           ),
         ],
       ),

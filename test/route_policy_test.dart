@@ -51,6 +51,7 @@ void main() {
       '/reveal_seed',
       '/advanced_security',
       '/metadata_backup',
+      '/open_source_licenses',
     ]) {
       expect(routePolicy.requiresUnlock(name), isTrue, reason: name);
       expect(routePolicy.allows(name, unlocked: false), isFalse, reason: name);

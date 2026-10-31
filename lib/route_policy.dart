@@ -40,4 +40,5 @@ const routePolicy = RoutePolicy({
   '/advanced_security': RouteAccess.unlocked,
   '/metadata_backup': RouteAccess.unlocked,
   '/verify_seed': RouteAccess.unlocked,
+  '/open_source_licenses': RouteAccess.unlocked,
 });

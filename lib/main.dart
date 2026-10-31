@@ -9,11 +9,9 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/contact_model.dart';
-import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/coin_settings.dart';
 import 'package:spice_wallet/screens/scan_qr.dart';
-import 'package:spice_wallet/services/tor_service.dart';
 import 'package:spice_wallet/models/language_model.dart';
 import 'package:spice_wallet/models/theme_model.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
@@ -38,15 +36,18 @@ import 'package:spice_wallet/theme/palette.dart';
 import 'package:wallet_ui/wallet_ui.dart'
     show
         OnboardingRadioCard,
+        OpenSourceLicensesScreen,
         PaymentLinkChannel,
         PaymentLinkGate,
+        PrivacyPolicyScreen,
         RefusedRoute,
         RouteLinkBlocker,
+        TermsOfServiceScreen,
+        WalletAppServices,
         showBrandToastOnOverlay;
 import 'package:spice_wallet/screens/tor_settings.dart';
 import 'package:spice_wallet/screens/address_book.dart';
-import 'package:spice_wallet/screens/privacy_policy.dart';
-import 'package:spice_wallet/screens/terms_of_service.dart';
+import 'package:spice_wallet/screens/desktop/home_shell.dart' show subPageChrome;
 import 'package:spice_wallet/screens/unlock.dart';
 import 'package:spice_wallet/services/notifications_service.dart';
 import 'package:spice_wallet/periodic_tasks.dart';
@@ -147,14 +148,8 @@ class _RootApp extends StatefulWidget {
 }
 
 class _RootAppState extends State<_RootApp>
-    with WidgetsBindingObserver, AppLockLifecycle<_RootApp> {
-  bool _startedServices = false;
-  bool _walletExists = false;
+    with WidgetsBindingObserver, AppLockLifecycle<_RootApp>, WalletAppServices<_RootApp> {
   final _CurrentRouteObserver _routeObserver = _CurrentRouteObserver();
-  // Desktop-only foreground announce: desktop has no background isolate, so the
-  // foreground announces incoming txs when the wallets' history grows.
-  WalletManager? _announceManager;
-  int _lastAnnouncedTxCount = 0;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   // Every route the platform pushes is dropped; payment links
@@ -174,22 +169,6 @@ class _RootAppState extends State<_RootApp>
   static void _markSubtreeDirty(Element element) {
     element.markNeedsBuild();
     element.visitChildren(_markSubtreeDirty);
-  }
-
-  void _startServicesOnce() {
-    if (_startedServices) return;
-    _startedServices = true;
-    // Only the built-in Tor is ours to start; external/disabled must not spin up
-    // an embedded Tor, whose status would then misreport the external proxy.
-    // Fire-and-forget: a failed bootstrap is logged inside start().
-    unawaited(
-      () async {
-        await TorSettingsService.sharedInstance.loadSettings();
-        if (TorSettingsService.sharedInstance.torMode == TorMode.builtIn) {
-          await TorService.sharedInstance.start();
-        }
-      }().catchError((Object _) {}),
-    );
   }
 
   @override
@@ -222,9 +201,15 @@ class _RootAppState extends State<_RootApp>
     WidgetsBinding.instance.removeObserver(this);
     WidgetsBinding.instance.removeObserver(_routeLinkBlocker);
     _paymentLinks.dispose();
-    _announceManager?.removeListener(_announceNewTxsOnGrowth);
     super.dispose();
   }
+
+  // The services beside the screens (WalletAppServices) use the app's own.
+  @override
+  WalletManager get appWalletManager => context.read<WalletManager>();
+
+  @override
+  FiatRateModel get appFiatRates => context.read<FiatRateModel>();
 
   /// Opens the Send form for a payment link the gate let through: the user is
   /// past every lock and on a screen behind them. It only pre-fills the form,
@@ -271,29 +256,8 @@ class _RootAppState extends State<_RootApp>
   @override
   Route<dynamic>? get appLockTopRoute => _routeObserver.top;
 
-  /// Mark everything on screen as seen so a background isolate won't
-  /// re-announce a tx the user just watched arrive. Records only; fires no
-  /// notification (announce: false).
   @override
-  void onMobilePaused() {
-    if (_walletExists) {
-      unawaited(context.read<WalletManager>().notifyNewIncomingTxsAll(announce: false));
-    }
-  }
-
-  // Desktop has no background isolate to announce incoming txs, so the
-  // foreground announces when the wallets' combined history grows. The count is
-  // a cheap gate so unrelated notifications (balance, connectivity) don't hit
-  // the keystore; notifyNewIncomingTxsAll is the decider (hash-based, respects
-  // the notifications toggle).
-  void _announceNewTxsOnGrowth() {
-    final manager = _announceManager;
-    if (manager == null) return;
-    final count = manager.allWallets.fold<int>(0, (sum, w) => sum + w.txHistory.length);
-    if (count <= _lastAnnouncedTxCount) return;
-    _lastAnnouncedTxCount = count;
-    unawaited(manager.notifyNewIncomingTxsAll());
-  }
+  void onMobilePaused() => markIncomingTxsSeen();
 
   Future<void> _bootstrap() async {
     try {
@@ -311,22 +275,13 @@ class _RootAppState extends State<_RootApp>
       final initialRoute = walletExists ? '/unlock' : '/welcome';
 
       if (!mounted) return;
-      _walletExists = walletExists;
-      _startServicesOnce();
+      // Tor, fiat rates and desktop announcements, once (WalletAppServices).
+      startWalletServices(walletExists: walletExists);
       _navigatorKey.currentState?.pushReplacementNamed(initialRoute);
-
-      if (walletExists) {
-        context.read<FiatRateModel>().startService(walletManager: context.read<WalletManager>());
-
-        // Desktop announces incoming txs from the foreground (no bg isolate).
-        if (isDesktopOS) {
-          _announceManager = manager..addListener(_announceNewTxsOnGrowth);
-        }
-      }
     } catch (e) {
       log(LogLevel.error, 'App bootstrap failed: $e');
       if (!mounted) return;
-      _startServicesOnce();
+      startWalletServices(walletExists: false);
       _navigatorKey.currentState?.pushReplacementNamed('/welcome');
     }
   }
@@ -388,8 +343,18 @@ class _RootAppState extends State<_RootApp>
     '/scan_qr': (context) => ScanQrScreen(),
     '/receive': (context) => ReceiveScreen(),
     '/address_book': (context) => AddressBookScreen(),
-    '/terms_of_service': (context) => TermsOfService(),
-    '/privacy_policy': (context) => PrivacyPolicy(),
+    '/terms_of_service': (context) => TermsOfServiceScreen(
+      title: AppLocalizations.of(context)!.welcomeTermsLink,
+      chrome: subPageChrome(context),
+    ),
+    '/privacy_policy': (context) => PrivacyPolicyScreen(
+      title: AppLocalizations.of(context)!.welcomePrivacyLink,
+      chrome: subPageChrome(context),
+    ),
+    '/open_source_licenses': (context) => OpenSourceLicensesScreen(
+      title: AppLocalizations.of(context)!.settingsLicensesLabel,
+      chrome: subPageChrome(context),
+    ),
   };
 
   @override
