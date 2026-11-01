@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' show Color;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
@@ -133,9 +134,14 @@ void installWalletCore() {
   };
 }
 
+/// The wallets the app's [WalletManager] holds. Only the store-screenshot test
+/// (integration_test/store_screenshots_test.dart) swaps it, for sample ones.
+@visibleForTesting
+List<CryptoWallet> Function() appCoins = buildCoins;
+
 /// The wallet-core [WalletManager] provider.
 ChangeNotifierProvider<WalletManager> walletManagerProvider() =>
-    ChangeNotifierProvider(create: (_) => WalletManager(coins: buildCoins));
+    ChangeNotifierProvider(create: (_) => WalletManager(coins: appCoins));
 
 /// The shared security-key screens (wallet_fhse): Spice's name, mark and home
 /// route, and where they find the wallet manager. UI isolate only.
