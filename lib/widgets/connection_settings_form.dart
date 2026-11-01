@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/services/tor_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/util/logging.dart';
@@ -150,14 +151,14 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
 
     setState(() {
       _hasTested = false;
-      _errorMessage = input.isRemoteIp ? i18n.connectionRemoteIpNotAllowed : null;
+      _errorMessage = input.isRemoteIp ? i18n.shared.connectionRemoteIpNotAllowed : null;
     });
 
     if (input.hadProtocol) {
       showBrandToast(context, switch (input.protocolHint) {
-        AddressProtocolHint.onion => i18n.connectionProtocolHttpOnion,
-        AddressProtocolHint.secure => i18n.connectionProtocolHttps,
-        AddressProtocolHint.plain => i18n.connectionProtocolHttp,
+        AddressProtocolHint.onion => i18n.shared.connectionProtocolHttpOnion,
+        AddressProtocolHint.secure => i18n.shared.connectionProtocolHttps,
+        AddressProtocolHint.plain => i18n.shared.connectionProtocolHttp,
       });
     }
   }
@@ -253,9 +254,9 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
   String _connectionTypeLabel(AppLocalizations i18n, String type) {
     switch (type) {
       case 'node':
-        return i18n.connectionTypeNode;
+        return i18n.shared.connectionTypeNode;
       case 'lws':
-        return i18n.connectionTypeLws;
+        return i18n.shared.connectionTypeLws;
       default:
         return type;
     }
@@ -263,10 +264,10 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
 
   String _connectionAddressErrorMessage(AppLocalizations i18n, ConnectionAddressError error) =>
       switch (error) {
-        ConnectionAddressError.remoteIp => i18n.connectionRemoteIpNotAllowed,
-        ConnectionAddressError.pathNotSupported => i18n.connectionPathNotSupported,
-        ConnectionAddressError.localOverTor => i18n.connectionLocalOverTorNotAllowed,
-        ConnectionAddressError.onionNeedsTor => i18n.connectionOnionNeedsTor,
+        ConnectionAddressError.remoteIp => i18n.shared.connectionRemoteIpNotAllowed,
+        ConnectionAddressError.pathNotSupported => i18n.shared.connectionPathNotSupported,
+        ConnectionAddressError.localOverTor => i18n.shared.connectionLocalOverTorNotAllowed,
+        ConnectionAddressError.onionNeedsTor => i18n.shared.connectionOnionNeedsTor,
       };
 
   /// Resolves the SOCKS proxy port to pass to `wallet.testConnection`.
@@ -322,7 +323,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
     }
 
     if (_useTor && TorSettingsService.sharedInstance.torMode == TorMode.disabled) {
-      showBrandToast(context, i18n.lwsSetupTorDisabledError);
+      showBrandToast(context, i18n.shared.lwsSetupTorDisabledError);
       return;
     }
 
@@ -442,9 +443,11 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
   /// state from an unauthenticated test). Height / subaddress support aren't
   /// returned by the probe, so they're not shown.
   String _successDetail(AppLocalizations i18n) {
-    if (_useTor) return i18n.connectionReachedOverTor;
-    if (_customProxyPortController.text.trim().isNotEmpty) return i18n.connectionReachedViaProxy;
-    return i18n.connectionReachedDirect;
+    if (_useTor) return i18n.shared.connectionReachedOverTor;
+    if (_customProxyPortController.text.trim().isNotEmpty) {
+      return i18n.shared.connectionReachedViaProxy;
+    }
+    return i18n.shared.connectionReachedDirect;
   }
 
   /// Maps this wrapper's flags onto the shared test-card state. Order matches
@@ -469,7 +472,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
             ? wallet?.explorerAddressExample
             : wallet?.connectionAddressExampleForType(_connectionType)) ??
         '';
-    final addressLabel = _isExplorer ? i18n.explorerAddressLabel : i18n.address;
+    final addressLabel = _isExplorer ? i18n.explorerAddressLabel : i18n.shared.address;
 
     final hasWorkingConnection = _hasTested && _connectionSuccess && !_connectionTestIsLoading;
     final canSave = !_connectionTestIsLoading && hasWorkingConnection;
@@ -478,16 +481,16 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       labels: ConnectionFormLabels(
         proxyPortLabel: i18n.connectionProxyPortLabel,
         proxyPortHint: i18n.connectionProxyPortHint,
-        useTorLabel: i18n.lwsSetupUseTorLabel,
-        startingTorTitle: i18n.lwsSetupStartingTor,
-        testButton: i18n.lwsSetupTestConnectionButton,
-        testStop: i18n.connectionTestStop,
-        testingTitle: i18n.connectionTestingTitle,
-        testingDetail: i18n.connectionTestingDetail,
-        testAgain: i18n.connectionTestAgain,
-        resultWorksTitle: i18n.connectionResultWorksTitle,
-        resultFailedTitle: i18n.connectionResultFailedTitle,
-        resultFailedDetail: i18n.connectionResultFailedDetail,
+        useTorLabel: i18n.shared.lwsSetupUseTorLabel,
+        startingTorTitle: i18n.shared.lwsSetupStartingTor,
+        testButton: i18n.shared.lwsSetupTestConnectionButton,
+        testStop: i18n.shared.connectionTestStop,
+        testingTitle: i18n.shared.connectionTestingTitle,
+        testingDetail: i18n.shared.connectionTestingDetail,
+        testAgain: i18n.shared.connectionTestAgain,
+        resultWorksTitle: i18n.shared.connectionResultWorksTitle,
+        resultFailedTitle: i18n.shared.connectionResultFailedTitle,
+        resultFailedDetail: i18n.shared.connectionResultFailedDetail,
       ),
       addressLabel: addressLabel,
       addressHint: addressHint,
@@ -496,7 +499,7 @@ class _ConnectionSettingsFormState extends State<ConnectionSettingsForm> {
       onScan: (Platform.isAndroid || Platform.isIOS) ? _scanQrCode : null,
       errorMessage: _errorMessage,
       warning: (_savedConnectionUsedTor && torMode == TorMode.disabled)
-          ? i18n.connectionTorDisabledWarning
+          ? i18n.shared.connectionTorDisabledWarning
           : null,
       proxyController: _customProxyPortController,
       onProxyChanged: _onProxyPortChange,

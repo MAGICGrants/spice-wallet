@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
@@ -104,10 +105,12 @@ class _DesktopCoinCard extends StatelessWidget {
     }
     switch (connectionIndicatorStateFor(wallet)) {
       case ConnectionIndicatorState.ok:
-        return (BrandColors.success, '$assets${i18n.homeSynced}');
+        return (BrandColors.success, '$assets${i18n.shared.homeSynced}');
       case ConnectionIndicatorState.loading:
         final blocks = wallet.syncBlocksRemaining;
-        final text = blocks != null ? i18n.homeBlocksRemaining(blocks) : i18n.homeSyncing;
+        final text = blocks != null
+            ? i18n.shared.homeBlocksRemaining(blocks)
+            : i18n.shared.homeSyncing;
         return (BrandColors.warning, '$assets$text');
       case ConnectionIndicatorState.error:
         return (BrandColors.error, '$assets${i18n.homeNoConnection}');

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 import 'package:spice_wallet/util/socks_http.dart';
@@ -129,16 +130,16 @@ class _TorModeSelectorState extends State<TorModeSelector> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ModeSelectCard(
-          title: i18n.torSettingsModeBuiltIn,
-          description: i18n.torChoiceBuiltInDesc,
+          title: i18n.shared.torSettingsModeBuiltIn,
+          description: i18n.shared.torChoiceBuiltInDesc(appShortName),
           selected: _selected == TorMode.builtIn,
           radioLeading: true,
           onTap: () => _select(TorMode.builtIn),
         ),
         const SizedBox(height: 9),
         ModeSelectCard(
-          title: i18n.torSettingsModeExternal,
-          description: i18n.torChoiceExternalDesc,
+          title: i18n.shared.torSettingsModeExternal,
+          description: i18n.shared.torChoiceExternalDesc,
           selected: _selected == TorMode.external,
           radioLeading: true,
           onTap: () => _select(TorMode.external),
@@ -146,8 +147,8 @@ class _TorModeSelectorState extends State<TorModeSelector> {
         ),
         const SizedBox(height: 9),
         ModeSelectCard(
-          title: i18n.torSettingsModeDisabled,
-          description: i18n.torChoiceNoTorDesc,
+          title: i18n.shared.torSettingsModeDisabled,
+          description: i18n.shared.torChoiceNoTorDesc,
           selected: _selected == TorMode.disabled,
           radioLeading: true,
           onTap: () => _select(TorMode.disabled),
@@ -162,7 +163,7 @@ class _TorModeSelectorState extends State<TorModeSelector> {
       children: [
         TorPortField(
           controller: _portController,
-          label: i18n.torSettingsSocksPortLabel,
+          label: i18n.shared.torSettingsSocksPortLabel,
           onChanged: () {
             setState(() {
               _tested = false;
@@ -174,7 +175,7 @@ class _TorModeSelectorState extends State<TorModeSelector> {
         if (isMobile)
           _OrbotCheck(
             value: _useOrbot,
-            label: i18n.torChoiceOrbot,
+            label: Platform.isIOS ? i18n.shared.torUseOrbotLabelIos : i18n.shared.torUseOrbotLabel,
             onChanged: (v) {
               setState(() {
                 _useOrbot = v;
@@ -193,13 +194,13 @@ class _TorModeSelectorState extends State<TorModeSelector> {
                 testing: _testing,
                 tested: _tested,
                 ok: _testOk,
-                connectedLabel: i18n.torChoiceConnected,
-                failedLabel: i18n.torChoiceTestFailed,
+                connectedLabel: i18n.shared.torChoiceConnected,
+                failedLabel: i18n.shared.torChoiceTestFailed,
               ),
             ),
             const SizedBox(width: BrandSpacing.md),
             TorTestChip(
-              label: i18n.torSettingsTestConnectionButton,
+              label: i18n.shared.torSettingsTestConnectionButton,
               onTap: _testing ? null : _test,
             ),
           ],

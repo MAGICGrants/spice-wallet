@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/widgets/connection_settings_form.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
@@ -64,7 +65,7 @@ class ExplorerSetupScreen extends StatelessWidget {
     final form = ConnectionSettingsForm(
       coinSymbol: coinSymbol,
       target: ConnectionTarget.explorer,
-      saveButtonLabel: i18n.save,
+      saveButtonLabel: i18n.shared.save,
       onSaved: onSaved,
       pinnedSave: !asModal,
     );

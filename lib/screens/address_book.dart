@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
@@ -67,23 +68,23 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                     color: BrandColors.error,
                   ),
                   const SizedBox(width: 11),
-                  Text(i18n.addressBookDeleteContact, style: BrandText.sheetTitle),
+                  Text(i18n.shared.addressBookDeleteContact, style: BrandText.sheetTitle),
                 ],
               ),
               const SizedBox(height: 7),
               Text(
-                i18n.addressBookDeleteContactConfirmation(contact.name),
+                i18n.shared.addressBookDeleteContactConfirmation(contact.name),
                 style: BrandText.bodyMuted.copyWith(fontSize: 13, height: 1.5),
               ),
               const SizedBox(height: 18),
               SheetActions(
                 gap: 4,
                 primary: BrandButton(
-                  label: i18n.cancel,
+                  label: i18n.shared.cancel,
                   onPressed: () => Navigator.pop(sheetContext),
                 ),
                 secondary: BrandButton.ghost(
-                  label: i18n.addressBookDelete,
+                  label: i18n.shared.addressBookDelete,
                   color: BrandColors.error,
                   onPressed: () {
                     Provider.of<ContactModel>(context, listen: false).deleteContact(contact.id);
@@ -141,9 +142,9 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: Text(i18n.addressBookTitle, style: desktopTitleStyle)),
+                      Expanded(child: Text(i18n.shared.addressBookTitle, style: desktopTitleStyle)),
                       BrandButton.secondary(
-                        label: i18n.addressBookAddContact,
+                        label: i18n.shared.addressBookAddContact,
                         icon: Icons.add,
                         expand: false,
                         onPressed: _showAddContactDialog,
@@ -180,7 +181,7 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   child: BrandScreenHeader(
                     center: Text(
-                      i18n.addressBookTitle,
+                      i18n.shared.addressBookTitle,
                       style: BrandText.appBar.copyWith(fontSize: 16),
                     ),
                   ),
@@ -253,7 +254,7 @@ class _SearchField extends StatelessWidget {
               decoration: InputDecoration(
                 isCollapsed: true,
                 border: InputBorder.none,
-                hintText: i18n.addressBookSearchHint,
+                hintText: i18n.shared.addressBookSearchHint,
                 hintStyle: TextStyle(fontSize: 14, color: BrandColors.inkFaint),
               ),
             ),
@@ -280,14 +281,16 @@ class _EmptyState extends StatelessWidget {
             Icon(Icons.people_outline, size: 56, color: BrandColors.inkDisabled),
             const SizedBox(height: 16),
             Text(
-              searching ? i18n.addressBookNoSearchResults : i18n.addressBookNoContacts,
+              searching
+                  ? i18n.shared.addressBookNoSearchResults
+                  : i18n.shared.addressBookNoContacts,
               textAlign: TextAlign.center,
               style: BrandText.body,
             ),
             if (!searching) ...[
               const SizedBox(height: 6),
               Text(
-                i18n.addressBookNoContactsDescription,
+                i18n.shared.addressBookNoContactsDescription,
                 textAlign: TextAlign.center,
                 style: BrandText.bodyMuted,
               ),
@@ -446,7 +449,7 @@ class _ContactTile extends StatelessWidget {
                 children: [
                   Expanded(
                     child: BrandButton.secondary(
-                      label: AppLocalizations.of(context)!.addressBookEdit,
+                      label: AppLocalizations.of(context)!.shared.addressBookEdit,
                       dense: true,
                       onPressed: onEdit,
                     ),
@@ -454,7 +457,7 @@ class _ContactTile extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: BrandButton.ghost(
-                      label: AppLocalizations.of(context)!.addressBookDelete,
+                      label: AppLocalizations.of(context)!.shared.addressBookDelete,
                       color: BrandColors.error,
                       dense: true,
                       onPressed: onDelete,
@@ -487,7 +490,7 @@ class _AddressRow extends StatelessWidget {
     final i18n = AppLocalizations.of(context)!;
     // Treat as sensitive (auto-cleared) like other address/key copies.
     SecureClipboard.copy(address);
-    showCopyToast(context, i18n.addressCopied);
+    showCopyToast(context, i18n.shared.addressCopied);
   }
 
   @override
@@ -530,7 +533,7 @@ class _AddressRow extends StatelessWidget {
           _IconSquare(icon: Icons.copy_outlined, onTap: () => _copy(context)),
           const SizedBox(width: 8),
           BrandButton(
-            label: i18n.homeSend,
+            label: i18n.shared.homeSend,
             icon: Icons.north_east,
             dense: true,
             expand: false,
@@ -541,7 +544,7 @@ class _AddressRow extends StatelessWidget {
                 coinSymbol: coinSymbol,
                 destinationAddress: address,
                 contact: contact,
-                backLabel: i18n.addressBookTitle,
+                backLabel: i18n.shared.addressBookTitle,
               ),
             ),
           ),
@@ -665,7 +668,7 @@ class _ContactSheetState extends State<_ContactSheet> {
     final i18n = AppLocalizations.of(context)!;
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      setState(() => _error = i18n.fieldEmptyError);
+      setState(() => _error = i18n.shared.fieldEmptyError);
       return;
     }
     if (_addresses.isEmpty) {
@@ -684,7 +687,7 @@ class _ContactSheetState extends State<_ContactSheet> {
       if (mounted) Navigator.pop(context);
     } catch (_) {
       if (mounted) {
-        showBrandToast(context, i18n.unknownError);
+        showBrandToast(context, i18n.shared.unknownError);
         setState(() => _saving = false);
       }
     }
@@ -727,7 +730,9 @@ class _ContactSheetState extends State<_ContactSheet> {
                       ),
                       const SizedBox(width: 11),
                       Text(
-                        _isEditing ? i18n.addressBookEditContact : i18n.addressBookAddContact,
+                        _isEditing
+                            ? i18n.shared.addressBookEditContact
+                            : i18n.shared.addressBookAddContact,
                         style: BrandText.sheetTitle,
                       ),
                     ],
@@ -747,7 +752,7 @@ class _ContactSheetState extends State<_ContactSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SectionHeader(
-                      label: i18n.addressBookContactName,
+                      label: i18n.shared.addressBookContactName,
                       padding: const EdgeInsets.only(left: 4, bottom: 8),
                     ),
                     _nameField(name),
@@ -774,12 +779,12 @@ class _ContactSheetState extends State<_ContactSheet> {
               child: SheetActions(
                 gap: 4,
                 primary: BrandButton(
-                  label: _isEditing ? i18n.addressBookUpdate : i18n.addressBookSave,
+                  label: _isEditing ? i18n.shared.addressBookUpdate : i18n.shared.save,
                   loading: _saving,
                   onPressed: (_saving || name.isEmpty || _addresses.isEmpty) ? null : _save,
                 ),
                 secondary: BrandButton.ghost(
-                  label: i18n.cancel,
+                  label: i18n.shared.cancel,
                   color: BrandColors.inkMuted,
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -828,7 +833,7 @@ class _ContactSheetState extends State<_ContactSheet> {
               decoration: InputDecoration(
                 isCollapsed: true,
                 border: InputBorder.none,
-                hintText: i18n.addressBookNameHint,
+                hintText: i18n.shared.addressBookNameHint,
                 hintStyle: TextStyle(fontSize: 14.5, color: BrandColors.inkFaint),
               ),
             ),
@@ -922,7 +927,7 @@ class _ContactSheetState extends State<_ContactSheet> {
               MiniActionButton(
                 bordered: true,
                 icon: Icons.content_paste_outlined,
-                label: i18n.sendPasteButton,
+                label: i18n.shared.sendPasteButton,
                 onTap: () => _paste(wallet),
               ),
               if (Platform.isAndroid || Platform.isIOS) ...[
@@ -930,7 +935,7 @@ class _ContactSheetState extends State<_ContactSheet> {
                 MiniActionButton(
                   bordered: true,
                   icon: Icons.qr_code_scanner,
-                  label: i18n.sendScanButton,
+                  label: i18n.shared.sendScanButton,
                   onTap: () => _scan(wallet),
                 ),
               ],

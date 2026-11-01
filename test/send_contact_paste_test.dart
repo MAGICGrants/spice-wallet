@@ -22,9 +22,11 @@ import 'package:wallet_infra/wallet_infra.dart';
 import 'package:wallet_monero/wallet_monero.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/send.dart';
-import 'package:spice_wallet/widgets/ui/ui.dart' show BrandButton, ConfirmSendView, SendAmountCard;
+import 'package:spice_wallet/widgets/ui/ui.dart'
+    show BrandButton, ConfirmSendView, SendAmountCard, WalletUiLocalizations;
 
 /// A Bitcoin wallet with only what Send and the confirm sheet read. A real one
 /// would need keys and an Electrum server.
@@ -189,7 +191,10 @@ void main() {
           ChangeNotifierProvider<FiatRateModel>(create: (_) => FiatRateModel()),
         ],
         child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: const [
+            ...AppLocalizations.localizationsDelegates,
+            WalletUiLocalizations.delegate,
+          ],
           supportedLocales: AppLocalizations.supportedLocales,
           onGenerateRoute: (settings) => MaterialPageRoute(
             settings: RouteSettings(name: '/send', arguments: args),
@@ -206,7 +211,7 @@ void main() {
 
   /// Picks Alice in Send's own contact picker.
   Future<void> pickAlice(WidgetTester tester) async {
-    await tester.tap(find.text(l10n(tester).sendContactsButton));
+    await tester.tap(find.text(l10n(tester).shared.sendContactsButton));
     await settle(tester);
     await tester.tap(find.text('Alice'));
     await settle(tester);
@@ -228,7 +233,7 @@ void main() {
       '1',
     );
     await settle(tester);
-    final sendButton = find.widgetWithText(BrandButton, l10n(tester).sendSendButton);
+    final sendButton = find.widgetWithText(BrandButton, l10n(tester).shared.sendSendButton);
     expect(sendButton, findsOneWidget);
     await tester.tap(sendButton);
     await settle(tester);
@@ -264,7 +269,7 @@ void main() {
       // Before: the contact card names Alice over her address, with Paste beside it.
       expect(find.text('Alice'), findsOneWidget);
       expect(find.text(short(alice)), findsOneWidget);
-      final paste = find.text(l10n(tester).sendPasteButton);
+      final paste = find.text(l10n(tester).shared.sendPasteButton);
       expect(paste, findsOneWidget);
 
       await tester.tap(paste);
@@ -355,7 +360,7 @@ void main() {
       await selectBitcoin(tester);
       expect(find.text('Alice'), findsOneWidget);
 
-      await tester.tap(find.text(l10n(tester).sendPasteButton));
+      await tester.tap(find.text(l10n(tester).shared.sendPasteButton));
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('Alice'), findsNothing);

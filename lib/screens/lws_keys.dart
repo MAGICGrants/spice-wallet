@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/util/secure_clipboard.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -16,7 +17,7 @@ import 'package:wallet_fhse/security_keys_ui.dart' show passAppLock;
 /// Lock passes ([passAppLock]): a sheet is not a route, so the `/lws_keys`
 /// AppLockGate does not cover it.
 Future<void> showLwsKeysSheet(BuildContext context) async {
-  final reason = AppLocalizations.of(context)!.settingsAppLockUnlockReason;
+  final reason = AppLocalizations.of(context)!.shared.unlockWalletReason;
   if (!await passAppLock(context, reason: reason) || !context.mounted) return;
   await showBrandSheet<void>(
     context: context,
@@ -63,7 +64,7 @@ class _LwsKeysScreenState extends State<LwsKeysScreen> with SecureScreenMixin {
     if (value.isEmpty) return;
     SecureClipboard.copy(value);
     final i18n = AppLocalizations.of(context)!;
-    showCopyToast(context, i18n.copiedToClipboard);
+    showCopyToast(context, i18n.shared.copiedToClipboard);
   }
 
   @override
@@ -73,13 +74,13 @@ class _LwsKeysScreenState extends State<LwsKeysScreen> with SecureScreenMixin {
 
     return LwsKeysView(
       labels: LwsKeysLabels(
-        title: i18n.lwsKeysTitle,
-        description: i18n.lwsDetailsDescription,
-        primaryAddressLabel: i18n.lwsKeysPrimaryAddress,
-        viewKeyLabel: i18n.lwsKeysSecretViewKey,
-        restoreHeightLabel: i18n.lwsKeysRestoreHeight,
-        reveal: i18n.generateSeedReveal,
-        warning: i18n.lwsKeysWarning,
+        title: i18n.shared.lwsKeysTitle,
+        description: i18n.shared.lwsDetailsDescription,
+        primaryAddressLabel: i18n.shared.lwsKeysPrimaryAddress,
+        viewKeyLabel: i18n.shared.lwsKeysSecretViewKey,
+        restoreHeightLabel: i18n.shared.lwsKeysRestoreHeight,
+        reveal: i18n.shared.generateSeedReveal,
+        warning: i18n.shared.lwsKeysWarning,
       ),
       // Desktop modal matches the other settings modals' 34px header icon; the
       // mobile full-screen header keeps the compact 22px size.

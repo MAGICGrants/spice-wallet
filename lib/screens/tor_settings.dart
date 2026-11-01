@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/screens/desktop/tor_choice_view.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
@@ -10,8 +11,9 @@ import 'package:spice_wallet/util/socks_http.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 
 /// Onboarding "Tor choice" — a three-way decision (Built-in / External / No Tor)
-/// made before any connection. All start unselected; Continue unlocks once a
-/// mode is picked (External also requires a passing connection test).
+/// made before any connection. Built-in, the recommended mode, starts selected;
+/// External needs a passing connection test before Continue. Only Continue
+/// saves the choice, and only then does a chosen Built-in start.
 class TorSettingsScreen extends StatelessWidget {
   const TorSettingsScreen({super.key});
 
@@ -54,27 +56,27 @@ class TorSettingsScreen extends StatelessWidget {
     final i18n = AppLocalizations.of(context)!;
 
     final labels = TorChoiceLabels(
-      title: i18n.torChoiceTitle,
+      title: i18n.shared.torChoiceTitle,
       subtitle: i18n.torChoiceSubtitle,
-      builtIn: i18n.torSettingsModeBuiltIn,
-      builtInDesc: i18n.torChoiceBuiltInDesc,
-      external: i18n.torSettingsModeExternal,
-      externalDesc: i18n.torChoiceExternalDesc,
-      noTor: i18n.torSettingsModeDisabled,
-      noTorDesc: i18n.torChoiceNoTorDesc,
-      socksPortLabel: i18n.torSettingsSocksPortLabel,
-      orbotLabel: i18n.torChoiceOrbot,
-      testButton: i18n.torSettingsTestConnectionButton,
-      connected: i18n.torChoiceConnected,
-      testFailed: i18n.torChoiceTestFailed,
-      continueText: i18n.continueText,
+      builtIn: i18n.shared.torSettingsModeBuiltIn,
+      builtInDesc: i18n.shared.torChoiceBuiltInDesc(appShortName),
+      external: i18n.shared.torSettingsModeExternal,
+      externalDesc: i18n.shared.torChoiceExternalDesc,
+      noTor: i18n.shared.torSettingsModeDisabled,
+      noTorDesc: i18n.shared.torChoiceNoTorDesc,
+      socksPortLabel: i18n.shared.torSettingsSocksPortLabel,
+      orbotLabel: Platform.isIOS ? i18n.shared.torUseOrbotLabelIos : i18n.shared.torUseOrbotLabel,
+      testButton: i18n.shared.torSettingsTestConnectionButton,
+      connected: i18n.shared.torChoiceConnected,
+      testFailed: i18n.shared.torChoiceTestFailed,
+      continueText: i18n.shared.continueText,
     );
 
     if (isDesktop) {
       return DesktopTorChoiceView(
         labels: labels,
-        notePrivacy: i18n.onboardingTorNotePrivacy,
-        noteChangeable: i18n.onboardingTorNoteChangeable,
+        notePrivacy: i18n.shared.onboardingTorNotePrivacy,
+        noteChangeable: i18n.shared.onboardingTorNoteChangeable,
         onTest: _test,
         onContinue: ({required modeIndex, required port, required useOrbot}) =>
             _continue(context, modeIndex: modeIndex, port: port, useOrbot: useOrbot),

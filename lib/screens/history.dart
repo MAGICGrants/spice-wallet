@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/consts.dart' as consts;
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
@@ -138,10 +139,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
         mimeType: 'text/csv',
         sharePositionOrigin: origin,
       );
-      if (saved && mounted) showBrandToast(context, i18n.historyExported);
+      if (saved && mounted) showBrandToast(context, i18n.shared.historyExported);
     } catch (e) {
       log(LogLevel.error, '[History] CSV export failed: $e');
-      if (mounted) showBrandToast(context, i18n.historyExportFailed);
+      if (mounted) showBrandToast(context, i18n.shared.historyExportFailed);
     }
   }
 
@@ -216,13 +217,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final typeOptions = [
       _Option(
         '${consts.txDirectionIncoming}',
-        i18n.coinHomeReceived,
+        i18n.shared.coinHomeReceived,
         _typeIcon(Icons.south, BrandColors.success, BrandColors.successBg),
         typeCount(consts.txDirectionIncoming),
       ),
       _Option(
         '${consts.txDirectionOutgoing}',
-        i18n.coinHomeSent,
+        i18n.shared.coinHomeSent,
         _typeIcon(Icons.north, BrandColors.primary, BrandColors.surfaceAccent),
         typeCount(consts.txDirectionOutgoing),
       ),
@@ -262,7 +263,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
 
     final list = entries.isEmpty
-        ? Center(child: Text(i18n.homeNoTransactions, style: BrandText.bodyMuted))
+        ? Center(child: Text(i18n.shared.noTransactions, style: BrandText.bodyMuted))
         : _Timeline(
             entries: entries,
             i18n: i18n,
@@ -298,7 +299,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             const SizedBox(width: 7),
             _FilterPill(
-              label: i18n.historyFilterType,
+              label: i18n.shared.historyFilterType,
               count: selectedCount(typeOptions, (v) => _typesHidden.contains(int.parse(v))),
               open: _open == _Filter.type,
               onTap: () => _toggleOpen(_Filter.type),
@@ -340,7 +341,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
       if (_open == _Filter.type)
         _FilterPanel(
-          header: i18n.historyFilterType,
+          header: i18n.shared.historyFilterType,
           options: typeOptions,
           isSelected: (v) => !_typesHidden.contains(int.parse(v)),
           gutter: gutter,
@@ -384,10 +385,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
               padding: const EdgeInsets.fromLTRB(44, 30, 44, 20),
               child: Row(
                 children: [
-                  Expanded(child: Text(i18n.historyTitle, style: desktopTitleStyle)),
+                  Expanded(child: Text(i18n.shared.historyTitle, style: desktopTitleStyle)),
                   Builder(
                     builder: (anchor) => BrandButton.secondary(
-                      label: i18n.historyExportCsv,
+                      label: i18n.shared.historyExportCsv,
                       icon: Icons.file_download_outlined,
                       expand: false,
                       onPressed: canExport ? () => export(anchor) : null,
@@ -416,9 +417,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   child: BrandScreenHeader(
-                    center: Text(i18n.historyTitle, style: BrandText.appBar.copyWith(fontSize: 16)),
+                    center: Text(
+                      i18n.shared.historyTitle,
+                      style: BrandText.appBar.copyWith(fontSize: 16),
+                    ),
                     action: Tooltip(
-                      message: i18n.historyExportCsv,
+                      message: i18n.shared.historyExportCsv,
                       child: Opacity(
                         opacity: canExport ? 1 : 0.4,
                         child: Builder(
@@ -501,7 +505,10 @@ class _Timeline extends StatelessWidget {
         return TxActivityRow(
           tx: e.tx,
           asset: e.asset,
-          labels: TxActivityLabels(received: i18n.coinHomeReceived, sent: i18n.coinHomeSent),
+          labels: TxActivityLabels(
+            received: i18n.shared.coinHomeReceived,
+            sent: i18n.shared.coinHomeSent,
+          ),
           fiatRate: fiatRate,
           showDivider: next is TxEntry,
           onTap: () => onTapTx(e.asset, e.tx),
@@ -589,12 +596,17 @@ class _RecipientPanel extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 5),
                       child: Text(
-                        i18n.historyFilterReset,
+                        i18n.shared.historyFilterReset,
                         style: TextStyle(fontSize: 13, color: BrandColors.primary),
                       ),
                     ),
                   ),
-                  BrandButton(label: i18n.done, onPressed: onDone, expand: false, dense: true),
+                  BrandButton(
+                    label: i18n.shared.done,
+                    onPressed: onDone,
+                    expand: false,
+                    dense: true,
+                  ),
                 ],
               ),
             ),
@@ -642,7 +654,7 @@ class _RecipientPanel extends StatelessWidget {
             MiniActionButton(
               bordered: true,
               icon: Icons.content_paste_outlined,
-              label: i18n.sendPasteButton,
+              label: i18n.shared.sendPasteButton,
               onTap: onPaste,
             ),
             if (Platform.isAndroid || Platform.isIOS) ...[
@@ -650,7 +662,7 @@ class _RecipientPanel extends StatelessWidget {
               MiniActionButton(
                 bordered: true,
                 icon: Icons.qr_code_scanner,
-                label: i18n.sendScanButton,
+                label: i18n.shared.sendScanButton,
                 onTap: onScan,
               ),
             ],
@@ -851,12 +863,17 @@ class _FilterPanel extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 5),
                       child: Text(
-                        i18n.historyFilterReset,
+                        i18n.shared.historyFilterReset,
                         style: TextStyle(fontSize: 13, color: BrandColors.primary),
                       ),
                     ),
                   ),
-                  BrandButton(label: i18n.done, onPressed: onDone, expand: false, dense: true),
+                  BrandButton(
+                    label: i18n.shared.done,
+                    onPressed: onDone,
+                    expand: false,
+                    dense: true,
+                  ),
                 ],
               ),
             ),

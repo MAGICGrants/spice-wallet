@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
 import 'package:spice_wallet/screens/explorer_setup.dart';
@@ -65,8 +66,8 @@ List<Widget> coinSettingsGroups(BuildContext context, CryptoWallet wallet) {
         label: i18n.settingsCoinKeysSection,
         tiles: [
           SettingsLinkTile(
-            title: i18n.lwsKeysTitle,
-            linkLabel: i18n.settingsLwsViewKeysButton,
+            title: i18n.shared.lwsKeysTitle,
+            linkLabel: i18n.shared.settingsLwsViewKeysButton,
             onTap: () =>
                 isDesktop ? showLwsKeysSheet(context) : Navigator.pushNamed(context, '/lws_keys'),
           ),
@@ -96,7 +97,7 @@ void showCoinSettingsSheet(BuildContext context, {required String coinSymbol}) {
           Center(
             child: CoinBadge(
               wallet: wallet,
-              label: '${wallet.blockchainName} ${i18n.settingsTitle}',
+              label: '${wallet.blockchainName} ${i18n.shared.settingsTitle}',
             ),
           ),
           const SizedBox(height: 18),
@@ -143,7 +144,7 @@ class CoinSettingsScreen extends StatelessWidget {
                     onBack: () => Navigator.pop(context),
                     center: CoinBadge(
                       wallet: wallet,
-                      label: '${wallet.blockchainName} ${i18n.settingsTitle}',
+                      label: '${wallet.blockchainName} ${i18n.shared.settingsTitle}',
                     ),
                   ),
                 ),

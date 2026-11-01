@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/screens/desktop/home_shell.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/util/secure_screen.dart';
@@ -17,7 +18,7 @@ import 'package:wallet_fhse/security_keys_ui.dart' show passAppLock;
 /// App Lock passes ([passAppLock]): a sheet is not a route, so the
 /// `/reveal_seed` AppLockGate does not cover it. Mobile keeps that route.
 Future<void> showRevealSeedSheet(BuildContext context) async {
-  final reason = AppLocalizations.of(context)!.revealSeedAuthReason;
+  final reason = AppLocalizations.of(context)!.shared.revealSeedAuthReason;
   if (!await passAppLock(context, reason: reason) || !context.mounted) return;
   return showBrandSheet<void>(
     context: context,
@@ -82,10 +83,10 @@ class _RevealSeedScreenState extends State<RevealSeedScreen> with SecureScreenMi
         SeedGrid(
           words: _words,
           revealed: _revealed,
-          revealLabel: i18n.generateSeedReveal,
+          revealLabel: i18n.shared.generateSeedReveal,
           // Screenshots aren't blocked on a desktop OS, and the iOS block is not
           // known to hold on a Mac, so drop the safety line in either.
-          screenshotNote: isDesktop ? null : i18n.generateSeedScreenshotNote,
+          screenshotNote: isDesktop ? null : i18n.shared.generateSeedScreenshotNote,
           onReveal: () => setState(() => _revealed = true),
         ),
         if (_restoreDate != null) ...[
@@ -93,11 +94,10 @@ class _RevealSeedScreenState extends State<RevealSeedScreen> with SecureScreenMi
           // Blurred alongside the grid until revealed (the grid owns the pill).
           _blurUntilRevealed(
             SeedBirthdayCard(
-              label: i18n.generateSeedBirthdayLabel,
-              reason: i18n.generateSeedBirthdayReason,
-              value: DateFormat.yMMM(
-                Localizations.localeOf(context).toString(),
-              ).format(_restoreDate!),
+              label: i18n.shared.generateSeedBirthdayLabel,
+              reason: i18n.shared.generateSeedBirthdayReason,
+              value: DateFormat.yMMM(Localizations.localeOf(context).toString())
+                  .format(_restoreDate!),
             ),
           ),
         ],
@@ -154,7 +154,7 @@ class _RevealSeedScreenState extends State<RevealSeedScreen> with SecureScreenMi
               ),
             ),
             const SizedBox(height: BrandSpacing.lg),
-            Text(i18n.generateSeedTitleCovered, style: BrandText.title),
+            Text(i18n.shared.generateSeedTitleCovered, style: BrandText.title),
             const SizedBox(height: BrandSpacing.sm),
             Text(i18n.revealSeedSubtitleRevealed, style: BrandText.bodyMuted),
             const SizedBox(height: BrandSpacing.xl),

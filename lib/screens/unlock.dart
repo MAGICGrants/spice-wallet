@@ -6,6 +6,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/widgets/spinning_logo.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -77,8 +78,8 @@ class _UnlockScreenState extends State<UnlockScreen> {
       // A passcode alone keeps the generic "Unlock".
       if (types.isEmpty) return;
       final label = types.contains(BiometricType.face)
-          ? i18n.unlockWithFaceId
-          : i18n.unlockWithTouchId;
+          ? i18n.shared.unlockWithFaceId
+          : i18n.shared.unlockWithTouchId;
       if (mounted) setState(() => _biometricLabel = label);
     } catch (_) {
       // Leave the generic label.
@@ -92,8 +93,10 @@ class _UnlockScreenState extends State<UnlockScreen> {
   }
 
   Future<void> _promptUnlock() async {
-    final i18n = AppLocalizations.of(context)!;
-    final outcome = await unlockAppLockWithDevice(context, reason: i18n.unlockReason);
+    final outcome = await unlockAppLockWithDevice(
+      context,
+      reason: AppLocalizations.of(context)!.shared.unlockWalletReason,
+    );
     if (mounted) _show(outcome);
   }
 
@@ -106,7 +109,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
   Future<void> _unlockWithPassword() async {
     final i18n = AppLocalizations.of(context)!;
     if (_passwordController.text.isEmpty) {
-      setState(() => _error = i18n.fieldEmptyError);
+      setState(() => _error = i18n.shared.fieldEmptyError);
       return;
     }
     setState(() {
@@ -140,13 +143,13 @@ class _UnlockScreenState extends State<UnlockScreen> {
         break;
       case AppLockUnlock.failed:
         if (typesWalletPassword) {
-          setState(() => _error = i18n.unlockUnableToAuthError);
+          setState(() => _error = i18n.shared.unlockUnableToAuthError);
           return;
         }
         setState(() => _offerRecoveryPhrase = true);
-        showBrandToast(context, i18n.unlockUnableToAuthError);
+        showBrandToast(context, i18n.shared.unlockUnableToAuthError);
       case AppLockUnlock.wrongPassword:
-        setState(() => _error = i18n.unlockIncorrectPasswordError);
+        setState(() => _error = i18n.shared.unlockIncorrectPasswordError);
       case AppLockUnlock.boundToAnotherPc:
         setState(() => _error = FhseLocalizations.of(context).unlockBoundToAnotherPc);
     }
@@ -166,8 +169,8 @@ class _UnlockScreenState extends State<UnlockScreen> {
       ),
       labels: UnlockLabels(
         title: i18n.unlockLockedTitle,
-        passwordHint: i18n.unlockPasswordHint,
-        unlockButton: i18n.unlockButton,
+        passwordHint: i18n.shared.unlockPasswordHint,
+        unlockButton: i18n.shared.unlockButton,
         passwordLabel: i18n.unlockPasswordLabel,
       ),
       // Password entry on a desktop OS. Everywhere else, the iOS build on a Mac

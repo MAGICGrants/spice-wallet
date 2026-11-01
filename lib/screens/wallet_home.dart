@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/periodic_tasks.dart' show applyBackgroundTaskRegistration;
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
@@ -155,7 +156,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> with WidgetsBinding
             label: i18n.homeTotalBalanceLabel,
             fiatRate: fiatRate,
             fiatTotal: anyPrice ? totalFiat : null,
-            fiatErrorTooltip: i18n.homeFiatApiError,
+            fiatErrorTooltip: i18n.shared.homeFiatApiError,
             footer: pricesKnown && totalFiat > 0
                 ? AllocationBar(slices: HomeSections.allocation(chainCoins, fiatRate.rateFor))
                 : null,
@@ -179,7 +180,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> with WidgetsBinding
         backLabel: i18n.navigationBarHome,
       ),
     );
-    void swap() => showBrandToast(context, i18n.coinHomeSwapComingSoon);
+    void swap() => showBrandToast(context, i18n.shared.coinHomeSwapComingSoon);
     final incoming = sections.incoming(coins);
     final chart = sections.chart(coins);
     final checklist = securityChecklistCard(
@@ -194,9 +195,9 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> with WidgetsBinding
         child: DesktopHomeLayout(
           balance: hero ?? const SizedBox.shrink(),
           actions: DesktopHomeActions(
-            receiveLabel: i18n.homeReceive,
-            sendLabel: i18n.homeSend,
-            swapLabel: i18n.coinHomeSwap,
+            receiveLabel: i18n.shared.homeReceive,
+            sendLabel: i18n.shared.homeSend,
+            swapLabel: i18n.shared.coinHomeSwap,
             onReceive: receive,
             onSend: send,
             onSwap: swap,
@@ -219,9 +220,9 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> with WidgetsBinding
       ),
       balance: hero,
       actions: HomeActionRow(
-        receiveLabel: i18n.homeReceive,
-        sendLabel: i18n.homeSend,
-        swapLabel: i18n.coinHomeSwap,
+        receiveLabel: i18n.shared.homeReceive,
+        sendLabel: i18n.shared.homeSend,
+        swapLabel: i18n.shared.coinHomeSwap,
         onReceive: receive,
         onSend: send,
         onSwap: swap,
@@ -300,11 +301,13 @@ class _CoinCard extends StatelessWidget {
     }
     switch (connectionIndicatorStateFor(wallet)) {
       case ConnectionIndicatorState.ok:
-        return (BrandColors.success, '$assets${i18n.homeSynced}');
+        return (BrandColors.success, '$assets${i18n.shared.homeSynced}');
       case ConnectionIndicatorState.loading:
         // Monero node syncing exposes a block count; show "x blocks left".
         final blocks = wallet.syncBlocksRemaining;
-        final text = blocks != null ? i18n.homeBlocksRemaining(blocks) : i18n.homeSyncing;
+        final text = blocks != null
+            ? i18n.shared.homeBlocksRemaining(blocks)
+            : i18n.shared.homeSyncing;
         return (BrandColors.warning, '$assets$text');
       case ConnectionIndicatorState.error:
         return (BrandColors.error, '$assets${i18n.homeNoConnection}');

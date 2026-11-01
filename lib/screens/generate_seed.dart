@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/create_wallet.dart';
@@ -93,18 +94,20 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
         logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
         step: 4,
         totalSteps: desktopOnboardingSteps,
-        title: i18n.generateSeedTitle,
-        description: i18n.generateSeedSubtitleRevealed,
+        title: i18n.shared.generateSeedTitle,
+        description: i18n.shared.generateSeedSubtitleRevealed,
         seedWords: _seed,
-        birthdayLabel: i18n.generateSeedBirthdayLabel,
-        birthdayReason: i18n.generateSeedBirthdayReason,
+        birthdayLabel: i18n.shared.generateSeedBirthdayLabel,
+        birthdayReason: i18n.shared.generateSeedBirthdayReason,
         birthdayValue: _restoreDate != null
             ? DateFormat.yMMM(Localizations.localeOf(context).toString()).format(_restoreDate!)
             : null,
-        confirmLabel: i18n.generateSeedConfirm,
-        passwordNote: typesWalletPassword ? i18n.generateSeedPasswordNote : null,
-        revealLabel: i18n.generateSeedReveal,
-        continueText: i18n.generateSeedContinueButton,
+        confirmLabel: i18n.shared.generateSeedConfirm(_seed.length),
+        passwordNote: typesWalletPassword
+            ? i18n.shared.generateSeedPasswordNote(appShortName)
+            : null,
+        revealLabel: i18n.shared.generateSeedReveal,
+        continueText: i18n.shared.continueText,
         loading: _isCreating,
         // The iOS build on a Mac shows this layout but keeps the mobile wallet
         // password, so it creates the wallet here with no password step.
@@ -120,23 +123,22 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
       seedWords: _seed,
       birthdayCard: _restoreDate != null
           ? SeedBirthdayCard(
-              label: i18n.generateSeedBirthdayLabel,
-              reason: i18n.generateSeedBirthdayReason,
-              value: DateFormat.yMMM(
-                Localizations.localeOf(context).toString(),
-              ).format(_restoreDate!),
+              label: i18n.shared.generateSeedBirthdayLabel,
+              reason: i18n.shared.generateSeedBirthdayReason,
+              value: DateFormat.yMMM(Localizations.localeOf(context).toString())
+                  .format(_restoreDate!),
             )
           : null,
       onContinue: _continue,
       labels: GenerateSeedLabels(
-        titleCovered: i18n.generateSeedTitleCovered,
-        titleRevealed: i18n.generateSeedTitle,
+        titleCovered: i18n.shared.generateSeedTitleCovered,
+        titleRevealed: i18n.shared.generateSeedTitle,
         subtitleCovered: i18n.generateSeedSubtitleCovered,
-        subtitleRevealed: i18n.generateSeedSubtitleRevealed,
-        reveal: i18n.generateSeedReveal,
-        screenshotNote: i18n.generateSeedScreenshotNote,
-        confirm: i18n.generateSeedConfirm,
-        continueText: i18n.generateSeedContinueButton,
+        subtitleRevealed: i18n.shared.generateSeedSubtitleRevealed,
+        reveal: i18n.shared.generateSeedReveal,
+        screenshotNote: i18n.shared.generateSeedScreenshotNote,
+        confirm: i18n.shared.generateSeedConfirm(_seed.length),
+        continueText: i18n.shared.continueText,
       ),
     );
   }

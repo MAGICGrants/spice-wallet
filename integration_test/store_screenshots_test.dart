@@ -72,11 +72,11 @@ void main() {
       await _tap(tester, find.text('No Tor'));
       await _tap(tester, find.text('Continue'));
       await _tap(tester, find.text('Continue'));
-      await _tap(tester, find.text('Restore from a recovery phrase'));
+      await _tap(tester, find.text('Restore Existing Wallet'));
       await Clipboard.setData(const ClipboardData(text: _seed));
       await _tap(tester, find.byTooltip('Paste'));
       // Restore waits for a scan-from choice; the sheet offers this month.
-      await _tap(tester, find.text('Scan from'));
+      await _tap(tester, find.text('Scan From'));
       await _tap(tester, find.text('Done'));
       await _tap(tester, find.text('Restore').last);
       // No backup to import: the sample wallets start from their seed alone.
@@ -108,7 +108,7 @@ void main() {
       }
 
       await _open(tester, '/receive', ReceiveScreenArgs(coinSymbol: 'XMR'));
-      await _waitFor(tester, find.text('Copy address'));
+      await _waitFor(tester, find.text('Copy Address'));
       await _shot(tester, 'receive');
       await _back(tester);
 

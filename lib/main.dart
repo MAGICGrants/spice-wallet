@@ -15,6 +15,7 @@ import 'package:spice_wallet/screens/scan_qr.dart';
 import 'package:spice_wallet/models/language_model.dart';
 import 'package:spice_wallet/models/theme_model.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/screens/settings.dart';
 import 'package:spice_wallet/screens/connection_setup.dart';
 import 'package:spice_wallet/screens/explorer_setup.dart';
@@ -44,6 +45,7 @@ import 'package:wallet_ui/wallet_ui.dart'
         RouteLinkBlocker,
         TermsOfServiceScreen,
         WalletAppServices,
+        WalletUiLocalizations,
         showBrandToastOnOverlay;
 import 'package:spice_wallet/screens/tor_settings.dart';
 import 'package:spice_wallet/screens/address_book.dart';
@@ -229,7 +231,7 @@ class _RootAppState extends State<_RootApp>
       final name = wallet?.blockchainName ?? request.coinSymbol;
       showBrandToastOnOverlay(
         overlay,
-        AppLocalizations.of(overlay.context)!.deepLinkCoinNotConfigured(name),
+        AppLocalizations.of(overlay.context)!.shared.deepLinkCoinNotConfigured(name),
       );
       return;
     }
@@ -241,7 +243,7 @@ class _RootAppState extends State<_RootApp>
         coinSymbol: request.coinSymbol,
         destinationAddress: request.address,
         amount: request.amount,
-        backLabel: overlayContext == null ? null : AppLocalizations.of(overlayContext)?.back,
+        backLabel: overlayContext == null ? null : AppLocalizations.of(overlayContext)?.shared.back,
       ),
     );
   }
@@ -320,7 +322,7 @@ class _RootAppState extends State<_RootApp>
     '/create_wallet': (context) => CreateWalletScreen(),
     '/generate_seed': (context) => GenerateSeedScreen(),
     '/lws_keys': (context) => AppLockGate(
-      reason: AppLocalizations.of(context)!.settingsAppLockUnlockReason,
+      reason: AppLocalizations.of(context)!.shared.unlockWalletReason,
       child: LwsKeysScreen(),
     ),
     '/restore_wallet': (context) => RestoreWalletScreen(),
@@ -336,7 +338,7 @@ class _RootAppState extends State<_RootApp>
     '/settings': (context) => SettingsScreen(),
     '/history': (context) => const HistoryScreen(),
     '/reveal_seed': (context) => AppLockGate(
-      reason: AppLocalizations.of(context)!.revealSeedAuthReason,
+      reason: AppLocalizations.of(context)!.shared.revealSeedAuthReason,
       child: const RevealSeedScreen(),
     ),
     '/send': (context) => SendScreen(),
@@ -352,7 +354,7 @@ class _RootAppState extends State<_RootApp>
       chrome: subPageChrome(context),
     ),
     '/open_source_licenses': (context) => OpenSourceLicensesScreen(
-      title: AppLocalizations.of(context)!.settingsLicensesLabel,
+      title: AppLocalizations.of(context)!.shared.settingsLicensesLabel,
       chrome: subPageChrome(context),
     ),
   };
@@ -375,6 +377,7 @@ class _RootAppState extends State<_RootApp>
         ...AppLocalizations.localizationsDelegates,
         FhseLocalizations.delegate,
         BackupLocalizations.delegate,
+        WalletUiLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
       theme: _themeData,

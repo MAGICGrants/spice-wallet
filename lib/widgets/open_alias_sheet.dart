@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wallet_domain/wallet_domain.dart' show OpenAliasMode;
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/widgets/fiat_api_settings_sheet.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -12,17 +13,17 @@ Future<bool?> showOpenAliasSheet(BuildContext context) {
   return showOpenAliasSettingsSheet(
     context,
     labels: OpenAliasSettingsLabels(
-      title: i18n.settingsOpenAliasSettingsLabel,
-      subtitle: i18n.openAliasSettingsSheetSubtitle,
-      modeLabel: i18n.fiatApiSettingsModeLabel,
-      torOnly: i18n.fiatApiSettingsModeTorOnly,
-      torOnlyDesc: i18n.openAliasModeTorOnlyDesc,
-      clearnet: i18n.fiatApiSettingsModeClearnet,
-      clearnetDesc: i18n.openAliasModeClearnetDesc,
-      disabled: i18n.fiatApiSettingsModeDisabled,
-      disabledDesc: i18n.openAliasModeDisabledDesc,
-      save: i18n.save,
-      cancel: i18n.cancel,
+      title: i18n.shared.settingsOpenAliasSettingsLabel,
+      subtitle: i18n.shared.openAliasSettingsSheetSubtitle,
+      modeLabel: i18n.shared.fiatApiSettingsModeLabel,
+      torOnly: i18n.shared.fiatApiSettingsModeTorOnly,
+      torOnlyDesc: i18n.shared.openAliasModeTorOnlyDesc,
+      clearnet: i18n.shared.clearnetOnlyChoice,
+      clearnetDesc: i18n.shared.openAliasModeClearnetDesc,
+      disabled: i18n.shared.fiatApiSettingsModeDisabled,
+      disabledDesc: i18n.shared.openAliasModeDisabledDesc,
+      save: i18n.shared.save,
+      cancel: i18n.shared.cancel,
     ),
   );
 }

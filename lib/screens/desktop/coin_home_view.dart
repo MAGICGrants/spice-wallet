@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:spice_wallet/widgets/lws_approval_notice.dart';
 import 'package:spice_wallet/screens/desktop/home_shell.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_settings.dart';
 import 'package:spice_wallet/screens/explorer_setup.dart';
@@ -100,7 +101,7 @@ class DesktopCoinHomeView extends StatelessWidget {
               textBaseline: TextBaseline.alphabetic,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                SectionHeader(label: i18n.coinHomeActivityTitle, padding: EdgeInsets.zero),
+                SectionHeader(label: i18n.shared.coinHomeActivityTitle, padding: EdgeInsets.zero),
                 if (wallet.syncBlocksRemaining != null)
                   Text(
                     i18n.coinHomeBalancesMayBeStale,
@@ -214,20 +215,20 @@ class DesktopCoinHomeView extends StatelessWidget {
                 children: [
                   _action(
                     Icons.south_west,
-                    i18n.receiveTitle,
+                    i18n.shared.receiveTitle,
                     configured ? () => _openReceive(context, chainSymbol) : null,
                   ),
                   const SizedBox(width: 10),
                   _action(
                     Icons.north_east,
-                    i18n.sendTitle,
+                    i18n.shared.sendTitle,
                     configured ? () => _openSend(context, chainSymbol) : null,
                   ),
                   const SizedBox(width: 10),
                   _action(
                     Icons.swap_horiz,
-                    i18n.coinHomeSwap,
-                    () => showBrandToast(context, i18n.coinHomeSwapComingSoon),
+                    i18n.shared.coinHomeSwap,
+                    () => showBrandToast(context, i18n.shared.coinHomeSwapComingSoon),
                   ),
                 ],
               ),
@@ -279,12 +280,12 @@ class DesktopCoinHomeView extends StatelessWidget {
     if (!configured) return (null, i18n.homeCoinNotConfigured);
     switch (connectionIndicatorStateFor(wallet)) {
       case ConnectionIndicatorState.ok:
-        return (BrandColors.success, i18n.homeSynced);
+        return (BrandColors.success, i18n.shared.homeSynced);
       case ConnectionIndicatorState.loading:
         final blocks = wallet.syncBlocksRemaining;
         return (
           BrandColors.warning,
-          blocks != null ? i18n.homeBlocksRemaining(blocks) : i18n.homeSyncing,
+          blocks != null ? i18n.shared.homeBlocksRemaining(blocks) : i18n.shared.homeSyncing,
         );
       case ConnectionIndicatorState.error:
         return (BrandColors.error, i18n.homeNoConnection);
@@ -320,7 +321,7 @@ class DesktopCoinHomeView extends StatelessWidget {
                     arguments: ExplorerSetupScreenArgs(coinSymbol: chainSymbol),
                   ),
                 )
-              : Text(i18n.homeNoTransactions, style: BrandText.bodyMuted),
+              : Text(i18n.shared.noTransactions, style: BrandText.bodyMuted),
         ),
       ];
     }
@@ -352,7 +353,10 @@ class DesktopCoinHomeView extends StatelessWidget {
               return TxActivityRow(
                 tx: e.tx,
                 asset: e.asset,
-                labels: TxActivityLabels(received: i18n.coinHomeReceived, sent: i18n.coinHomeSent),
+                labels: TxActivityLabels(
+                  received: i18n.shared.coinHomeReceived,
+                  sent: i18n.shared.coinHomeSent,
+                ),
                 fiatRate: fiatRate,
                 showCoinIcon: hasTokens,
                 showDivider: next is TxEntry,
