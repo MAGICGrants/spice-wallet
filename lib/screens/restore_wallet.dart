@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:bip39/bip39.dart' as bip39;
@@ -9,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/create_wallet_password.dart';
@@ -60,12 +62,12 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
       initial: _restoreDate,
       chosen: _scanChosen,
       labels: ScanFromSheetLabels(
-        title: i18n.restoreScanTitle,
+        title: i18n.shared.restoreScanTitle,
         description: i18n.restoreScanDescription,
-        pickMonth: i18n.restoreScanPickMonth,
-        notSure: i18n.restoreScanNotSure,
-        notSureDesc: i18n.restoreScanNotSureDesc,
-        done: i18n.restoreScanDone,
+        pickMonth: i18n.shared.restoreScanPickMonth,
+        notSure: i18n.shared.restoreScanNotSure,
+        notSureDesc: i18n.shared.restoreScanNotSureDesc,
+        done: i18n.shared.restoreScanDone,
         locale: Localizations.localeOf(context).toString(),
       ),
     );
@@ -111,7 +113,7 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
       log(LogLevel.error, error.toString());
       if (mounted) {
         setState(() => _isLoading = false);
-        showBrandToast(context, i18n.unknownError);
+        showBrandToast(context, i18n.shared.unknownError);
       }
       return;
     }
@@ -132,13 +134,13 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
     final String scanValue;
     final TextStyle scanStyle;
     if (!_scanChosen) {
-      scanValue = i18n.restoreWalletNotSet;
+      scanValue = i18n.shared.restoreWalletNotSet;
       scanStyle = BrandText.body.copyWith(color: BrandColors.inkFaint);
     } else if (_restoreDate != null) {
       scanValue = DateFormat.yMMM(Localizations.localeOf(context).toString()).format(_restoreDate!);
       scanStyle = BrandText.amount;
     } else {
-      scanValue = i18n.restoreScanFromStart;
+      scanValue = i18n.shared.restoreScanFromStart;
       scanStyle = BrandText.body;
     }
 
@@ -146,13 +148,13 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
       controller: _restoreWalletController,
       embedded: isDesktop,
       labels: RestoreWalletLabels(
-        title: i18n.restoreWalletTitle,
+        title: i18n.shared.restoreWalletTitle,
         subtitle: i18n.restoreWalletSubtitle,
-        seedLength: i18n.restoreWalletSeedLength,
-        paste: i18n.restoreWalletPaste,
-        restoreButton: i18n.restoreWalletRestoreButton,
-        badWord: (position) => i18n.restoreWalletBadWord(position),
-        didYouMean: (word) => i18n.restoreWalletDidYouMean(word),
+        seedLength: i18n.shared.restoreWalletSeedLength,
+        paste: i18n.shared.restoreWalletPaste,
+        restoreButton: i18n.shared.restoreWalletRestoreButton,
+        badWord: (position) => i18n.shared.restoreWalletBadWord(position),
+        didYouMean: (word) => i18n.shared.restoreWalletDidYouMean(word),
       ),
       seedTypes: [
         SeedTypeOption(
@@ -164,7 +166,7 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
           isValidWord: _valid,
           suggestWord: _suggest,
           mnemonicError: (mnemonic) =>
-              bip39.validateMnemonic(mnemonic) ? null : i18n.restoreWalletChecksumError,
+              bip39.validateMnemonic(mnemonic) ? null : i18n.shared.restoreWalletChecksumError,
         ),
       ],
       restoring: _isLoading,
@@ -172,8 +174,8 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
       canRestore: () => _scanChosen,
       onRestore: _restore,
       restorePointFields: ScanFromCard(
-        label: i18n.restoreWalletScanFrom,
-        reason: i18n.restoreWalletScanFromReason,
+        label: i18n.shared.restoreWalletScanFrom,
+        reason: i18n.shared.restoreWalletScanFromReason,
         value: scanValue,
         valueStyle: scanStyle,
         onTap: _openScanFrom,
@@ -188,11 +190,11 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
       valueListenable: _restoreWalletController.canRestore,
       builder: (context, valid, _) => DesktopOnboardingScaffold(
         logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
-        title: i18n.restoreWalletTitle,
+        title: i18n.shared.restoreWalletTitle,
         description: i18n.restoreWalletSubtitle,
         step: 4,
         totalSteps: desktopOnboardingSteps,
-        continueLabel: i18n.restoreWalletRestoreButton,
+        continueLabel: i18n.shared.restoreWalletRestoreButton,
         continueEnabled: valid,
         loading: _isLoading,
         onBack: () => Navigator.pop(context),

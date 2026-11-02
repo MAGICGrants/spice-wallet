@@ -6,6 +6,7 @@ import 'package:screen_brightness/screen_brightness.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/screens/desktop/home_shell.dart';
 import 'package:spice_wallet/screens/desktop/receive_view.dart';
@@ -120,7 +121,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   void _copyAddress(String address) {
     final i18n = AppLocalizations.of(context)!;
     SecureClipboard.copy(address);
-    showCopyToast(context, i18n.addressCopied);
+    showCopyToast(context, i18n.shared.addressCopied);
   }
 
   /// Opens the system share sheet on [address], anchored at [origin].
@@ -136,7 +137,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
       await SharePlus.instance.share(ShareParams(text: address, sharePositionOrigin: origin));
     } catch (error) {
       log(LogLevel.error, 'Address share failed (origin=${origin ?? 'none'}): $error');
-      toast.show(i18n.receiveShareError);
+      toast.show(i18n.shared.receiveShareError);
     }
   }
 
@@ -197,8 +198,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
       return DesktopShell(
         active: DesktopNav.home,
         child: DesktopReceiveView(
-          title: i18n.receiveTitle,
-          copyLabel: i18n.receiveCopyAddress,
+          title: i18n.shared.receiveTitle,
+          copyLabel: i18n.shared.receiveCopyAddress,
           qrHint: i18n.receiveQrHint(wallet.blockchainName),
           coinSymbol: wallet.coinSymbol,
           iconAsset: wallet.iconAsset,
@@ -208,7 +209,9 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
           ready: ready,
           address: address ?? '',
           qrHeading: ready ? _heading(i18n, wallet, sub, showingSubaddress) : '',
-          tabLabels: canToggle ? [i18n.receiveSubaddressTab, i18n.receivePrimaryTab] : null,
+          tabLabels: canToggle
+              ? [i18n.shared.receiveSubaddressTab, i18n.shared.receivePrimaryTab]
+              : null,
           selectedTab: _showSubaddress ? 0 : 1,
           onSelectTab: (i) => setState(() => _showSubaddress = i == 0),
           warning: warning,
@@ -222,10 +225,10 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
 
     return ReceiveView(
       labels: ReceiveLabels(
-        title: i18n.receiveTitle,
-        copyAddress: i18n.receiveCopyAddress,
-        enlargeQr: i18n.receiveEnlargeQr,
-        shrinkQr: i18n.receiveShrinkQr,
+        title: i18n.shared.receiveTitle,
+        copyAddress: i18n.shared.receiveCopyAddress,
+        enlargeQr: i18n.shared.receiveEnlargeQr,
+        shrinkQr: i18n.shared.receiveShrinkQr,
       ),
       onBack: () => Navigator.pop(context),
       onShare: _isMobile ? (origin) => _share(address!, origin) : null,
@@ -234,7 +237,9 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
       iconAsset: wallet.iconAsset,
       coinName: wallet.blockchainName,
       blockchainSubtitle: i18n.receiveBlockchainSubtitle(wallet.blockchainName),
-      tabLabels: canToggle ? [i18n.receiveSubaddressTab, i18n.receivePrimaryTab] : null,
+      tabLabels: canToggle
+          ? [i18n.shared.receiveSubaddressTab, i18n.shared.receivePrimaryTab]
+          : null,
       selectedTab: _showSubaddress ? 0 : 1,
       onSelectTab: (i) => setState(() => _showSubaddress = i == 0),
       address: address ?? '',
@@ -257,9 +262,11 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     bool showingSubaddress,
   ) {
     if (showingSubaddress) {
-      return sub != null ? '${i18n.receiveSubaddressTab} #${sub.index}' : i18n.receiveSubaddressTab;
+      return sub != null
+          ? '${i18n.shared.receiveSubaddressTab} #${sub.index}'
+          : i18n.shared.receiveSubaddressTab;
     }
-    return i18n.receiveAddressHeading(wallet.blockchainName);
+    return i18n.shared.receiveAddressHeading(wallet.blockchainName);
   }
 
   String? _warning(
@@ -271,10 +278,10 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     bool? unusedIndexSupported,
   ) {
     if (monero == null || isDemoMode) return null;
-    if (subSupported == false) return i18n.receiveServerNoSubaddressesWarn;
-    if (sub == null) return i18n.receiveSubaddressUnavailableWarn;
-    if (!_showSubaddress) return i18n.receivePrimaryAddressWarn;
-    if (unusedIndexSupported == false) return i18n.receiveMaxSubaddressesReachedWarn;
+    if (subSupported == false) return i18n.shared.receiveServerNoSubaddressesWarn;
+    if (sub == null) return i18n.shared.receiveSubaddressUnavailableWarn;
+    if (!_showSubaddress) return i18n.shared.receivePrimaryAddressWarn;
+    if (unusedIndexSupported == false) return i18n.shared.receiveMaxSubaddressesReachedWarn;
     return null;
   }
 }

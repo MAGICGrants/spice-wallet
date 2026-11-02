@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/models/language_model.dart';
 import 'package:spice_wallet/widgets/theme_language_sheets.dart';
 
@@ -27,7 +28,7 @@ class _Root extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('behind:${AppLocalizations.of(context)!.settingsLanguageLabel}'),
+                Text('behind:${AppLocalizations.of(context)!.shared.settingsLanguageLabel}'),
                 ElevatedButton(
                   onPressed: () => showLanguageSheet(context),
                   child: const Text('open'),

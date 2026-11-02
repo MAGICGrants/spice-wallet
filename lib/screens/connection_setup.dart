@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/periodic_tasks.dart' show applyBackgroundTaskRegistration;
 import 'package:spice_wallet/screens/coin_home.dart';
 import 'package:spice_wallet/services/foreground_sync_service.dart';
@@ -50,9 +51,9 @@ class _ConnectionSetupScreenState extends State<ConnectionSetupScreen> {
   String _descriptionType(AppLocalizations i18n, CryptoWallet? wallet) {
     switch (_selectedType) {
       case 'lws':
-        return i18n.connectionTypeLws;
+        return i18n.shared.connectionTypeLws;
       case 'node':
-        return i18n.connectionTypeNode;
+        return i18n.shared.connectionTypeNode;
       default:
         return wallet?.connectionTypeName ?? 'server';
     }
@@ -107,7 +108,7 @@ class _ConnectionSetupScreenState extends State<ConnectionSetupScreen> {
 
     final form = ConnectionSettingsForm(
       coinSymbol: coinSymbol,
-      saveButtonLabel: i18n.save,
+      saveButtonLabel: i18n.shared.save,
       onSaved: onSaved,
       // Modal sizes to content (inline Save); the full screen pins Save to the
       // bottom of the available height.
@@ -147,11 +148,11 @@ class _ConnectionSetupScreenState extends State<ConnectionSetupScreen> {
                   children: [
                     CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 34),
                     const SizedBox(width: 11),
-                    Expanded(child: Text(i18n.connectionSetupTitle, style: BrandText.title)),
+                    Expanded(child: Text(i18n.shared.connectionSetupTitle, style: BrandText.title)),
                   ],
                 )
               else
-                Text(i18n.connectionSetupTitle, style: BrandText.title),
+                Text(i18n.shared.connectionSetupTitle, style: BrandText.title),
               const SizedBox(height: 8),
               Text(
                 _selectedType == 'lws'

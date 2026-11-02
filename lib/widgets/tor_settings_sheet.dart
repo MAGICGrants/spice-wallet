@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
@@ -89,10 +90,10 @@ class _TorSettingsSheetState extends State<_TorSettingsSheet> {
       icon: Icons.warning_amber_rounded,
       iconBg: BrandColors.errorBg,
       iconColor: BrandColors.error,
-      title: i18n.torDisabledWalletsWarningTitle,
-      body: i18n.torDisabledWalletsWarningBody,
-      confirmLabel: i18n.torDisabledWalletsWarningConfirm,
-      cancelLabel: i18n.cancel,
+      title: i18n.shared.torDisabledWalletsWarningTitle,
+      body: i18n.shared.torDisabledWalletsWarningBody,
+      confirmLabel: i18n.shared.torDisabledWalletsWarningConfirm,
+      cancelLabel: i18n.shared.cancel,
     );
   }
 
@@ -126,7 +127,9 @@ class _TorSettingsSheetState extends State<_TorSettingsSheet> {
                           color: BrandColors.purple,
                         ),
                         const SizedBox(width: 11),
-                        Expanded(child: Text(i18n.torSettingsTitle, style: BrandText.sheetTitle)),
+                        Expanded(
+                          child: Text(i18n.shared.torSettingsTitle, style: BrandText.sheetTitle),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 7),
@@ -151,9 +154,12 @@ class _TorSettingsSheetState extends State<_TorSettingsSheet> {
               Padding(
                 padding: EdgeInsets.fromLTRB(hpad, 18, hpad, 8),
                 child: SheetActions(
-                  primary: BrandButton(label: i18n.save, onPressed: _sel.canCommit ? _save : null),
+                  primary: BrandButton(
+                    label: i18n.shared.save,
+                    onPressed: _sel.canCommit ? _save : null,
+                  ),
                   secondary: BrandButton.ghost(
-                    label: i18n.cancel,
+                    label: i18n.shared.cancel,
                     color: BrandColors.inkMuted,
                     onPressed: () => Navigator.of(context).pop(),
                   ),

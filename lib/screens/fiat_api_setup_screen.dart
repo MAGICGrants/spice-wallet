@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/desktop/fiat_setup_view.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
@@ -52,22 +53,22 @@ class _FiatApiSetupScreenState extends State<FiatApiSetupScreen> {
     final i18n = AppLocalizations.of(context)!;
 
     final labels = FiatSetupLabels(
-      title: i18n.fiatApiSetupTitle,
+      title: i18n.shared.fiatApiSetupTitle,
       subtitle: i18n.fiatApiSetupDescription,
-      torOnly: i18n.fiatApiSettingsModeTorOnly,
-      torOnlyDesc: i18n.fiatModeTorOnlyDesc,
-      clearnet: i18n.fiatApiSettingsModeClearnet,
-      clearnetDesc: i18n.fiatModeClearnetDesc,
-      disabled: i18n.fiatApiSettingsModeDisabled,
-      disabledDesc: i18n.fiatModeDisabledDesc,
-      currencyLabel: i18n.fiatApiSettingsDisplayCurrencyLabel,
-      continueText: i18n.lwsSetupContinueButton,
+      torOnly: i18n.shared.fiatApiSettingsModeTorOnly,
+      torOnlyDesc: i18n.shared.fiatModeTorOnlyDesc,
+      clearnet: i18n.shared.clearnetOnlyChoice,
+      clearnetDesc: i18n.shared.fiatModeClearnetDesc,
+      disabled: i18n.shared.fiatApiSettingsModeDisabled,
+      disabledDesc: i18n.shared.fiatModeDisabledDesc,
+      currencyLabel: i18n.shared.fiatApiSettingsDisplayCurrencyLabel,
+      continueText: i18n.shared.lwsSetupContinueButton,
     );
     if (isDesktop) {
       return DesktopFiatSetupView(
         labels: labels,
-        noteRatesOnly: i18n.onboardingPriceNoteRatesOnly,
-        noteTor: i18n.onboardingPriceNoteTor,
+        noteRatesOnly: i18n.shared.onboardingPriceNoteRatesOnly,
+        noteTor: i18n.shared.onboardingPriceNoteTor,
         modeIndex: _fiatMode.index,
         currency: _fiatCurrency,
         offerTorOnly: !_globalTorDisabled,

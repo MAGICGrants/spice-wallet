@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/theme/brand.dart';
 
 /// Brand bottom nav — flat icon+label tabs on the cream ground with a hairline
@@ -23,9 +24,9 @@ class WalletNavigationBar extends StatelessWidget {
     final i18n = AppLocalizations.of(context)!;
     final items = [
       (Icons.home_outlined, i18n.navigationBarHome),
-      (Icons.history, i18n.navigationBarHistory),
-      (Icons.people_outline, i18n.addressBookTitle),
-      (Icons.tune, i18n.navigationBarSettings),
+      (Icons.history, i18n.shared.navigationBarHistory),
+      (Icons.people_outline, i18n.shared.addressBookTitle),
+      (Icons.tune, i18n.shared.navigationBarSettings),
     ];
 
     return Hero(

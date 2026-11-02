@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/models/language_model.dart';
 import 'package:spice_wallet/models/theme_model.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -18,14 +19,14 @@ Future<void> showThemeSheet(BuildContext context) {
   return showThemePickerSheet(
     context,
     labels: SettingsPickerLabels(
-      title: i18n.settingsThemeLabel,
-      subtitle: i18n.settingsThemeSheetSubtitle,
-      done: i18n.done,
+      title: i18n.shared.settingsThemeLabel,
+      subtitle: i18n.shared.settingsThemeSheetSubtitle,
+      done: i18n.shared.done,
     ),
     options: [
       ThemePickerOption(
         value: 'light',
-        label: i18n.settingsThemeLight,
+        label: i18n.shared.settingsThemeLight,
         description: i18n.settingsThemeLightDesc,
         swatch: const ThemeSwatchSpec(
           ground: Color(0xFFFFFDF6),
@@ -35,8 +36,8 @@ Future<void> showThemeSheet(BuildContext context) {
       ),
       ThemePickerOption(
         value: 'dark',
-        label: i18n.settingsThemeDark,
-        description: i18n.settingsThemeDarkDesc,
+        label: i18n.shared.settingsThemeDark,
+        description: i18n.shared.settingsThemeDarkDesc,
         swatch: const ThemeSwatchSpec(
           ground: Color(0xFF241C17),
           barColor: Color(0xFF5A4A3E),
@@ -45,8 +46,8 @@ Future<void> showThemeSheet(BuildContext context) {
       ),
       ThemePickerOption(
         value: 'system',
-        label: i18n.settingsThemeSystem,
-        description: i18n.settingsThemeSystemDesc,
+        label: i18n.shared.settingsThemeSystem,
+        description: i18n.shared.settingsThemeSystemDesc,
         swatch: const ThemeSwatchSpec(
           gradient: LinearGradient(
             colors: [Color(0xFFFFFDF6), Color(0xFF241C17)],
@@ -74,9 +75,9 @@ Future<void> showLanguageSheet(BuildContext context) {
     labels: (context) {
       final i18n = AppLocalizations.of(context)!;
       return SettingsPickerLabels(
-        title: i18n.settingsLanguageLabel,
-        subtitle: i18n.settingsLanguageSheetSubtitle,
-        done: i18n.done,
+        title: i18n.shared.settingsLanguageLabel,
+        subtitle: i18n.shared.settingsLanguageSheetSubtitle,
+        done: i18n.shared.done,
       );
     },
     options: [

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:wallet_ui/wallet_ui.dart' as shared;
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/util/logging.dart';
@@ -87,13 +88,13 @@ Future<ConfirmSendResult> showConfirmSendSheet(
   final committed = await shared.showConfirmSendSheet(
     context: context,
     labels: shared.ConfirmSendLabels(
-      title: i18n.confirmSendTitle,
-      description: i18n.confirmSendDescription,
-      amount: i18n.amount,
-      networkFee: i18n.networkFee,
-      address: i18n.address,
-      send: i18n.sendSendButton,
-      cancel: i18n.cancel,
+      title: i18n.shared.confirmSendTitle,
+      description: i18n.shared.confirmSendDescription,
+      amount: i18n.shared.amount,
+      networkFee: i18n.shared.networkFee,
+      address: i18n.shared.address,
+      send: i18n.shared.sendSendButton,
+      cancel: i18n.shared.cancel,
     ),
     coinSymbol: coinSymbol,
     iconAsset: wallet?.iconAsset ?? '',
@@ -106,7 +107,9 @@ Future<ConfirmSendResult> showConfirmSendSheet(
     contactName: args.destinationContactName,
     contactAddress: args.destinationContactAddress,
     showHighFeeWarning: showHighFeeWarning,
-    highFeeWarning: showHighFeeWarning ? i18n.confirmSendHighFeeWarning(_highFeeToken) : null,
+    highFeeWarning: showHighFeeWarning
+        ? i18n.shared.confirmSendHighFeeWarning(_highFeeToken)
+        : null,
     highFeeToken: _highFeeToken,
     highFeePercent: showHighFeeWarning ? '${(feeRatio * 100).round()}%' : null,
     onConfirm: () => _commitTx(
@@ -156,12 +159,12 @@ Future<void> _commitTx(
       return;
     }
     // Rejected: nothing moved, so keep the sheet open to adjust and retry.
-    if (context.mounted) shared.showBrandToast(context, i18n.unknownError);
+    if (context.mounted) shared.showBrandToast(context, i18n.shared.unknownError);
     rethrow;
   } on RequestNotSentException {
     // Never reached the server (no connection / Tor circuit): nothing was sent.
     // Close the sheet and return to the form rather than leave it open.
-    if (context.mounted) shared.showBrandToast(context, i18n.sendNoConnectionError);
+    if (context.mounted) shared.showBrandToast(context, i18n.shared.sendNoConnectionError);
     onConnectionFailed();
     return;
   } on FormatException catch (error) {
@@ -176,7 +179,7 @@ Future<void> _commitTx(
   } catch (error) {
     log(LogLevel.error, error.toString());
     if (context.mounted) {
-      shared.showBrandToast(context, i18n.unknownError);
+      shared.showBrandToast(context, i18n.shared.unknownError);
     }
     rethrow;
   }
@@ -206,16 +209,19 @@ Future<void> _showUnresolvedSendSheet(BuildContext context) {
                   color: shared.BrandColors.warning,
                 ),
                 const SizedBox(width: 11),
-                Expanded(child: Text(i18n.warning, style: shared.BrandText.sheetTitle)),
+                Expanded(child: Text(i18n.shared.warning, style: shared.BrandText.sheetTitle)),
               ],
             ),
             const SizedBox(height: 7),
             Text(
-              i18n.txDetailsUnknownStatus,
+              i18n.shared.txDetailsUnknownStatus,
               style: shared.BrandText.bodyMuted.copyWith(fontSize: 13, height: 1.5),
             ),
             const SizedBox(height: 18),
-            shared.BrandButton(label: i18n.close, onPressed: () => Navigator.pop(sheetContext)),
+            shared.BrandButton(
+              label: i18n.shared.close,
+              onPressed: () => Navigator.pop(sheetContext),
+            ),
           ],
         ),
       ),

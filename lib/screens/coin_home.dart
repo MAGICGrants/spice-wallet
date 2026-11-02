@@ -5,6 +5,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:spice_wallet/widgets/lws_approval_notice.dart';
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/screens/coin_settings.dart';
@@ -64,7 +65,7 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
 
   void _showTxSuccessToast() {
     final i18n = AppLocalizations.of(context)!;
-    showBrandToast(context, i18n.sendTransactionSuccessfullySent);
+    showBrandToast(context, i18n.shared.sendTransactionSuccessfullySent);
   }
 
   void _openReceive(String coinSymbol) => Navigator.pushNamed(
@@ -156,14 +157,15 @@ class _CoinHomeScreenState extends State<CoinHomeScreen> {
                                 enabled: wallet.connectionAddress.isNotEmpty,
                                 onReceive: () => _openReceive(chainSymbol),
                                 onSend: () => _openSend(chainSymbol),
-                                onSwap: () => showBrandToast(context, i18n.coinHomeSwapComingSoon),
+                                onSwap: () =>
+                                    showBrandToast(context, i18n.shared.coinHomeSwapComingSoon),
                               ),
                             ),
                             if (hasTokens) _AssetsSection(assets: assets, fiatRate: fiatRate),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
                               child: SectionHeader(
-                                label: i18n.coinHomeActivityTitle,
+                                label: i18n.shared.coinHomeActivityTitle,
                                 padding: EdgeInsets.zero,
                               ),
                             ),
@@ -296,7 +298,7 @@ class _BalanceHero extends StatelessWidget {
           if (_pendingText(wallet) case final pending?) ...[
             if (!hasTokens && showFiat) const SizedBox(height: 6),
             Text(
-              '${i18n.pending}: +$pending ${wallet.coinSymbol}',
+              '${i18n.shared.pending}: +$pending ${wallet.coinSymbol}',
               style: TextStyle(
                 fontFamily: 'Ubuntu Mono',
                 fontSize: 13.5,
@@ -318,7 +320,7 @@ class _BalanceHero extends StatelessWidget {
                   const SizedBox(width: 10),
                   Flexible(
                     child: Text(
-                      i18n.homeBlocksRemaining(blocks),
+                      i18n.shared.homeBlocksRemaining(blocks),
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontFamily: 'Ubuntu Mono',
@@ -360,7 +362,7 @@ class _ActionRow extends StatelessWidget {
         Expanded(
           child: ActionButton(
             icon: Icons.arrow_downward,
-            label: i18n.homeReceive,
+            label: i18n.shared.homeReceive,
             onPressed: enabled ? onReceive : null,
           ),
         ),
@@ -368,13 +370,17 @@ class _ActionRow extends StatelessWidget {
         Expanded(
           child: ActionButton(
             icon: Icons.arrow_upward,
-            label: i18n.homeSend,
+            label: i18n.shared.homeSend,
             onPressed: enabled ? onSend : null,
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: ActionButton(icon: Icons.swap_horiz, label: i18n.coinHomeSwap, onPressed: onSwap),
+          child: ActionButton(
+            icon: Icons.swap_horiz,
+            label: i18n.shared.coinHomeSwap,
+            onPressed: onSwap,
+          ),
         ),
       ],
     );
@@ -517,7 +523,7 @@ class _ActivitySliver extends StatelessWidget {
               : Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Text(
-                    i18n.homeNoTransactions,
+                    AppLocalizations.of(context)!.shared.noTransactions,
                     textAlign: TextAlign.center,
                     style: BrandText.bodyMuted,
                   ),
@@ -557,7 +563,10 @@ class _ActivitySliver extends StatelessWidget {
           return TxActivityRow(
             tx: e.tx,
             asset: e.asset,
-            labels: TxActivityLabels(received: i18n.coinHomeReceived, sent: i18n.coinHomeSent),
+            labels: TxActivityLabels(
+              received: i18n.shared.coinHomeReceived,
+              sent: i18n.shared.coinHomeSent,
+            ),
             fiatRate: fiatRate,
             showDivider: next is TxEntry,
             onTap: () => onTapTx(e.asset, e.tx),

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' show Color;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
@@ -8,7 +9,6 @@ import 'package:spice_wallet/periodic_tasks.dart' show backgroundDispatcher;
 import 'package:spice_wallet/services/foreground_sync_service.dart' show foregroundSyncCallback;
 import 'package:spice_wallet/services/notifications_service.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
-import 'package:spice_wallet/services/tor_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
 
 import 'package:wallet_infra/wallet_infra.dart' as wcore;
@@ -92,7 +92,7 @@ void installWalletCore() {
     coins: buildCoins,
     workmanagerCallback: backgroundDispatcher,
     foregroundCallback: foregroundSyncCallback,
-    ensureTorConnected: _ensureTorConnected,
+    ensureTorConnected: TorSettingsService.sharedInstance.ensureConnected,
     iosBundleId: 'org.magicgrants.spicewallet',
     foregroundTitle: 'Spice Wallet',
     // Spice's spiral mark (white silhouette) as the sync notification's small
@@ -134,25 +134,14 @@ void installWalletCore() {
   };
 }
 
-/// Brings spice's Tor up and reports whether it connected — the seam
-/// `wallet_background` uses so a background isolate starts the *same* Tor the
-/// wallet connects through.
-Future<bool> _ensureTorConnected() async {
-  final settings = TorSettingsService.sharedInstance;
-  await settings.ensureLoaded();
-  if (settings.torMode != TorMode.builtIn) {
-    return settings.torMode == TorMode.external;
-  }
-
-  await TorService.sharedInstance.start();
-  // The wait is bounded by the service itself and reports whether Tor came up,
-  // so there is no outer `.timeout()` and no status read afterwards.
-  return TorService.sharedInstance.waitUntilConnected(timeout: const Duration(minutes: 2));
-}
+/// The wallets the app's [WalletManager] holds. Only the store-screenshot test
+/// (integration_test/store_screenshots_test.dart) swaps it, for sample ones.
+@visibleForTesting
+List<CryptoWallet> Function() appCoins = buildCoins;
 
 /// The wallet-core [WalletManager] provider.
 ChangeNotifierProvider<WalletManager> walletManagerProvider() =>
-    ChangeNotifierProvider(create: (_) => WalletManager(coins: buildCoins));
+    ChangeNotifierProvider(create: (_) => WalletManager(coins: appCoins));
 
 /// The shared security-key screens (wallet_fhse): Spice's name, mark and home
 /// route, and where they find the wallet manager. UI isolate only.

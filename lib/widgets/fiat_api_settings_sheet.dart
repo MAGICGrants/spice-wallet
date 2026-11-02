@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/services/shared_preferences_service.dart';
 import 'package:spice_wallet/services/tor_settings_service.dart';
@@ -97,7 +98,7 @@ class _FiatApiSettingsSheetState extends State<_FiatApiSettingsSheet> {
                         const SizedBox(width: 11),
                         Expanded(
                           child: Text(
-                            i18n.settingsFiatApiSettingsLabel,
+                            i18n.shared.settingsFiatApiSettingsLabel,
                             style: BrandText.sheetTitle,
                           ),
                         ),
@@ -105,7 +106,7 @@ class _FiatApiSettingsSheetState extends State<_FiatApiSettingsSheet> {
                     ),
                     const SizedBox(height: 7),
                     Text(
-                      i18n.fiatApiSettingsSheetSubtitle,
+                      i18n.shared.fiatApiSettingsSheetSubtitle,
                       style: BrandText.bodyMuted.copyWith(fontSize: 13, height: 1.5),
                     ),
                   ],
@@ -117,17 +118,17 @@ class _FiatApiSettingsSheetState extends State<_FiatApiSettingsSheet> {
                   child: !_loaded
                       ? const SizedBox.shrink()
                       : FiatModesView(
-                          modeLabel: i18n.fiatApiSettingsModeLabel,
-                          torOnly: i18n.fiatApiSettingsModeTorOnly,
-                          torOnlyDesc: i18n.fiatModeTorOnlyDesc,
-                          clearnet: i18n.fiatApiSettingsModeClearnet,
-                          clearnetDesc: i18n.fiatModeClearnetDesc,
-                          disabled: i18n.fiatApiSettingsModeDisabled,
-                          disabledDesc: i18n.fiatModeDisabledDesc,
+                          modeLabel: i18n.shared.fiatApiSettingsModeLabel,
+                          torOnly: i18n.shared.fiatApiSettingsModeTorOnly,
+                          torOnlyDesc: i18n.shared.fiatModeTorOnlyDesc,
+                          clearnet: i18n.shared.clearnetOnlyChoice,
+                          clearnetDesc: i18n.shared.fiatModeClearnetDesc,
+                          disabled: i18n.shared.fiatApiSettingsModeDisabled,
+                          disabledDesc: i18n.shared.fiatModeDisabledDesc,
                           offerTorOnly: !_globalTorDisabled,
                           modeIndex: _mode.index,
                           onModeChanged: (i) => setState(() => _mode = FiatApiMode.values[i]),
-                          currencyLabel: i18n.fiatApiSettingsDisplayCurrencyLabel,
+                          currencyLabel: i18n.shared.fiatApiSettingsDisplayCurrencyLabel,
                           currency: _currency,
                           onCurrencyChanged: (code) => setState(() => _currency = code),
                         ),
@@ -136,9 +137,9 @@ class _FiatApiSettingsSheetState extends State<_FiatApiSettingsSheet> {
               Padding(
                 padding: EdgeInsets.fromLTRB(hpad, 18, hpad, 8),
                 child: SheetActions(
-                  primary: BrandButton(label: i18n.save, onPressed: _save),
+                  primary: BrandButton(label: i18n.shared.save, onPressed: _save),
                   secondary: BrandButton.ghost(
-                    label: i18n.cancel,
+                    label: i18n.shared.cancel,
                     color: BrandColors.inkMuted,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
