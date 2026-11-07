@@ -12,6 +12,7 @@ import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
 import 'package:spice_wallet/util/format.dart';
+import 'package:spice_wallet/util/labeled_addresses.dart';
 import 'package:spice_wallet/screens/desktop/home_shell.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -19,9 +20,22 @@ import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 import 'package:wallet_infra/wallet_infra.dart' show LogLevel, exportFileName, log, saveExportFile;
 
+/// Opens History filtered to one address: a used receive address's
+/// Transactions button.
+class HistoryScreenArgs {
+  final String coinSymbol;
+  final String address;
+
+  /// The desktop back link's label: where Back returns to. Null: just "Back".
+  final String? backLabel;
+
+  HistoryScreenArgs({required this.coinSymbol, required this.address, this.backLabel});
+}
+
 /// A single, filterable timeline of every transaction across all chains/assets,
 /// exportable as CSV (the filtered ones, or all of them with no filter). A
-/// top-level destination reachable from the navigation bar.
+/// top-level destination reachable from the navigation bar, or pushed over an
+/// address with [HistoryScreenArgs].
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
@@ -71,7 +85,71 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   _Filter? _open;
 
+  /// Opened with [HistoryScreenArgs]: pushed over an address rather than a
+  /// navigation destination, so it has a way back and no navigation bar.
+  bool _pushed = false;
+  String? _backLabel;
+  bool _argsLoaded = false;
+
+  /// Every wallet's used receive addresses, by coin, for the labeled addresses
+  /// the address filter offers; [_usedKey] is the history revisions they were
+  /// read at.
+  Future<Map<String, List<UsedReceiveAddress>>>? _used;
+  String? _usedKey;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_argsLoaded) return;
+    _argsLoaded = true;
+    final args = ModalRoute.of(context)?.settings.arguments as HistoryScreenArgs?;
+    if (args != null) {
+      _recipient = args.address;
+      _recipientCoin = args.coinSymbol;
+      _backLabel = args.backLabel;
+      _pushed = true;
+    }
+  }
+
   void _toggleOpen(_Filter f) => setState(() => _open = _open == f ? null : f);
+
+  /// [wallets]' used receive addresses by coin, read again only once a history
+  /// has moved.
+  Future<Map<String, List<UsedReceiveAddress>>> _usedAddresses(List<CryptoWallet> wallets) {
+    final key = [for (final w in wallets) '${w.coinSymbol}:${w.txHistoryRevision}'].join(',');
+    if (_used == null || key != _usedKey) {
+      _usedKey = key;
+      _used = Future.wait(
+        wallets.map(usedReceiveAddresses),
+      ).then((lists) => {for (var i = 0; i < wallets.length; i++) wallets[i].coinSymbol: lists[i]});
+    }
+    return _used!;
+  }
+
+  /// The labeled addresses to pick from, most recently used first. A label is
+  /// listed once its address is among the used ones read from the history,
+  /// which is where its index comes from.
+  List<({String coinSymbol, String address, String label, int index})> _labeledEntries(
+    Map<String, List<UsedReceiveAddress>> used,
+    AddressLabelModel labels,
+  ) {
+    final found = [
+      for (final MapEntry(key: coin, value: addresses) in used.entries)
+        for (final u in addresses)
+          if (labels.labelFor(coin, u.address) case final label?)
+            (coin: coin, used: u, label: label),
+    ]..sort((a, b) => b.used.lastUsed.compareTo(a.used.lastUsed));
+    return [
+      for (final e in found)
+        (coinSymbol: e.coin, address: e.used.address, label: e.label, index: e.used.index),
+    ];
+  }
+
+  void _pickLabeled(String coinSymbol, String address) => setState(() {
+    _recipient = address;
+    _recipientCoin = coinSymbol;
+    _recipientInvalid = false;
+  });
 
   /// The address in [raw], and the coin that accepts it, or null.
   ({String address, String coinSymbol})? _extractRecipient(
@@ -151,6 +229,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final i18n = AppLocalizations.of(context)!;
     final manager = context.watch<WalletManager>();
     final fiatRate = context.watch<FiatRateModel>();
+    final labels = context.watch<AddressLabelModel>();
     // Content gutter: the desktop shell caps width and wants wider margins.
     final gutter = isDesktop ? 44.0 : 20.0;
 
@@ -272,6 +351,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
             onTapTx: (asset, tx) => TxDetailsDialog.show(context, asset, tx),
           );
 
+    // The filter's address under the name the user gave it, when it is one of
+    // the wallet's own and labeled.
+    final recipientLabel = _recipient == null || _recipientCoin == null
+        ? null
+        : labels.labelFor(_recipientCoin!, _recipient!);
+
     final canExport = entries.isNotEmpty;
     void export(BuildContext anchor) {
       if (canExport) _export(entries, anchor);
@@ -306,8 +391,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             const SizedBox(width: 7),
             _FilterPill(
-              label: i18n.historyFilterRecipient,
-              count: _recipient == null ? null : 1,
+              label: recipientLabel ?? i18n.historyFilterRecipient,
+              // A label already says which address; a count of one adds nothing.
+              count: _recipient == null || recipientLabel != null ? null : 1,
+              selected: recipientLabel != null,
               open: _open == _Filter.recipient,
               onTap: () => _toggleOpen(_Filter.recipient),
             ),
@@ -350,19 +437,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
           onDone: () => setState(() => _open = null),
         ),
       if (_open == _Filter.recipient)
-        _RecipientPanel(
-          address: _recipient,
-          coinSymbol: _recipientCoin,
-          iconAsset: _recipientCoin == null
-              ? ''
-              : manager.getWallet(_recipientCoin!)?.iconAsset ?? '',
-          blockchainName: _recipientCoin == null ? null : blockchainName(_recipientCoin!),
-          invalid: _recipientInvalid,
-          gutter: gutter,
-          onPaste: () => _pasteRecipient(manager.allWallets),
-          onScan: () => _scanRecipient(manager.allWallets),
-          onClear: _clearRecipient,
-          onDone: () => setState(() => _open = null),
+        FutureBuilder(
+          future: _usedAddresses([
+            for (final w in manager.allWallets)
+              if (w.rotatingAddressKind != null) w,
+          ]),
+          builder: (context, snapshot) => _RecipientPanel(
+            address: _recipient,
+            coinSymbol: _recipientCoin,
+            iconAsset: _recipientCoin == null
+                ? ''
+                : manager.getWallet(_recipientCoin!)?.iconAsset ?? '',
+            blockchainName: _recipientCoin == null ? null : blockchainName(_recipientCoin!),
+            label: recipientLabel,
+            labeled: snapshot.data == null ? const [] : _labeledEntries(snapshot.data!, labels),
+            invalid: _recipientInvalid,
+            gutter: gutter,
+            onPaste: () => _pasteRecipient(manager.allWallets),
+            onScan: () => _scanRecipient(manager.allWallets),
+            onPickLabeled: _pickLabeled,
+            onClear: _clearRecipient,
+            onDone: () => setState(() => _open = null),
+          ),
         ),
       Expanded(
         child: _open == null
@@ -381,8 +477,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (_pushed)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(44, 30, 44, 0),
+                child: DesktopBackLink(
+                  label: _backLabel ?? i18n.shared.back,
+                  onTap: () => Navigator.pop(context),
+                ),
+              ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(44, 30, 44, 20),
+              padding: EdgeInsets.fromLTRB(44, _pushed ? 16 : 30, 44, 20),
               child: Row(
                 children: [
                   Expanded(child: Text(i18n.shared.historyTitle, style: desktopTitleStyle)),
@@ -405,9 +509,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return Scaffold(
       backgroundColor: BrandColors.paper,
-      bottomNavigationBar: const WalletNavigationBar(selectedIndex: 1),
+      bottomNavigationBar: _pushed ? null : const WalletNavigationBar(selectedIndex: 1),
       body: SafeArea(
-        bottom: false,
+        // Without the navigation bar, nothing else keeps the list clear of
+        // the home indicator.
+        bottom: _pushed,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
@@ -417,6 +523,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   child: BrandScreenHeader(
+                    onBack: _pushed ? () => Navigator.pop(context) : null,
                     center: Text(
                       i18n.shared.historyTitle,
                       style: BrandText.appBar.copyWith(fontSize: 16),
@@ -520,7 +627,8 @@ class _Timeline extends StatelessWidget {
 
 /// A rounded filter chip: category name + a count badge + up/down chevron.
 /// Goes dark (like the design's ink pill) once it's open or has a selection.
-/// The recipient filter's panel: one address, set by paste or scan.
+/// The recipient filter's panel: one address, set by paste or scan, or picked
+/// from the wallet's labeled addresses.
 ///
 /// Same chrome as [_FilterPanel] — card, shadow, sunken footer — over the
 /// address book's entry row, so setting an address here looks like setting one
@@ -530,10 +638,17 @@ class _RecipientPanel extends StatelessWidget {
   final String? coinSymbol;
   final String iconAsset;
   final String? blockchainName;
+
+  /// The label the user gave [address], shown in place of [blockchainName].
+  final String? label;
+
+  /// The wallet's labeled addresses, to pick one instead of pasting it.
+  final List<({String coinSymbol, String address, String label, int index})> labeled;
   final bool invalid;
   final double gutter;
   final VoidCallback onPaste;
   final VoidCallback onScan;
+  final void Function(String coinSymbol, String address) onPickLabeled;
   final VoidCallback onClear;
   final VoidCallback onDone;
 
@@ -542,10 +657,13 @@ class _RecipientPanel extends StatelessWidget {
     required this.coinSymbol,
     required this.iconAsset,
     required this.blockchainName,
+    required this.label,
+    required this.labeled,
     required this.invalid,
     required this.gutter,
     required this.onPaste,
     required this.onScan,
+    required this.onPickLabeled,
     required this.onClear,
     required this.onDone,
   });
@@ -579,7 +697,29 @@ class _RecipientPanel extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
-              child: address == null ? _empty(i18n) : _filled(i18n),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  address == null ? _empty(i18n) : _filled(i18n),
+                  if (labeled.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    // Capped, and scrolls inside: the panel sits above the
+                    // list with no scroll of its own, and a wallet can label
+                    // more addresses than a phone has room for.
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 220),
+                      child: SingleChildScrollView(
+                        child: LabeledAddressPicker(
+                          strings: i18n.shared,
+                          entries: labeled,
+                          selected: address,
+                          onSelect: onPickLabeled,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
             Container(
               decoration: BoxDecoration(
@@ -691,7 +831,9 @@ class _RecipientPanel extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                blockchainName ?? coinSymbol!,
+                label ?? blockchainName ?? coinSymbol!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w500,
@@ -729,6 +871,10 @@ class _RecipientPanel extends StatelessWidget {
 class _FilterPill extends StatelessWidget {
   final String label;
   final int? count; // null = every option checked (default): no badge.
+
+  /// A selection the [label] itself names (a labeled address), so it shows
+  /// dark without a [count].
+  final bool selected;
   final bool open;
   final VoidCallback onTap;
 
@@ -737,11 +883,12 @@ class _FilterPill extends StatelessWidget {
     required this.count,
     required this.open,
     required this.onTap,
+    this.selected = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final active = open || count != null;
+    final active = open || count != null || selected;
     final fg = active ? BrandColors.onPrimary : BrandColors.ink;
     return Tappable(
       behavior: HitTestBehavior.opaque,
@@ -756,7 +903,16 @@ class _FilterPill extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label, style: TextStyle(fontSize: 12.5, color: fg)),
+            // Capped: an address label may run to 64 characters.
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 180),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12.5, color: fg),
+              ),
+            ),
             if (count != null) ...[
               const SizedBox(width: 7),
               Container(

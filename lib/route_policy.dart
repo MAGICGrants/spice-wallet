@@ -31,6 +31,7 @@ const routePolicy = RoutePolicy({
   '/history': RouteAccess.unlocked,
   '/send': RouteAccess.unlocked,
   '/receive': RouteAccess.unlocked,
+  '/receive_address': RouteAccess.unlocked,
   '/address_book': RouteAccess.unlocked,
   '/settings': RouteAccess.unlocked,
   '/connection_setup': RouteAccess.unlocked,

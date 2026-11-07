@@ -255,6 +255,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) showBrandToast(context, i18n.shared.settingsAddressBookDeleted);
   }
 
+  void _showDeleteAddressLabelsDialog() {
+    final i18n = AppLocalizations.of(context)!;
+    showConfirmSheet(
+      context: context,
+      icon: Icons.delete_outline,
+      iconBg: BrandColors.errorBg,
+      iconColor: BrandColors.error,
+      title: i18n.shared.settingsDeleteAddressLabelsButton,
+      body: i18n.shared.settingsDeleteAddressLabelsDialogText,
+      confirmLabel: i18n.shared.settingsDeleteAddressLabelsDialogDeleteButton,
+      cancelLabel: i18n.shared.cancel,
+      onConfirm: _deleteAddressLabels,
+    );
+  }
+
+  // Only the labels: the addresses and their transactions stay. A backup
+  // syncing to a location records the removals, as for the address book.
+  Future<void> _deleteAddressLabels() async {
+    final i18n = AppLocalizations.of(context)!;
+    await Provider.of<AddressLabelModel>(context, listen: false).deleteAll();
+    if (mounted) showBrandToast(context, i18n.shared.settingsAddressLabelsDeleted);
+  }
+
   Future<void> _deleteWallet() async {
     final manager = Provider.of<WalletManager>(context, listen: false);
     // Tears down background sync *before* the files go, so the foreground
@@ -336,6 +359,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }[theme.theme];
 
     final fiatCode = context.watch<FiatRateModel>().fiatCode;
+    final hasContacts = context.watch<ContactModel>().contacts.isNotEmpty;
+    final hasLabels = context.watch<AddressLabelModel>().count > 0;
     final fiatSubtitle = _fiatMode == FiatApiMode.disabled
         ? _fiatModeLabel(i18n)
         : '${_fiatModeLabel(i18n)} · $fiatCode';
@@ -411,11 +436,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               linkLabel: i18n.shared.settingsExportLogsButton,
               onTap: _exportLogs,
             ),
-          SettingsLinkTile(
-            title: i18n.shared.settingsDeleteAddressBookButton,
-            titleColor: BrandColors.error,
-            onTap: _showDeleteAddressBookDialog,
-          ),
+          // Each only while there is something to delete.
+          if (hasContacts)
+            SettingsLinkTile(
+              title: i18n.shared.settingsDeleteAddressBookButton,
+              titleColor: BrandColors.error,
+              onTap: _showDeleteAddressBookDialog,
+            ),
+          if (hasLabels)
+            SettingsLinkTile(
+              title: i18n.shared.settingsDeleteAddressLabelsButton,
+              titleColor: BrandColors.error,
+              onTap: _showDeleteAddressLabelsDialog,
+            ),
         ],
       ),
       SettingsGroup(

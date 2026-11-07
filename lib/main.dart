@@ -23,6 +23,7 @@ import 'package:spice_wallet/screens/fiat_api_setup_screen.dart';
 import 'package:spice_wallet/screens/generate_seed.dart';
 import 'package:spice_wallet/screens/lws_keys.dart';
 import 'package:spice_wallet/screens/receive.dart';
+import 'package:spice_wallet/screens/receive_address.dart';
 import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/screens/create_wallet.dart';
 import 'package:spice_wallet/screens/create_wallet_password.dart';
@@ -59,7 +60,8 @@ import 'package:spice_wallet/util/logging.dart';
 import 'package:spice_wallet/route_policy.dart';
 import 'package:spice_wallet/wallet_core_glue.dart';
 import 'package:wallet_backup_platform/backup_ui.dart';
-import 'package:wallet_domain/wallet_domain.dart' show AppSession, WalletManager, parsePaymentUri;
+import 'package:wallet_domain/wallet_domain.dart'
+    show AddressLabelModel, AppSession, WalletManager, parsePaymentUri;
 import 'package:wallet_fhse/security_keys_ui.dart';
 import 'package:wallet_infra/wallet_infra.dart' show HostPlatform;
 
@@ -135,6 +137,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeModel()),
         ChangeNotifierProvider(create: (_) => FiatRateModel()),
         ChangeNotifierProvider(create: (_) => ContactModel()),
+        ChangeNotifierProvider(create: (_) => AddressLabelModel()),
       ],
       child: _RootApp(),
     );
@@ -344,6 +347,7 @@ class _RootAppState extends State<_RootApp>
     '/send': (context) => SendScreen(),
     '/scan_qr': (context) => ScanQrScreen(),
     '/receive': (context) => ReceiveScreen(),
+    '/receive_address': (context) => const ReceiveAddressScreen(),
     '/address_book': (context) => AddressBookScreen(),
     '/terms_of_service': (context) => TermsOfServiceScreen(
       title: AppLocalizations.of(context)!.welcomeTermsLink,
