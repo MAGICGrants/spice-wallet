@@ -91,7 +91,7 @@ class _GenerateSeedScreenState extends State<GenerateSeedScreen> with SecureScre
 
     if (isDesktop) {
       return DesktopGenerateSeedView(
-        logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
+        logo: SvgPicture.asset('assets/spice-mark.svg', height: 52, excludeFromSemantics: true),
         step: 4,
         totalSteps: desktopOnboardingSteps,
         title: i18n.shared.generateSeedTitle,

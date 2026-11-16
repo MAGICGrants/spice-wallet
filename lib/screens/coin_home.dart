@@ -233,18 +233,29 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final i18n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: BrandScreenHeader(
         onBack: () => Navigator.pop(context),
         // Status dot on the header icon; the header sits on the paper ground.
-        center: CoinBadge(
-          wallet: wallet,
-          statusColor: connectionDotColor(wallet),
-          statusRingColor: BrandColors.paper,
-          statusDotFactor: 0.46,
+        // The dot's colour is the status, so it is said after the coin's name.
+        center: Semantics(
+          label: wallet.assetName,
+          value: connectionStatusLabel(wallet, i18n),
+          excludeSemantics: true,
+          child: CoinBadge(
+            wallet: wallet,
+            statusColor: connectionDotColor(wallet),
+            statusRingColor: BrandColors.paper,
+            statusDotFactor: 0.46,
+          ),
         ),
-        action: IconCircleButton(icon: Icons.tune, onPressed: onSettings),
+        action: IconCircleButton(
+          icon: Icons.tune,
+          onPressed: onSettings,
+          semanticLabel: i18n.shared.settingsTitle,
+        ),
       ),
     );
   }
@@ -277,7 +288,12 @@ class _BalanceHero extends StatelessWidget {
           if (showFiat)
             BalanceText.split(formatFiat(totalFiat!, fiatRate.fiatCurrency), style: _balanceStyle)
           else if (wallet.unlockedBalance == null)
-            Skeletonizer(child: Text('0.0000', style: _balanceStyle))
+            // The placeholder digits are not a balance: read "Loading" instead.
+            Semantics(
+              label: i18n.shared.a11yLoading,
+              excludeSemantics: true,
+              child: Skeletonizer(child: Text('0.0000', style: _balanceStyle)),
+            )
           else
             Text('${_amountText(wallet)} ${wallet.coinSymbol}', style: _balanceStyle),
           const SizedBox(height: 10),
@@ -443,45 +459,59 @@ class _AssetRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final i18n = AppLocalizations.of(context)!;
     // Tokens (DAI) start with a null balance until their first background sync
     // fetches `balanceOf`; show a skeleton, not an em-dash, while it's loading.
     final loading = wallet.unlockedBalance == null;
     final fiat = _ownFiat(wallet, fiatRate);
-    return BrandCard(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
-      child: Row(
-        children: [
-          CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 34),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  wallet.assetName,
-                  style: TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w500,
-                    height: 1.25,
-                    color: BrandColors.ink,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Skeletonizer(
-                  enabled: loading,
-                  child: Text(
-                    loading ? '0.000000' : '${_amountText(wallet)} ${wallet.coinSymbol}',
-                    style: _amountStyle,
-                  ),
-                ),
-              ],
+    // One node per asset: name, amount and value read together.
+    return MergeSemantics(
+      child: BrandCard(
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+        child: Row(
+          children: [
+            ExcludeSemantics(
+              child: CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 34),
             ),
-          ),
-          if (loading)
-            Skeletonizer(enabled: true, child: Text('\$0.00', style: _fiatStyle))
-          else if (fiat != null && !fiatRate.isDisabled)
-            BalanceText.split(formatFiat(fiat, fiatRate.fiatCurrency), style: _fiatStyle),
-        ],
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    wallet.assetName,
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w500,
+                      height: 1.25,
+                      color: BrandColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  // While loading the placeholder digits read as "Loading".
+                  Semantics(
+                    label: loading ? i18n.shared.a11yLoading : null,
+                    excludeSemantics: loading,
+                    child: Skeletonizer(
+                      enabled: loading,
+                      child: Text(
+                        loading ? '0.000000' : '${_amountText(wallet)} ${wallet.coinSymbol}',
+                        style: _amountStyle,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (loading)
+              // The amount beside it already reads "Loading".
+              ExcludeSemantics(
+                child: Skeletonizer(enabled: true, child: Text('\$0.00', style: _fiatStyle)),
+              )
+            else if (fiat != null && !fiatRate.isDisabled)
+              BalanceText.split(formatFiat(fiat, fiatRate.fiatCurrency), style: _fiatStyle),
+          ],
+        ),
       ),
     );
   }

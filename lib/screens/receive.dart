@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:screen_brightness/screen_brightness.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
@@ -10,8 +9,11 @@ import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/util/platform.dart';
 import 'package:spice_wallet/screens/desktop/home_shell.dart';
 import 'package:spice_wallet/screens/desktop/receive_view.dart';
+import 'package:spice_wallet/screens/receive_address.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
+import 'package:spice_wallet/util/labeled_addresses.dart';
 import 'package:spice_wallet/util/logging.dart';
+import 'package:spice_wallet/util/qr_brightness.dart';
 import 'package:spice_wallet/util/secure_clipboard.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:wallet_domain/wallet_domain.dart';
@@ -32,6 +34,29 @@ class ReceiveScreenArgs {
   ReceiveScreenArgs({required this.coinSymbol, this.allAssets = false, this.backLabel});
 }
 
+/// Opens the system share sheet on [address], anchored at [origin]: Receive's
+/// share button, and a used address's.
+///
+/// [origin] is the share button's rect. iOS presents the sheet as a popover
+/// pointing at it and share_plus rejects the call without one, so dropping it
+/// left the button doing nothing at all. Awaited and caught for the same
+/// reason: a fire-and-forget share turns every failure into silence.
+Future<void> shareAddress(BuildContext context, String address, Rect? origin) async {
+  final i18n = AppLocalizations.of(context)!;
+  final toast = BrandToast.of(context);
+  try {
+    await SharePlus.instance.share(ShareParams(text: address, sharePositionOrigin: origin));
+  } catch (error) {
+    log(LogLevel.error, 'Address share failed (origin=${origin ?? 'none'}): $error');
+    toast.show(i18n.shared.receiveShareError);
+  }
+}
+
+/// Receive's tabs. A Monero wallet with subaddresses has Subaddress, Primary
+/// and Labeled; a Bitcoin one, whose every address is just an address, has
+/// Address and Labeled; a chain with one address (Ethereum) has none.
+enum _ReceiveTab { subaddress, primary, address, labeled }
+
 class ReceiveScreen extends StatefulWidget {
   const ReceiveScreen({super.key});
 
@@ -39,13 +64,10 @@ class ReceiveScreen extends StatefulWidget {
   State<ReceiveScreen> createState() => _ReceiveScreenState();
 }
 
-class _ReceiveScreenState extends State<ReceiveScreen> {
-  var _showSubaddress = true;
-
-  /// Whether the QR is grown to fill the screen. Brightness is held at full for
-  /// exactly as long as this is true, and otherwise left to the system: the
-  /// screen itself never takes it over.
-  var _qrEnlarged = false;
+class _ReceiveScreenState extends State<ReceiveScreen> with QrBrightness {
+  /// Index into the chain's tabs: the first, its fresh address, until the user
+  /// picks another.
+  var _tab = 0;
 
   String _coinSymbol = 'XMR';
   bool _allAssets = false;
@@ -71,74 +93,20 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     if (coinSymbol == _coinSymbol) return;
     setState(() {
       _coinSymbol = coinSymbol;
-      _showSubaddress = true; // reset the Monero subaddress/primary tab
+      _tab = 0; // back to the new chain's fresh address
     });
   }
 
-  @override
-  void dispose() {
-    // Left with the QR still enlarged: hand brightness back on the way out.
-    if (_qrEnlarged) _releaseBrightness();
-    super.dispose();
-  }
-
-  void _toggleQr() {
-    setState(() => _qrEnlarged = !_qrEnlarged);
-    // No await before either call reaches the plugin, and both go down one
-    // method channel, so the platform sees them in tap order: a quick
-    // enlarge-shrink cannot land the raise after the release.
-    _qrEnlarged ? _maximizeBrightness() : _releaseBrightness();
-  }
-
-  /// Turns the screen up while the QR is enlarged, so it still scans in
-  /// daylight.
-  Future<void> _maximizeBrightness() async {
-    try {
-      await ScreenBrightness().setApplicationScreenBrightness(1.0);
-    } catch (error) {
-      log(LogLevel.warn, 'Could not raise screen brightness for the QR code: $error');
-    }
-  }
-
-  /// Hands brightness back to the system.
-  ///
-  /// This resets the override rather than setting it back to whatever the
-  /// system brightness read before. An application override is an absolute
-  /// value pinned on the window, and while one is set Android ignores the
-  /// system brightness entirely: writing the old value back left the screen
-  /// deaf to auto-brightness and to the user's own slider until the app was
-  /// restarted (MAGICGrants/skylight-wallet#169). Resetting drops the
-  /// override, so the window follows the system setting again -- which is both
-  /// the brightness the user had before and the one they can keep changing.
-  Future<void> _releaseBrightness() async {
-    try {
-      await ScreenBrightness().resetApplicationScreenBrightness();
-    } catch (error) {
-      log(LogLevel.warn, 'Could not hand screen brightness back to the system: $error');
-    }
+  void _selectTab(List<_ReceiveTab> tabs, int index) {
+    // The Labeled tab has no QR to keep bright.
+    if (tabs[index] == _ReceiveTab.labeled && qrEnlarged) toggleQr();
+    setState(() => _tab = index);
   }
 
   void _copyAddress(String address) {
     final i18n = AppLocalizations.of(context)!;
     SecureClipboard.copy(address);
     showCopyToast(context, i18n.shared.addressCopied);
-  }
-
-  /// Opens the system share sheet on [address], anchored at [origin].
-  ///
-  /// [origin] is the share button's rect. iOS presents the sheet as a popover
-  /// pointing at it and share_plus rejects the call without one, so dropping it
-  /// left the button doing nothing at all. Awaited and caught for the same
-  /// reason: a fire-and-forget share turns every failure into silence.
-  Future<void> _share(String address, Rect? origin) async {
-    final i18n = AppLocalizations.of(context)!;
-    final toast = BrandToast.of(context);
-    try {
-      await SharePlus.instance.share(ShareParams(text: address, sharePositionOrigin: origin));
-    } catch (error) {
-      log(LogLevel.error, 'Address share failed (origin=${origin ?? 'none'}): $error');
-      toast.show(i18n.shared.receiveShareError);
-    }
   }
 
   @override
@@ -181,18 +149,53 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     // show their address straight away.
     final canToggle = monero != null && subSupported == true && sub != null;
 
+    final tabs = [
+      if (canToggle) ...[
+        _ReceiveTab.subaddress,
+        _ReceiveTab.primary,
+        _ReceiveTab.labeled,
+      ] else if (wallet.rotatingAddressKind == RotatingAddressKind.address) ...[
+        _ReceiveTab.address,
+        _ReceiveTab.labeled,
+      ],
+    ];
+    // Clamped: Monero's tabs come and go with the server's answer.
+    final tab = tabs.isEmpty ? null : tabs[_tab.clamp(0, tabs.length - 1)];
+    final tabLabels = tabs.isEmpty
+        ? null
+        : [
+            for (final t in tabs)
+              switch (t) {
+                _ReceiveTab.subaddress => i18n.shared.receiveSubaddressTab,
+                _ReceiveTab.primary => i18n.shared.receivePrimaryTab,
+                _ReceiveTab.address => i18n.shared.receiveAddressTab,
+                _ReceiveTab.labeled => i18n.shared.receiveLabeledTab,
+              },
+          ];
+    final labeledCoin = tab == _ReceiveTab.labeled ? labeledAddressCoinOf(wallet) : null;
+    final tabBody = labeledCoin == null ? null : _labeledList(i18n, wallet, labeledCoin);
+
     String? address;
     if (monero == null) {
       address = receiveAddress ?? primaryAddress;
-    } else if (canToggle && _showSubaddress) {
+    } else if (canToggle && tab == _ReceiveTab.subaddress) {
       address = sub.address;
     } else if (primaryAddress.isNotEmpty) {
       address = primaryAddress;
     }
 
-    final showingSubaddress = canToggle && _showSubaddress;
-    final ready = address != null;
-    final warning = _warning(i18n, monero, isDemoMode, subSupported, sub, unusedIndexSupported);
+    final showingSubaddress = tab == _ReceiveTab.subaddress;
+    // The Labeled tab lists addresses rather than showing one.
+    final ready = tabBody != null || address != null;
+    final warning = _warning(
+      i18n,
+      monero,
+      isDemoMode,
+      subSupported,
+      sub,
+      unusedIndexSupported,
+      showingPrimary: tab == _ReceiveTab.primary,
+    );
 
     if (isDesktop) {
       return DesktopShell(
@@ -208,12 +211,11 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
           blockchainSubtitle: i18n.receiveBlockchainSubtitle(wallet.blockchainName),
           ready: ready,
           address: address ?? '',
-          qrHeading: ready ? _heading(i18n, wallet, sub, showingSubaddress) : '',
-          tabLabels: canToggle
-              ? [i18n.shared.receiveSubaddressTab, i18n.shared.receivePrimaryTab]
-              : null,
-          selectedTab: _showSubaddress ? 0 : 1,
-          onSelectTab: (i) => setState(() => _showSubaddress = i == 0),
+          qrHeading: address != null ? _heading(i18n, wallet, sub, showingSubaddress) : '',
+          tabLabels: tabLabels,
+          selectedTab: tab == null ? 0 : tabs.indexOf(tab),
+          onSelectTab: (i) => _selectTab(tabs, i),
+          tabBody: tabBody,
           warning: warning,
           onCopy: () => _copyAddress(address!),
           onBack: () => Navigator.pop(context),
@@ -231,27 +233,61 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
         shrinkQr: i18n.shared.receiveShrinkQr,
       ),
       onBack: () => Navigator.pop(context),
-      onShare: _isMobile ? (origin) => _share(address!, origin) : null,
+      onShare: _isMobile ? (origin) => shareAddress(context, address!, origin) : null,
       ready: ready,
       coinSymbol: wallet.coinSymbol,
       iconAsset: wallet.iconAsset,
       coinName: wallet.blockchainName,
       blockchainSubtitle: i18n.receiveBlockchainSubtitle(wallet.blockchainName),
-      tabLabels: canToggle
-          ? [i18n.shared.receiveSubaddressTab, i18n.shared.receivePrimaryTab]
-          : null,
-      selectedTab: _showSubaddress ? 0 : 1,
-      onSelectTab: (i) => setState(() => _showSubaddress = i == 0),
+      tabLabels: tabLabels,
+      selectedTab: tab == null ? 0 : tabs.indexOf(tab),
+      onSelectTab: (i) => _selectTab(tabs, i),
+      tabBody: tabBody,
       address: address ?? '',
-      qrHeading: ready ? _heading(i18n, wallet, sub, showingSubaddress) : '',
+      qrHeading: address != null ? _heading(i18n, wallet, sub, showingSubaddress) : '',
       warning: warning,
       onCopy: () => _copyAddress(address!),
       assetOptions: assetOptions,
       onSelectAsset: _allAssets ? _selectAsset : null,
       // Mobile only: the hint promises a brighter screen, and brightness is
       // only managed on phones.
-      qrEnlarged: _qrEnlarged,
-      onToggleQr: _isMobile ? _toggleQr : null,
+      qrEnlarged: qrEnlarged,
+      onToggleQr: _isMobile ? toggleQr : null,
+    );
+  }
+
+  /// The Labeled tab: every used address of [wallet], under its label if it has
+  /// one. A row opens the address's own screen; Label opens the label sheet.
+  Widget _labeledList(AppLocalizations i18n, CryptoWallet wallet, LabeledAddressCoin coin) {
+    final labels = context.watch<AddressLabelModel>();
+    return FutureBuilder(
+      // Keyed on the chain, so switching chains starts from a spinner rather
+      // than the last chain's list.
+      key: ValueKey(coin.coinSymbol),
+      future: usedReceiveAddresses(wallet),
+      builder: (context, snapshot) {
+        final used = snapshot.data;
+        return LabeledAddressList(
+          strings: i18n.shared,
+          coin: coin,
+          entries: used == null
+              ? null
+              : [
+                  for (final u in used)
+                    (used: u, label: labels.labelFor(coin.coinSymbol, u.address)),
+                ],
+          onOpen: (entry) => Navigator.pushNamed(
+            context,
+            '/receive_address',
+            arguments: ReceiveAddressArgs(
+              coinSymbol: coin.coinSymbol,
+              used: entry.used,
+              backLabel: i18n.shared.receiveTitle,
+            ),
+          ),
+          onLabel: (entry) => editAddressLabel(context, coin, entry.used),
+        );
+      },
     );
   }
 
@@ -275,12 +311,13 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     bool isDemoMode,
     bool? subSupported,
     ({int index, String address})? sub,
-    bool? unusedIndexSupported,
-  ) {
+    bool? unusedIndexSupported, {
+    required bool showingPrimary,
+  }) {
     if (monero == null || isDemoMode) return null;
     if (subSupported == false) return i18n.shared.receiveServerNoSubaddressesWarn;
     if (sub == null) return i18n.shared.receiveSubaddressUnavailableWarn;
-    if (!_showSubaddress) return i18n.shared.receivePrimaryAddressWarn;
+    if (showingPrimary) return i18n.shared.receivePrimaryAddressWarn;
     if (unusedIndexSupported == false) return i18n.shared.receiveMaxSubaddressesReachedWarn;
     return null;
   }

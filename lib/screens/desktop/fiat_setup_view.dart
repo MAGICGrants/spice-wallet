@@ -40,7 +40,7 @@ class DesktopFiatSetupView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DesktopOnboardingScaffold(
-      logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
+      logo: SvgPicture.asset('assets/spice-mark.svg', height: 52, excludeFromSemantics: true),
       title: labels.title,
       description: labels.subtitle,
       step: 2,
@@ -81,13 +81,16 @@ class DesktopFiatSetupView extends StatelessWidget {
             onTap: () => onModeChanged(_disabled),
           ),
           const SizedBox(height: 26),
-          Text(
-            labels.currencyLabel,
-            style: TextStyle(
-              fontFamily: 'Ubuntu',
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: BrandColors.inkMuted,
+          Semantics(
+            header: true,
+            child: Text(
+              labels.currencyLabel,
+              style: TextStyle(
+                fontFamily: 'Ubuntu',
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: BrandColors.inkMuted,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -128,6 +131,8 @@ class _CurrencyChip extends StatelessWidget {
     return Tappable(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
+      selected: selected,
+      focusRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(

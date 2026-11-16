@@ -16,6 +16,9 @@ class WalletNavigationBar extends StatelessWidget {
 
   void _select(BuildContext context, int index) {
     if (index == selectedIndex) return;
+    // A touch runs this twice (touch-down, then tap); after the first push this
+    // screen's route is no longer the current one, so the second does nothing.
+    if (ModalRoute.of(context)?.isCurrent != true) return;
     Navigator.pushNamed(context, _routes[index]);
   }
 
@@ -78,31 +81,37 @@ class _NavTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = selected ? BrandColors.primaryDeep : BrandColors.inkMuted;
-    return InkWell(
-      mouseCursor: WidgetStateMouseCursor.clickable,
-      // Navigate on touch-down, not release: a very light (or slightly rolling)
-      // tap can drift past the tap recognizer's slop before the finger lifts and
-      // get dropped. onTap stays as a no-op only to keep the ripple feedback.
-      onTapDown: (_) => onTap(),
-      onTap: () {},
-      borderRadius: BorderRadius.circular(BrandRadii.tile),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 23, color: color),
-            const SizedBox(height: 5),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10.5,
-                height: 1,
-                fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
-                color: color,
+    return Semantics(
+      container: true,
+      button: true,
+      selected: selected,
+      child: InkWell(
+        mouseCursor: WidgetStateMouseCursor.clickable,
+        // Navigate on touch-down, not release: a very light (or slightly rolling)
+        // tap can drift past the tap recognizer's slop before the finger lifts and
+        // get dropped. onTap navigates too, as the keyboard sends only a tap;
+        // _select ignores the second call a touch makes.
+        onTapDown: (_) => onTap(),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(BrandRadii.tile),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 23, color: color),
+              const SizedBox(height: 5),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  height: 1,
+                  fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
+                  color: color,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 
 /// Desktop Step 5 of 5 — set the wallet password (last step; the wallet is
@@ -69,7 +71,7 @@ class _DesktopCreatePasswordViewState extends State<DesktopCreatePasswordView> {
   Widget build(BuildContext context) {
     final l = widget.labels;
     return DesktopOnboardingScaffold(
-      logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
+      logo: SvgPicture.asset('assets/spice-mark.svg', height: 52, excludeFromSemantics: true),
       title: l.title,
       description: l.description,
       step: 5,
@@ -104,32 +106,36 @@ class _DesktopCreatePasswordViewState extends State<DesktopCreatePasswordView> {
           if (_confirm.text.isNotEmpty)
             _hint(_matches ? widget.matchLabel : l.doNotMatchError, ok: _matches),
           const SizedBox(height: 22),
-          InkWell(
-            mouseCursor: WidgetStateMouseCursor.clickable,
-            onTap: () => setState(() => _acknowledged = !_acknowledged),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Checkbox(
-                  value: _acknowledged,
-                  onChanged: (v) => setState(() => _acknowledged = v ?? false),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 11),
-                    child: Text(
-                      widget.acknowledgeLabel,
-                      style: TextStyle(
-                        fontFamily: 'Ubuntu',
-                        fontSize: 13,
-                        height: 1.5,
-                        color: BrandColors.inkMuted,
+          // One checkbox node named by its text, and one tab stop.
+          MergeSemantics(
+            child: InkWell(
+              mouseCursor: WidgetStateMouseCursor.clickable,
+              canRequestFocus: false,
+              onTap: () => setState(() => _acknowledged = !_acknowledged),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    value: _acknowledged,
+                    onChanged: (v) => setState(() => _acknowledged = v ?? false),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 11),
+                      child: Text(
+                        widget.acknowledgeLabel,
+                        style: TextStyle(
+                          fontFamily: 'Ubuntu',
+                          fontSize: 13,
+                          height: 1.5,
+                          color: BrandColors.inkMuted,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -145,18 +151,22 @@ class _DesktopCreatePasswordViewState extends State<DesktopCreatePasswordView> {
     required bool obscured,
     required VoidCallback onToggle,
   }) {
+    final shared = AppLocalizations.of(context)!.shared;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label.toUpperCase(),
-          style: TextStyle(
-            fontFamily: 'Ubuntu Mono',
-            fontSize: 10,
-            height: 1,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.2,
-            color: BrandColors.inkMuted,
+        // The field below carries this name, so it is not read twice.
+        ExcludeSemantics(
+          child: Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontFamily: 'Ubuntu Mono',
+              fontSize: 10,
+              height: 1,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+              color: BrandColors.inkMuted,
+            ),
           ),
         ),
         const SizedBox(height: 9),
@@ -170,22 +180,32 @@ class _DesktopCreatePasswordViewState extends State<DesktopCreatePasswordView> {
           child: Row(
             children: [
               Expanded(
-                child: TextField(
-                  controller: controller,
-                  obscureText: obscured,
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu Mono',
-                    fontSize: 16,
-                    letterSpacing: obscured ? 3.5 : 0.5,
-                    color: BrandColors.ink,
+                child: Semantics(
+                  label: label,
+                  child: TextField(
+                    controller: controller,
+                    obscureText: obscured,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    enableIMEPersonalizedLearning: false,
+                    smartDashesType: SmartDashesType.disabled,
+                    smartQuotesType: SmartQuotesType.disabled,
+                    style: TextStyle(
+                      fontFamily: 'Ubuntu Mono',
+                      fontSize: 16,
+                      letterSpacing: obscured ? 3.5 : 0.5,
+                      color: BrandColors.ink,
+                    ),
+                    cursorColor: BrandColors.primary,
+                    decoration: const InputDecoration.collapsed(hintText: ''),
                   ),
-                  cursorColor: BrandColors.primary,
-                  decoration: const InputDecoration.collapsed(hintText: ''),
                 ),
               ),
               const SizedBox(width: 12),
               Tappable(
                 onTap: onToggle,
+                // Says what pressing it does.
+                semanticLabel: obscured ? shared.a11yShowPassword : shared.a11yHidePassword,
                 child: Icon(
                   obscured ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                   size: 20,
@@ -199,14 +219,19 @@ class _DesktopCreatePasswordViewState extends State<DesktopCreatePasswordView> {
     );
   }
 
+  // Spoken when it appears or changes (too short / strong, mismatch / match).
   Widget _hint(String text, {required bool ok}) => Padding(
     padding: const EdgeInsets.only(top: 8, left: 4),
-    child: Text(
-      text,
-      style: TextStyle(
-        fontFamily: 'Ubuntu',
-        fontSize: 12,
-        color: ok ? BrandColors.success : BrandColors.error,
+    child: Semantics(
+      container: true,
+      liveRegion: true,
+      child: Text(
+        text,
+        style: TextStyle(
+          fontFamily: 'Ubuntu',
+          fontSize: 12,
+          color: ok ? BrandColors.success : BrandColors.error,
+        ),
       ),
     ),
   );

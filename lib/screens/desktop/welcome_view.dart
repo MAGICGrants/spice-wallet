@@ -41,16 +41,20 @@ class DesktopWelcomeView extends StatelessWidget {
                 logo,
                 const SizedBox(height: 26),
                 // Design colours the title `ink`; mobile uses primaryDeep.
-                Text(
-                  appName,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu',
-                    fontSize: 34,
-                    height: 1.15,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
-                    color: BrandColors.ink,
+                Semantics(
+                  header: true,
+                  namesRoute: true,
+                  child: Text(
+                    appName,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Ubuntu',
+                      fontSize: 34,
+                      height: 1.15,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
+                      color: BrandColors.ink,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 14),

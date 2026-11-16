@@ -128,7 +128,11 @@ class _TorSettingsSheetState extends State<_TorSettingsSheet> {
                         ),
                         const SizedBox(width: 11),
                         Expanded(
-                          child: Text(i18n.shared.torSettingsTitle, style: BrandText.sheetTitle),
+                          child: Semantics(
+                            header: true,
+                            namesRoute: true,
+                            child: Text(i18n.shared.torSettingsTitle, style: BrandText.sheetTitle),
+                          ),
                         ),
                       ],
                     ),

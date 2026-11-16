@@ -43,6 +43,7 @@ void main() {
       '/history',
       '/send',
       '/receive',
+      '/receive_address',
       '/address_book',
       '/settings',
       '/connection_setup',
