@@ -97,9 +97,13 @@ class _FiatApiSettingsSheetState extends State<_FiatApiSettingsSheet> {
                         ),
                         const SizedBox(width: 11),
                         Expanded(
-                          child: Text(
-                            i18n.shared.settingsFiatApiSettingsLabel,
-                            style: BrandText.sheetTitle,
+                          child: Semantics(
+                            header: true,
+                            namesRoute: true,
+                            child: Text(
+                              i18n.shared.settingsFiatApiSettingsLabel,
+                              style: BrandText.sheetTitle,
+                            ),
                           ),
                         ),
                       ],

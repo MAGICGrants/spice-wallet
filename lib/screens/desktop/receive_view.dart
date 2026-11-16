@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/screens/desktop/home_shell.dart';
 
@@ -63,7 +65,18 @@ class DesktopReceiveView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final spinner = Center(child: CircularProgressIndicator(color: BrandColors.primary));
+    final shared = AppLocalizations.of(context)!.shared;
+    final spinner = Center(
+      child: CircularProgressIndicator(
+        color: BrandColors.primary,
+        semanticsLabel: shared.a11yLoading,
+      ),
+    );
+    final heading = Semantics(
+      header: true,
+      namesRoute: true,
+      child: Text(title, style: desktopTitleStyle),
+    );
     if (!ready) {
       if (assetOptions.length <= 1 || onSelectAsset == null) return spinner;
       // The picker stays while the address loads, so a chain whose address
@@ -73,7 +86,7 @@ class DesktopReceiveView extends StatelessWidget {
         children: [
           DesktopBackLink(label: backLabel, onTap: onBack),
           const SizedBox(height: 16),
-          Text(title, style: desktopTitleStyle),
+          heading,
           const SizedBox(height: 24),
           Align(
             alignment: Alignment.centerLeft,
@@ -122,14 +135,14 @@ class DesktopReceiveView extends StatelessWidget {
       children: [
         DesktopBackLink(label: backLabel, onTap: onBack),
         const SizedBox(height: 16),
-        Text(title, style: desktopTitleStyle),
+        heading,
         const SizedBox(height: 24),
         LayoutBuilder(
           builder: (context, constraints) {
             // Two columns (QR beside details) only when there's room; below that,
             // stack the QR above the details.
             const twoColMinWidth = 640.0;
-            final qr = SizedBox(width: 300, child: _qrCard());
+            final qr = SizedBox(width: 300, child: _qrCard(shared.a11yAddressQr));
             if (constraints.maxWidth < twoColMinWidth) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -154,7 +167,7 @@ class DesktopReceiveView extends StatelessWidget {
     );
   }
 
-  Widget _qrCard() {
+  Widget _qrCard(String qrLabel) {
     return Container(
       decoration: BoxDecoration(
         color: BrandColors.card,
@@ -170,6 +183,7 @@ class DesktopReceiveView extends StatelessWidget {
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
             child: QrImageView(
               data: address,
+              semanticsLabel: qrLabel,
               size: 232,
               backgroundColor: Colors.white,
               padding: EdgeInsets.zero,
@@ -290,7 +304,9 @@ class _CoinCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
       child: Row(
         children: [
-          CoinMark(coinSymbol: coinSymbol, iconAsset: iconAsset, size: 32),
+          ExcludeSemantics(
+            child: CoinMark(coinSymbol: coinSymbol, iconAsset: iconAsset, size: 32),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

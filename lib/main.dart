@@ -315,7 +315,13 @@ class _RootAppState extends State<_RootApp>
   }
 
   static final Map<String, WidgetBuilder> _routes = {
-    '/loading': (context) => Scaffold(body: Center(child: CircularProgressIndicator())),
+    '/loading': (context) => Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(
+          semanticsLabel: AppLocalizations.of(context)?.shared.a11yLoading,
+        ),
+      ),
+    ),
     '/welcome': (context) => WelcomeScreen(),
     '/tor_settings': (context) => TorSettingsScreen(),
     '/connection_setup': (context) => ConnectionSetupScreen(),
@@ -412,7 +418,11 @@ class _RootAppState extends State<_RootApp>
           // token resolves to the current theme.
           child: SkeletonizerConfig(
             data: SkeletonizerConfigData(effect: SoldColorEffect(color: BrandColors.surfaceMuted)),
-            child: child ?? const SizedBox.shrink(),
+            // Desktop: Cmd+[ / Alt+Left goes back a screen.
+            child: DesktopBackShortcut(
+              navigatorKey: _navigatorKey,
+              child: child ?? const SizedBox.shrink(),
+            ),
           ),
         );
       },

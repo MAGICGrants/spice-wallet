@@ -189,7 +189,7 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> with SecureSc
     return ValueListenableBuilder<bool>(
       valueListenable: _restoreWalletController.canRestore,
       builder: (context, valid, _) => DesktopOnboardingScaffold(
-        logo: SvgPicture.asset('assets/spice-mark.svg', height: 52),
+        logo: SvgPicture.asset('assets/spice-mark.svg', height: 52, excludeFromSemantics: true),
         title: i18n.shared.restoreWalletTitle,
         description: i18n.restoreWalletSubtitle,
         step: 4,

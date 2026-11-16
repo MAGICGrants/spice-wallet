@@ -135,6 +135,8 @@ class DesktopCoinHomeView extends StatelessWidget {
     final coinAmount = wallet.unlockedBalance is double
         ? '${formatAmount(wallet.unlockedBalance as double, wallet.decimals)} ${wallet.coinSymbol}'
         : '—';
+    // The dash stands for a balance not loaded yet.
+    final loadingLabel = wallet.unlockedBalance is double ? null : i18n.shared.a11yLoading;
 
     return Container(
       decoration: BoxDecoration(
@@ -148,29 +150,39 @@ class DesktopCoinHomeView extends StatelessWidget {
         children: [
           Row(
             children: [
-              CoinMark(
-                coinSymbol: wallet.coinSymbol,
-                iconAsset: wallet.iconAsset,
-                size: 32,
-                statusColor: connectionDotColor(wallet),
-                statusRingColor: BrandColors.card,
+              // Decorative: the status pill beside it says what its dot means.
+              ExcludeSemantics(
+                child: CoinMark(
+                  coinSymbol: wallet.coinSymbol,
+                  iconAsset: wallet.iconAsset,
+                  size: 32,
+                  statusColor: connectionDotColor(wallet),
+                  statusRingColor: BrandColors.card,
+                ),
               ),
               const SizedBox(width: 13),
               Expanded(
-                child: Text(
-                  wallet.blockchainName,
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu',
-                    fontSize: 16,
-                    height: 1.2,
-                    fontWeight: FontWeight.w500,
-                    color: BrandColors.ink,
+                child: Semantics(
+                  header: true,
+                  namesRoute: true,
+                  child: Text(
+                    wallet.blockchainName,
+                    style: TextStyle(
+                      fontFamily: 'Ubuntu',
+                      fontSize: 16,
+                      height: 1.2,
+                      fontWeight: FontWeight.w500,
+                      color: BrandColors.ink,
+                    ),
                   ),
                 ),
               ),
               _statusPill(i18n, wallet, configured),
               const SizedBox(width: 10),
-              _GearButton(onTap: () => _openSettings(context, chainSymbol)),
+              _GearButton(
+                label: i18n.shared.settingsTitle,
+                onTap: () => _openSettings(context, chainSymbol),
+              ),
             ],
           ),
           const SizedBox(height: 22),
@@ -188,11 +200,12 @@ class DesktopCoinHomeView extends StatelessWidget {
                         style: _bigFiat,
                       )
                     else
-                      Text(coinAmount, style: _bigFiat),
+                      Text(coinAmount, style: _bigFiat, semanticsLabel: loadingLabel),
                     if (showFiat) ...[
                       const SizedBox(height: 11),
                       Text(
                         coinAmount,
+                        semanticsLabel: loadingLabel,
                         style: TextStyle(
                           fontFamily: 'Ubuntu Mono',
                           fontSize: 15,
@@ -384,8 +397,9 @@ class DesktopCoinHomeView extends StatelessWidget {
 }
 
 class _GearButton extends StatelessWidget {
+  final String label;
   final VoidCallback onTap;
-  const _GearButton({required this.onTap});
+  const _GearButton({required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -395,14 +409,19 @@ class _GearButton extends StatelessWidget {
         side: BorderSide(color: BrandColors.border),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: InkWell(
-        mouseCursor: WidgetStateMouseCursor.clickable,
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: SizedBox(
-          width: 38,
-          height: 38,
-          child: Icon(Icons.tune, size: 18, color: BrandColors.inkMuted),
+      child: Semantics(
+        container: true,
+        button: true,
+        label: label,
+        child: InkWell(
+          mouseCursor: WidgetStateMouseCursor.clickable,
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: SizedBox(
+            width: 38,
+            height: 38,
+            child: Icon(Icons.tune, size: 18, color: BrandColors.inkMuted),
+          ),
         ),
       ),
     );
@@ -432,47 +451,56 @@ class _AssetRow extends StatelessWidget {
         ? '${formatAmount(balance, wallet.decimals)} ${wallet.coinSymbol}'
         : '—';
 
-    return Container(
-      decoration: BoxDecoration(
-        color: BrandColors.card,
-        border: Border.all(color: BrandColors.border),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
-      child: Row(
-        children: [
-          CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 34),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  wallet.assetName,
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu',
-                    fontSize: 14.5,
-                    height: 1.25,
-                    fontWeight: FontWeight.w500,
-                    color: BrandColors.ink,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  amount,
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu Mono',
-                    fontSize: 11.5,
-                    height: 1.3,
-                    color: BrandColors.inkMuted,
-                  ),
-                ),
-              ],
+    // One node per asset: name, amount and value read together.
+    return MergeSemantics(
+      child: Container(
+        decoration: BoxDecoration(
+          color: BrandColors.card,
+          border: Border.all(color: BrandColors.border),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+        child: Row(
+          children: [
+            ExcludeSemantics(
+              child: CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 34),
             ),
-          ),
-          if (fiat != null && !fiatRate.isDisabled)
-            BalanceText.split(formatFiat(fiat, fiatRate.fiatCurrency), style: _fiat),
-        ],
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    wallet.assetName,
+                    style: TextStyle(
+                      fontFamily: 'Ubuntu',
+                      fontSize: 14.5,
+                      height: 1.25,
+                      fontWeight: FontWeight.w500,
+                      color: BrandColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    amount,
+                    // The dash stands for a balance not loaded yet.
+                    semanticsLabel: balance is double
+                        ? null
+                        : AppLocalizations.of(context)!.shared.a11yLoading,
+                    style: TextStyle(
+                      fontFamily: 'Ubuntu Mono',
+                      fontSize: 11.5,
+                      height: 1.3,
+                      color: BrandColors.inkMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (fiat != null && !fiatRate.isDisabled)
+              BalanceText.split(formatFiat(fiat, fiatRate.fiatCurrency), style: _fiat),
+          ],
+        ),
       ),
     );
   }

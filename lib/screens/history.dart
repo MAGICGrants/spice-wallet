@@ -364,41 +364,46 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     final filters = <Widget>[
       // Scrolls to allow extending off the screen
-      SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.fromLTRB(gutter, 0, gutter, 12),
-        child: Row(
-          children: [
-            _FilterPill(
-              label: i18n.historyFilterBlockchain,
-              count: selectedCount(chainOptions, _chainsHidden.contains),
-              open: _open == _Filter.blockchain,
-              onTap: () => _toggleOpen(_Filter.blockchain),
-            ),
-            const SizedBox(width: 7),
-            _FilterPill(
-              label: i18n.historyFilterAsset,
-              count: selectedCount(assetOptions, _assetsHidden.contains),
-              open: _open == _Filter.asset,
-              onTap: () => _toggleOpen(_Filter.asset),
-            ),
-            const SizedBox(width: 7),
-            _FilterPill(
-              label: i18n.shared.historyFilterType,
-              count: selectedCount(typeOptions, (v) => _typesHidden.contains(int.parse(v))),
-              open: _open == _Filter.type,
-              onTap: () => _toggleOpen(_Filter.type),
-            ),
-            const SizedBox(width: 7),
-            _FilterPill(
-              label: recipientLabel ?? i18n.historyFilterRecipient,
-              // A label already says which address; a count of one adds nothing.
-              count: _recipient == null || recipientLabel != null ? null : 1,
-              selected: recipientLabel != null,
-              open: _open == _Filter.recipient,
-              onTap: () => _toggleOpen(_Filter.recipient),
-            ),
-          ],
+      // Esc closes an open filter panel, keyboard or mouse.
+      EscapeCloses(
+        active: _open != null,
+        onClose: () => setState(() => _open = null),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.fromLTRB(gutter, 0, gutter, 12),
+          child: Row(
+            children: [
+              _FilterPill(
+                label: i18n.historyFilterBlockchain,
+                count: selectedCount(chainOptions, _chainsHidden.contains),
+                open: _open == _Filter.blockchain,
+                onTap: () => _toggleOpen(_Filter.blockchain),
+              ),
+              const SizedBox(width: 7),
+              _FilterPill(
+                label: i18n.historyFilterAsset,
+                count: selectedCount(assetOptions, _assetsHidden.contains),
+                open: _open == _Filter.asset,
+                onTap: () => _toggleOpen(_Filter.asset),
+              ),
+              const SizedBox(width: 7),
+              _FilterPill(
+                label: i18n.shared.historyFilterType,
+                count: selectedCount(typeOptions, (v) => _typesHidden.contains(int.parse(v))),
+                open: _open == _Filter.type,
+                onTap: () => _toggleOpen(_Filter.type),
+              ),
+              const SizedBox(width: 7),
+              _FilterPill(
+                label: recipientLabel ?? i18n.historyFilterRecipient,
+                // A label already says which address; a count of one adds nothing.
+                count: _recipient == null || recipientLabel != null ? null : 1,
+                selected: recipientLabel != null,
+                open: _open == _Filter.recipient,
+                onTap: () => _toggleOpen(_Filter.recipient),
+              ),
+            ],
+          ),
         ),
       ),
       if (_open == _Filter.blockchain)
@@ -463,10 +468,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
       Expanded(
         child: _open == null
             ? list
+            // Tap-outside dismiss barrier, not a control (the panel's Done
+            // closes it). The dimmed list takes no taps, so no keys either.
             : GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => setState(() => _open = null),
-                child: Opacity(opacity: 0.4, child: IgnorePointer(child: list)),
+                excludeFromSemantics: true,
+                child: Opacity(
+                  opacity: 0.4,
+                  child: IgnorePointer(child: ExcludeFocus(child: list)),
+                ),
               ),
       ),
     ];
@@ -489,7 +500,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
               padding: EdgeInsets.fromLTRB(44, _pushed ? 16 : 30, 44, 20),
               child: Row(
                 children: [
-                  Expanded(child: Text(i18n.shared.historyTitle, style: desktopTitleStyle)),
+                  Expanded(
+                    child: Semantics(
+                      header: true,
+                      namesRoute: true,
+                      child: Text(i18n.shared.historyTitle, style: desktopTitleStyle),
+                    ),
+                  ),
                   Builder(
                     builder: (anchor) => BrandButton.secondary(
                       label: i18n.shared.historyExportCsv,
@@ -530,12 +547,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                     action: Tooltip(
                       message: i18n.shared.historyExportCsv,
+                      // The button's own label says it; not read twice.
+                      excludeFromSemantics: true,
                       child: Opacity(
                         opacity: canExport ? 1 : 0.4,
                         child: Builder(
                           builder: (anchor) => IconCircleButton(
                             icon: Icons.file_download_outlined,
                             onPressed: canExport ? () => export(anchor) : null,
+                            semanticLabel: i18n.shared.historyExportCsv,
                           ),
                         ),
                       ),
@@ -810,9 +830,13 @@ class _RecipientPanel extends StatelessWidget {
         ),
         if (invalid) ...[
           const SizedBox(height: 8),
-          Text(
-            i18n.historyFilterRecipientInvalid,
-            style: BrandText.caption.copyWith(color: BrandColors.error),
+          Semantics(
+            container: true,
+            liveRegion: true,
+            child: Text(
+              i18n.historyFilterRecipientInvalid,
+              style: BrandText.caption.copyWith(color: BrandColors.error),
+            ),
           ),
         ],
       ],
@@ -824,7 +848,9 @@ class _RecipientPanel extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
     child: Row(
       children: [
-        CoinMark(coinSymbol: coinSymbol!, iconAsset: iconAsset, size: 30),
+        ExcludeSemantics(
+          child: CoinMark(coinSymbol: coinSymbol!, iconAsset: iconAsset, size: 30),
+        ),
         const SizedBox(width: 11),
         Expanded(
           child: Column(
@@ -843,6 +869,12 @@ class _RecipientPanel extends StatelessWidget {
               const SizedBox(height: 3),
               Text(
                 shortenMiddle(address!, head: 9, tail: 9),
+                semanticsLabel: spokenShortened(
+                  address!,
+                  i18n.shared.a11yAddressEnds,
+                  head: 9,
+                  tail: 9,
+                ),
                 style: TextStyle(
                   fontFamily: 'Ubuntu Mono',
                   fontSize: 11,
@@ -855,6 +887,8 @@ class _RecipientPanel extends StatelessWidget {
         Tappable(
           behavior: HitTestBehavior.opaque,
           onTap: onClear,
+          semanticLabel: i18n.shared.a11yClear,
+          focusRadius: BorderRadius.circular(13),
           child: Container(
             width: 26,
             height: 26,
@@ -893,6 +927,8 @@ class _FilterPill extends StatelessWidget {
     return Tappable(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
+      expanded: open,
+      focusRadius: BorderRadius.circular(100),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
@@ -1044,6 +1080,7 @@ class _FilterPanel extends StatelessWidget {
     return Tappable(
       behavior: HitTestBehavior.opaque,
       onTap: () => onToggle(opt.value),
+      checked: selected,
       child: Container(
         decoration: last
             ? null
@@ -1055,7 +1092,7 @@ class _FilterPanel extends StatelessWidget {
           children: [
             _Check(selected: selected),
             const SizedBox(width: 12),
-            opt.icon,
+            ExcludeSemantics(child: opt.icon),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

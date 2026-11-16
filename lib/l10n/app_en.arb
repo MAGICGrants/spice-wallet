@@ -153,5 +153,9 @@
   "explorerSetupTitle": "Block Explorer Setup",
   "explorerSetupDescription": "Optionally set a Blockscout explorer instance to load full transaction history. Only select a server you trust. Even if you use Tor, this server can learn information about you.",
   "explorerAddressLabel": "Explorer Address",
-  "explorerRemovedMessage": "Explorer removed."
+  "explorerRemovedMessage": "Explorer removed.",
+  "desktopNavChainsToggle": "Blockchains",
+  "@desktopNavChainsToggle": {
+    "description": "Screen-reader name of the sidebar chevron that shows or hides the list of blockchains under Home (never shown). Title Case."
+  }
 }

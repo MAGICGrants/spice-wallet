@@ -118,34 +118,51 @@ class _DesktopShellState extends State<DesktopShell> {
     final chains = _chainNavItems(context);
     return Scaffold(
       backgroundColor: BrandColors.paper,
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Flies in place across transitions, so the sidebar doesn't slide with
-          // the page. Kept out of the page's own transition, like the mobile nav.
-          // placeholderBuilder keeps it painted in place during the flight, so
-          // instant (zero-duration) tab switches don't blink an empty gap.
-          Hero(
-            tag: 'desktop-sidebar',
-            // The sidebar flies in place so it doesn't slide with the page. The
-            // default flight shows the destination copy opaquely (no cross-fade,
-            // so identical sidebars don't dim mid-flight); placeholderBuilder
-            // keeps the source painted so instant switches don't blink a gap. The
-            // flown child is plain data (chains passed in), so nothing re-runs a
-            // provider lookup mid-flight — that was the earlier flicker.
-            placeholderBuilder: (context, heroSize, child) => child,
-            child: _sidebar(context, chains),
-          ),
-          Expanded(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: contentMaxWidth),
-                child: widget.child,
+      // Keyboard: Tab goes through the page first and the sidebar after it,
+      // so reaching the page's own controls doesn't mean tabbing past every
+      // destination on each screen. Shift+Tab from the page's first control
+      // reaches the sidebar. Screen readers keep the visual order.
+      body: FocusTraversalGroup(
+        policy: OrderedTraversalPolicy(),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Flies in place across transitions, so the sidebar doesn't slide with
+            // the page. Kept out of the page's own transition, like the mobile nav.
+            // placeholderBuilder keeps it painted in place during the flight, so
+            // instant (zero-duration) tab switches don't blink an empty gap.
+            FocusTraversalOrder(
+              order: const NumericFocusOrder(2),
+              child: FocusTraversalGroup(
+                child: Hero(
+                  tag: 'desktop-sidebar',
+                  // The sidebar flies in place so it doesn't slide with the page. The
+                  // default flight shows the destination copy opaquely (no cross-fade,
+                  // so identical sidebars don't dim mid-flight); placeholderBuilder
+                  // keeps the source painted so instant switches don't blink a gap. The
+                  // flown child is plain data (chains passed in), so nothing re-runs a
+                  // provider lookup mid-flight — that was the earlier flicker.
+                  placeholderBuilder: (context, heroSize, child) => child,
+                  child: _sidebar(context, chains),
+                ),
               ),
             ),
-          ),
-        ],
+            Expanded(
+              child: FocusTraversalOrder(
+                order: const NumericFocusOrder(1),
+                child: FocusTraversalGroup(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: contentMaxWidth),
+                      child: widget.child,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -170,7 +187,12 @@ class _DesktopShellState extends State<DesktopShell> {
               padding: const EdgeInsets.symmetric(horizontal: 7),
               child: Row(
                 children: [
-                  SvgPicture.asset('assets/spice-icon.svg', width: 28, height: 28),
+                  SvgPicture.asset(
+                    'assets/spice-icon.svg',
+                    width: 28,
+                    height: 28,
+                    excludeFromSemantics: true,
+                  ),
                   const SizedBox(width: 10),
                   Text(
                     'Spice Wallet',
@@ -266,27 +288,32 @@ class _DesktopShellState extends State<DesktopShell> {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: active ? BrandColors.border : Colors.transparent),
       ),
-      child: InkWell(
-        mouseCursor: WidgetStateMouseCursor.clickable,
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
-          child: Row(
-            children: [
-              Icon(icon, size: 18, color: fg),
-              const SizedBox(width: 12),
-              Text(
-                label,
-                style: TextStyle(
-                  fontFamily: 'Ubuntu',
-                  fontSize: 14,
-                  height: 1,
-                  fontWeight: active ? FontWeight.w500 : FontWeight.w400,
-                  color: fg,
+      child: Semantics(
+        container: true,
+        button: true,
+        selected: active,
+        child: InkWell(
+          mouseCursor: WidgetStateMouseCursor.clickable,
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: fg),
+                const SizedBox(width: 12),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontFamily: 'Ubuntu',
+                    fontSize: 14,
+                    height: 1,
+                    fontWeight: active ? FontWeight.w500 : FontWeight.w400,
+                    color: fg,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -313,43 +340,54 @@ class _DesktopShellState extends State<DesktopShell> {
           child: Row(
             children: [
               Expanded(
-                child: InkWell(
-                  mouseCursor: WidgetStateMouseCursor.clickable,
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => _go('/wallet_home'),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(13, 11, 4, 11),
-                    child: Row(
-                      children: [
-                        Icon(Icons.home_outlined, size: 19, color: fg),
-                        const SizedBox(width: 12),
-                        Text(
-                          i18n.navigationBarHome,
-                          style: TextStyle(
-                            fontFamily: 'Ubuntu',
-                            fontSize: 14,
-                            height: 1,
-                            fontWeight: homeSelected ? FontWeight.w500 : FontWeight.w400,
-                            color: fg,
+                child: Semantics(
+                  container: true,
+                  button: true,
+                  selected: homeSelected,
+                  child: InkWell(
+                    mouseCursor: WidgetStateMouseCursor.clickable,
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => _go('/wallet_home'),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(13, 11, 4, 11),
+                      child: Row(
+                        children: [
+                          Icon(Icons.home_outlined, size: 19, color: fg),
+                          const SizedBox(width: 12),
+                          Text(
+                            i18n.navigationBarHome,
+                            style: TextStyle(
+                              fontFamily: 'Ubuntu',
+                              fontSize: 14,
+                              height: 1,
+                              fontWeight: homeSelected ? FontWeight.w500 : FontWeight.w400,
+                              color: fg,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
               // No chevron when there are no chains to expand.
               if (chains.isNotEmpty)
-                InkWell(
-                  mouseCursor: WidgetStateMouseCursor.clickable,
-                  borderRadius: BorderRadius.circular(9),
-                  onTap: () => setState(() => _homeExpanded = !_homeExpanded),
-                  child: Padding(
-                    padding: const EdgeInsets.all(9),
-                    child: Icon(
-                      _homeExpanded ? Icons.expand_more : Icons.chevron_right,
-                      size: 18,
-                      color: BrandColors.inkFaint,
+                Semantics(
+                  container: true,
+                  button: true,
+                  expanded: _homeExpanded,
+                  label: i18n.desktopNavChainsToggle,
+                  child: InkWell(
+                    mouseCursor: WidgetStateMouseCursor.clickable,
+                    borderRadius: BorderRadius.circular(9),
+                    onTap: () => setState(() => _homeExpanded = !_homeExpanded),
+                    child: Padding(
+                      padding: const EdgeInsets.all(9),
+                      child: Icon(
+                        _homeExpanded ? Icons.expand_more : Icons.chevron_right,
+                        size: 18,
+                        color: BrandColors.inkFaint,
+                      ),
                     ),
                   ),
                 ),
@@ -383,52 +421,63 @@ class _DesktopShellState extends State<DesktopShell> {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: active ? BrandColors.border : Colors.transparent),
       ),
-      child: InkWell(
-        mouseCursor: WidgetStateMouseCursor.clickable,
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => _goCoin(wallet.coinSymbol),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-          child: Row(
-            children: [
-              CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 28),
-              const SizedBox(width: 11),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      wallet.blockchainName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: 'Ubuntu',
-                        fontSize: 13.5,
-                        height: 1,
-                        // Selected weight matches the other nav items (w500).
-                        fontWeight: active ? FontWeight.w500 : FontWeight.w400,
-                        color: BrandColors.ink,
-                      ),
-                    ),
-                    if (item.fiat != null) ...[
-                      const SizedBox(height: 5),
+      child: Semantics(
+        container: true,
+        button: true,
+        selected: active,
+        child: InkWell(
+          mouseCursor: WidgetStateMouseCursor.clickable,
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _goCoin(wallet.coinSymbol),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            child: Row(
+              children: [
+                ExcludeSemantics(
+                  child: CoinMark(
+                    coinSymbol: wallet.coinSymbol,
+                    iconAsset: wallet.iconAsset,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       Text(
-                        item.fiat!,
+                        wallet.blockchainName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontFamily: 'Ubuntu Mono',
-                          fontSize: 11,
+                          fontFamily: 'Ubuntu',
+                          fontSize: 13.5,
                           height: 1,
-                          color: BrandColors.inkFaint,
+                          // Selected weight matches the other nav items (w500).
+                          fontWeight: active ? FontWeight.w500 : FontWeight.w400,
+                          color: BrandColors.ink,
                         ),
                       ),
+                      if (item.fiat != null) ...[
+                        const SizedBox(height: 5),
+                        Text(
+                          item.fiat!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: 'Ubuntu Mono',
+                            fontSize: 11,
+                            height: 1,
+                            color: BrandColors.inkFaint,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

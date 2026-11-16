@@ -108,7 +108,12 @@ class _SendScreenState extends State<SendScreen> {
   // Anchored "From" asset dropdown.
   final LayerLink _assetMenuLink = LayerLink();
   final OverlayPortalController _assetMenuController = OverlayPortalController();
+  final FocusNode _assetMenuTrigger = FocusNode(debugLabel: 'SendAssetMenu');
   bool _assetMenuOpen = false;
+
+  /// Opened from the keyboard (the trigger had focus): focus goes into the
+  /// list, and back to the trigger when it closes.
+  bool _assetMenuByKeyboard = false;
 
   CryptoWallet _wallet(BuildContext context) {
     final manager = Provider.of<WalletManager>(context, listen: false);
@@ -188,6 +193,7 @@ class _SendScreenState extends State<SendScreen> {
 
   @override
   void dispose() {
+    _assetMenuTrigger.dispose();
     _feeDebounce?.cancel();
     _destinationAddressController.removeListener(_onAddressChanged);
     _amount.removeListener(_onAmountChanged);
@@ -930,33 +936,41 @@ class _SendScreenState extends State<SendScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(44, 30, 44, 36),
       children: [
-        InkWell(
-          mouseCursor: WidgetStateMouseCursor.clickable,
-          onTap: () => Navigator.pop(context),
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.chevron_left, size: 18, color: BrandColors.primary),
-                const SizedBox(width: 2),
-                Text(
-                  _backLabel ?? wallet.blockchainName,
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu',
-                    fontSize: 12.5,
-                    height: 1,
-                    fontWeight: FontWeight.w500,
-                    color: BrandColors.primary,
+        Semantics(
+          container: true,
+          button: true,
+          child: InkWell(
+            mouseCursor: WidgetStateMouseCursor.clickable,
+            onTap: () => Navigator.pop(context),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.chevron_left, size: 18, color: BrandColors.primary),
+                  const SizedBox(width: 2),
+                  Text(
+                    _backLabel ?? wallet.blockchainName,
+                    style: TextStyle(
+                      fontFamily: 'Ubuntu',
+                      fontSize: 12.5,
+                      height: 1,
+                      fontWeight: FontWeight.w500,
+                      color: BrandColors.primary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
         const SizedBox(height: 16),
-        Text(i18n.shared.sendTitle, style: desktopTitleStyle),
+        Semantics(
+          header: true,
+          namesRoute: true,
+          child: Text(i18n.shared.sendTitle, style: desktopTitleStyle),
+        ),
         const SizedBox(height: 24),
         _sendForm(context, i18n, wallet, assets, fiatRate, quote, canSend),
       ],
@@ -1003,19 +1017,21 @@ class _SendScreenState extends State<SendScreen> {
                 onSelect: _setPriority,
               ),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    i18n.shared.sendNetworkFee,
-                    style: TextStyle(
-                      fontFamily: 'Ubuntu',
-                      fontSize: 12.5,
-                      color: BrandColors.inkMuted,
+              MergeSemantics(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      i18n.shared.sendNetworkFee,
+                      style: TextStyle(
+                        fontFamily: 'Ubuntu',
+                        fontSize: 12.5,
+                        color: BrandColors.inkMuted,
+                      ),
                     ),
-                  ),
-                  _feeValue(wallet, quote),
-                ],
+                    _feeValue(wallet, quote),
+                  ],
+                ),
               ),
             ],
           ),
@@ -1069,16 +1085,21 @@ class _SendScreenState extends State<SendScreen> {
     children: [
       Align(
         alignment: Alignment.centerLeft,
-        child: Text(caption.toUpperCase(), style: BrandText.section),
+        child: Text(caption.toUpperCase(), semanticsLabel: caption, style: BrandText.section),
       ),
       const SizedBox(height: 8),
       child,
     ],
   );
 
+  // Spoken when it appears or changes.
   Widget _dError(String text) => Padding(
     padding: const EdgeInsets.only(top: 8, left: 2),
-    child: Text(text, style: BrandText.caption.copyWith(color: BrandColors.error)),
+    child: Semantics(
+      container: true,
+      liveRegion: true,
+      child: Text(text, style: BrandText.caption.copyWith(color: BrandColors.error)),
+    ),
   );
 
   Widget _dCard({required Widget child}) => Container(
@@ -1116,6 +1137,12 @@ class _SendScreenState extends State<SendScreen> {
                       const SizedBox(height: 2),
                       Text(
                         shortenMiddle(_destinationAddressController.text, head: 10, tail: 12),
+                        semanticsLabel: spokenShortened(
+                          _destinationAddressController.text,
+                          i18n.shared.a11yAddressEnds,
+                          head: 10,
+                          tail: 12,
+                        ),
                         style: TextStyle(
                           fontFamily: 'Ubuntu Mono',
                           fontSize: 12,
@@ -1126,30 +1153,39 @@ class _SendScreenState extends State<SendScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close, size: 18, color: BrandColors.inkMuted),
+                  icon: Icon(
+                    Icons.close,
+                    size: 18,
+                    color: BrandColors.inkMuted,
+                    semanticLabel: i18n.shared.a11yClear,
+                  ),
                   onPressed: _clearSelectedContact,
                 ),
               ],
             )
           else
-            TextField(
-              controller: _destinationAddressController,
-              focusNode: _addressFocusNode,
-              minLines: 1,
-              maxLines: 2,
-              style: TextStyle(
-                fontFamily: 'Ubuntu Mono',
-                fontSize: 13.5,
-                height: 1.6,
-                color: BrandColors.ink,
-              ),
-              decoration: InputDecoration.collapsed(
-                hintText: addressHint,
-                hintStyle: TextStyle(
+            // Named by the caption above it, not only by the placeholder.
+            Semantics(
+              label: i18n.shared.sendToLabel,
+              child: TextField(
+                controller: _destinationAddressController,
+                focusNode: _addressFocusNode,
+                minLines: 1,
+                maxLines: 2,
+                style: TextStyle(
                   fontFamily: 'Ubuntu Mono',
                   fontSize: 13.5,
                   height: 1.6,
-                  color: BrandColors.inkFaint,
+                  color: BrandColors.ink,
+                ),
+                decoration: InputDecoration.collapsed(
+                  hintText: addressHint,
+                  hintStyle: TextStyle(
+                    fontFamily: 'Ubuntu Mono',
+                    fontSize: 13.5,
+                    height: 1.6,
+                    color: BrandColors.inkFaint,
+                  ),
                 ),
               ),
             ),
@@ -1184,28 +1220,32 @@ class _SendScreenState extends State<SendScreen> {
   Widget _dPill(IconData icon, String label, VoidCallback onTap) => Material(
     color: BrandColors.surfaceSunken,
     borderRadius: BorderRadius.circular(11),
-    child: InkWell(
-      mouseCursor: WidgetStateMouseCursor.clickable,
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(11),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: BrandColors.primaryDeep),
-            const SizedBox(width: 7),
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'Ubuntu',
-                fontSize: 12.5,
-                height: 1,
-                fontWeight: FontWeight.w500,
-                color: BrandColors.primaryDeep,
+    child: Semantics(
+      container: true,
+      button: true,
+      child: InkWell(
+        mouseCursor: WidgetStateMouseCursor.clickable,
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(11),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: BrandColors.primaryDeep),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Ubuntu',
+                  fontSize: 12.5,
+                  height: 1,
+                  fontWeight: FontWeight.w500,
+                  color: BrandColors.primaryDeep,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     ),
@@ -1228,7 +1268,9 @@ class _SendScreenState extends State<SendScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       child: Row(
         children: [
-          CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 32),
+          ExcludeSemantics(
+            child: CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 32),
+          ),
           const SizedBox(width: 12),
           Expanded(child: _assetLabel(wallet)),
           if (canChoose)
@@ -1246,60 +1288,65 @@ class _SendScreenState extends State<SendScreen> {
       child: OverlayPortal(
         controller: _assetMenuController,
         overlayChildBuilder: (ctx) => _assetDropdown(ctx, assets, fiatRate),
-        child: Tappable(behavior: HitTestBehavior.opaque, onTap: _toggleAssetMenu, child: card),
+        child: Tappable(
+          behavior: HitTestBehavior.opaque,
+          onTap: _toggleAssetMenu,
+          focusNode: _assetMenuTrigger,
+          expanded: _assetMenuOpen,
+          focusRadius: BorderRadius.circular(16),
+          child: card,
+        ),
       ),
     );
   }
 
   void _toggleAssetMenu() {
-    setState(() => _assetMenuOpen = !_assetMenuOpen);
-    if (_assetMenuOpen) {
-      FocusScope.of(context).unfocus();
-      _assetMenuController.show();
-    } else {
-      _assetMenuController.hide();
-    }
+    if (_assetMenuOpen) return _closeAssetMenu();
+    _assetMenuByKeyboard = _assetMenuTrigger.hasPrimaryFocus;
+    setState(() => _assetMenuOpen = true);
+    FocusScope.of(context).unfocus();
+    _assetMenuController.show();
   }
 
   void _closeAssetMenu() {
     if (!_assetMenuOpen) return;
     setState(() => _assetMenuOpen = false);
     _assetMenuController.hide();
+    if (_assetMenuByKeyboard) _assetMenuTrigger.requestFocus();
   }
 
   Widget _assetDropdown(BuildContext ctx, List<CryptoWallet> assets, FiatRateModel fiatRate) {
     final width = math.min(MediaQuery.of(ctx).size.width, 480.0) - 32;
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: _closeAssetMenu),
-        ),
-        CompositedTransformFollower(
-          link: _assetMenuLink,
-          showWhenUnlinked: false,
-          targetAnchor: Alignment.bottomLeft,
-          followerAnchor: Alignment.topLeft,
-          offset: const Offset(0, 6),
-          child: SizedBox(
-            width: width,
-            child: Material(
-              color: Colors.transparent,
-              child: BrandCard(
-                radius: 20,
-                clipBehavior: Clip.antiAlias,
-                shadow: const [
-                  BoxShadow(color: Color(0x1F2C170C), blurRadius: 24, offset: Offset(0, 12)),
-                ],
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [for (final asset in assets) _assetDropdownRow(asset, fiatRate)],
-                ),
+    // The tap-outside barrier, Esc, the "Close" action for screen readers and
+    // keyboard focus in the list are DropdownLayer's.
+    return DropdownLayer(
+      onClose: _closeAssetMenu,
+      takeFocus: _assetMenuByKeyboard,
+      menu: CompositedTransformFollower(
+        link: _assetMenuLink,
+        showWhenUnlinked: false,
+        targetAnchor: Alignment.bottomLeft,
+        followerAnchor: Alignment.topLeft,
+        offset: const Offset(0, 6),
+        child: SizedBox(
+          width: width,
+          child: Material(
+            color: Colors.transparent,
+            child: BrandCard(
+              radius: 20,
+              clipBehavior: Clip.antiAlias,
+              shadow: const [
+                BoxShadow(color: Color(0x1F2C170C), blurRadius: 24, offset: Offset(0, 12)),
+              ],
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [for (final asset in assets) _assetDropdownRow(asset, fiatRate)],
               ),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -1321,63 +1368,78 @@ class _SendScreenState extends State<SendScreen> {
       child: Material(
         color: selected ? BrandColors.surfaceSunken : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          mouseCursor: WidgetStateMouseCursor.clickable,
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            _closeAssetMenu();
-            _selectAsset(asset.coinSymbol);
-          },
-          child: Opacity(
-            opacity: configured ? 1 : 0.5,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 11),
-              child: Row(
-                children: [
-                  CoinMark(coinSymbol: asset.coinSymbol, iconAsset: asset.iconAsset, size: 32),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          asset.assetName,
-                          style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w500,
-                            height: 1.25,
-                            color: BrandColors.ink,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle,
-                          style: TextStyle(
-                            fontFamily: 'Ubuntu Mono',
-                            fontSize: 11.5,
-                            height: 1.3,
-                            color: BrandColors.inkMuted,
-                          ),
-                        ),
-                      ],
+        child: Semantics(
+          container: true,
+          button: true,
+          selected: selected,
+          child: InkWell(
+            mouseCursor: WidgetStateMouseCursor.clickable,
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              _closeAssetMenu();
+              _selectAsset(asset.coinSymbol);
+            },
+            child: Opacity(
+              opacity: configured ? 1 : 0.5,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 11),
+                child: Row(
+                  children: [
+                    ExcludeSemantics(
+                      child: CoinMark(
+                        coinSymbol: asset.coinSymbol,
+                        iconAsset: asset.iconAsset,
+                        size: 32,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    fiat != null
-                        ? '${quote!.currency.symbol}${NumberFormat('#,##0').format(fiat)}'
-                        : '—',
-                    style: TextStyle(
-                      fontFamily: 'Ubuntu Mono',
-                      fontSize: 13,
-                      color: BrandColors.inkMuted,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            asset.assetName,
+                            style: TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w500,
+                              height: 1.25,
+                              color: BrandColors.ink,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            style: TextStyle(
+                              fontFamily: 'Ubuntu Mono',
+                              fontSize: 11.5,
+                              height: 1.3,
+                              color: BrandColors.inkMuted,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  if (selected) ...[
                     const SizedBox(width: 8),
-                    Icon(Icons.check, size: 18, color: BrandColors.primary),
+                    // A dash for "no value" is not read.
+                    ExcludeSemantics(
+                      excluding: fiat == null,
+                      child: Text(
+                        fiat != null
+                            ? '${quote!.currency.symbol}${NumberFormat('#,##0').format(fiat)}'
+                            : '—',
+                        style: TextStyle(
+                          fontFamily: 'Ubuntu Mono',
+                          fontSize: 13,
+                          color: BrandColors.inkMuted,
+                        ),
+                      ),
+                    ),
+                    if (selected) ...[
+                      const SizedBox(width: 8),
+                      Icon(Icons.check, size: 18, color: BrandColors.primary),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
@@ -1407,6 +1469,8 @@ class _SendScreenState extends State<SendScreen> {
         const SizedBox(height: 2),
         Text(
           available,
+          // The dash stands for a balance not loaded yet.
+          semanticsLabel: balance == null ? i18n.shared.a11yLoading : null,
           style: TextStyle(
             fontFamily: 'Ubuntu Mono',
             fontSize: 11.5,
@@ -1468,7 +1532,11 @@ class _SendScreenState extends State<SendScreen> {
       return SizedBox(
         width: 14,
         height: 14,
-        child: CircularProgressIndicator(strokeWidth: 2, color: BrandColors.primary),
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: BrandColors.primary,
+          semanticsLabel: AppLocalizations.of(context)!.shared.a11yLoading,
+        ),
       );
     }
     if (feeUnits == null) {

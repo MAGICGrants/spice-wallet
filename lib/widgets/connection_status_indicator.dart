@@ -1,5 +1,7 @@
 import 'dart:ui' show Color;
 
+import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/services/tor_service.dart';
 import 'package:spice_wallet/theme/brand.dart';
 import 'package:wallet_domain/wallet_domain.dart';
@@ -30,5 +32,16 @@ Color? connectionDotColor(CryptoWallet wallet) {
     ConnectionIndicatorState.ok => BrandColors.success,
     ConnectionIndicatorState.loading => BrandColors.warning,
     ConnectionIndicatorState.error => BrandColors.error,
+  };
+}
+
+/// What the status dot means, said aloud where the dot stands alone (its
+/// colour carries the meaning), or null for an unconfigured coin.
+String? connectionStatusLabel(CryptoWallet wallet, AppLocalizations i18n) {
+  if (wallet.connectionAddress.isEmpty) return null;
+  return switch (connectionIndicatorStateFor(wallet)) {
+    ConnectionIndicatorState.ok => i18n.shared.homeSynced,
+    ConnectionIndicatorState.loading => i18n.shared.homeSyncing,
+    ConnectionIndicatorState.error => i18n.homeNoConnection,
   };
 }

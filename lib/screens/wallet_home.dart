@@ -214,7 +214,12 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> with WidgetsBinding
 
     return WalletHomeView(
       header: HomeHeader(
-        logo: SvgPicture.asset('assets/spice-icon.svg', width: 32, height: 32),
+        logo: SvgPicture.asset(
+          'assets/spice-icon.svg',
+          width: 32,
+          height: 32,
+          excludeFromSemantics: true,
+        ),
         title: 'Spice Wallet',
         titleColor: BrandColors.primaryDeep,
       ),
@@ -289,8 +294,10 @@ class _CoinCard extends StatelessWidget {
     }
   }
 
-  Widget _leading() =>
-      CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 40);
+  // Decorative: the coin's name is read next to it.
+  Widget _leading() => ExcludeSemantics(
+    child: CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 40),
+  );
 
   /// (dot colour, status text). Dot is null for unconfigured coins; a chain with
   /// tokens prefixes the status with "N assets · ".
@@ -330,67 +337,71 @@ class _CoinCard extends StatelessWidget {
         side: BorderSide(color: BrandColors.border),
         borderRadius: BorderRadius.circular(BrandRadii.field),
       ),
-      child: InkWell(
-        mouseCursor: WidgetStateMouseCursor.clickable,
-        onTap: () => _open(context),
-        borderRadius: BorderRadius.circular(BrandRadii.field),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
-          child: Row(
-            children: [
-              _leading(),
-              const SizedBox(width: 13),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      wallet.blockchainName,
-                      style: TextStyle(
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w500,
-                        height: 1.25,
-                        color: BrandColors.ink,
+      child: Semantics(
+        container: true,
+        button: true,
+        child: InkWell(
+          mouseCursor: WidgetStateMouseCursor.clickable,
+          onTap: () => _open(context),
+          borderRadius: BorderRadius.circular(BrandRadii.field),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
+            child: Row(
+              children: [
+                _leading(),
+                const SizedBox(width: 13),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        wallet.blockchainName,
+                        style: TextStyle(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w500,
+                          height: 1.25,
+                          color: BrandColors.ink,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        if (dotColor != null) ...[
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
-                          ),
-                          const SizedBox(width: 6),
-                        ],
-                        Flexible(
-                          child: Text(
-                            statusText,
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w400,
-                              height: 1.3,
-                              color: BrandColors.inkMuted,
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          if (dotColor != null) ...[
+                            Container(
+                              width: 7,
+                              height: 7,
+                              decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
+                            ),
+                            const SizedBox(width: 6),
+                          ],
+                          Flexible(
+                            child: Text(
+                              statusText,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w400,
+                                height: 1.3,
+                                color: BrandColors.inkMuted,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              if (configured) _trailingBalance(balance, balanceFiat),
-              Icon(Icons.chevron_right, size: 20, color: BrandColors.inkMuted),
-            ],
+                const SizedBox(width: 8),
+                if (configured) _trailingBalance(i18n, balance, balanceFiat),
+                Icon(Icons.chevron_right, size: 20, color: BrandColors.inkMuted),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _trailingBalance(Object? balance, double? balanceFiat) {
+  Widget _trailingBalance(AppLocalizations i18n, Object? balance, double? balanceFiat) {
     // Prefer the fiat value (design); fall back to the coin amount when fiat is
     // unavailable (disabled, no rate, or balance not yet loaded).
     if (balanceFiat != null && !fiatRate.isDisabled) {
@@ -405,7 +416,12 @@ class _CoinCard extends StatelessWidget {
     if (balance == null) {
       return Padding(
         padding: EdgeInsets.only(right: 7),
-        child: Skeletonizer(child: Text('0.000000', style: _cardBalanceStyle)),
+        // The placeholder digits are not a balance: read "Loading" instead.
+        child: Semantics(
+          label: i18n.shared.a11yLoading,
+          excludeSemantics: true,
+          child: Skeletonizer(child: Text('0.000000', style: _cardBalanceStyle)),
+        ),
       );
     }
     return Padding(

@@ -51,7 +51,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         // in place rather than orbiting.
         logo: SpinningLogo(
           alignment: const Alignment(-0.133, -0.283),
-          child: SvgPicture.asset('assets/spice-mark.svg', height: 88),
+          child: SvgPicture.asset('assets/spice-mark.svg', height: 88, excludeFromSemantics: true),
         ),
         appName: 'Spice Wallet',
         description: i18n.welcomeDescription,
@@ -63,7 +63,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     }
 
     return WelcomeView(
-      logo: SvgPicture.asset('assets/spice-mark.svg', width: 96, height: 96),
+      logo: SvgPicture.asset(
+        'assets/spice-mark.svg',
+        width: 96,
+        height: 96,
+        excludeFromSemantics: true,
+      ),
       appName: 'Spice Wallet',
       description: i18n.welcomeDescription,
       labels: labels,

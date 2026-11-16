@@ -165,7 +165,12 @@ class _UnlockScreenState extends State<UnlockScreen> {
       // Same spin-in as the welcome screen (pivots on the mark's off-centre spiral).
       logo: SpinningLogo(
         alignment: const Alignment(-0.133, -0.283),
-        child: SvgPicture.asset('assets/spice-mark.svg', width: 84, height: 84),
+        child: SvgPicture.asset(
+          'assets/spice-mark.svg',
+          width: 84,
+          height: 84,
+          excludeFromSemantics: true,
+        ),
       ),
       labels: UnlockLabels(
         title: i18n.unlockLockedTitle,

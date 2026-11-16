@@ -151,7 +151,12 @@ void installSecurityKeysUi() {
       appName: 'Spice',
       walletManagerOf: (context) => Provider.of<WalletManager>(context, listen: false),
       homeRoute: '/wallet_home',
-      logo: (_) => SvgPicture.asset('assets/spice-mark.svg', width: 44, height: 44),
+      logo: (_) => SvgPicture.asset(
+        'assets/spice-mark.svg',
+        width: 44,
+        height: 44,
+        excludeFromSemantics: true,
+      ),
     ),
   );
 }

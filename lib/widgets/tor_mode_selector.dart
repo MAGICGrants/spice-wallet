@@ -229,15 +229,23 @@ class TorTestStatus extends StatelessWidget {
     required this.failedLabel,
   });
 
+  // One live region across every state, so each result is spoken as it comes.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      Semantics(container: true, liveRegion: true, child: _status(context));
+
+  Widget _status(BuildContext context) {
     if (testing) {
       return Align(
         alignment: Alignment.centerLeft,
         child: SizedBox(
           width: 16,
           height: 16,
-          child: CircularProgressIndicator(strokeWidth: 2, color: BrandColors.primary),
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: BrandColors.primary,
+            semanticsLabel: AppLocalizations.of(context)!.shared.a11yLoading,
+          ),
         ),
       );
     }
@@ -305,9 +313,11 @@ class _TorPortFieldState extends State<TorPortField> {
 
   @override
   Widget build(BuildContext context) {
+    // Only puts the caret in the field below, which is its own named control.
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _focusNode.requestFocus,
+      excludeFromSemantics: true,
       child: MouseRegion(
         cursor: SystemMouseCursors.text,
         child: Container(
@@ -320,26 +330,32 @@ class _TorPortFieldState extends State<TorPortField> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                widget.label.toUpperCase(),
-                style: TextStyle(
-                  fontFamily: 'Ubuntu Mono',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.4,
-                  color: BrandColors.inkFaint,
+              // The field carries this name, so it is not read twice.
+              ExcludeSemantics(
+                child: Text(
+                  widget.label.toUpperCase(),
+                  style: TextStyle(
+                    fontFamily: 'Ubuntu Mono',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.4,
+                    color: BrandColors.inkFaint,
+                  ),
                 ),
               ),
               const SizedBox(height: 6),
-              TextField(
-                controller: widget.controller,
-                focusNode: _focusNode,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 14, color: BrandColors.ink),
-                cursorColor: BrandColors.primary,
-                decoration: const InputDecoration.collapsed(hintText: '9050'),
-                onChanged: (_) => widget.onChanged(),
+              Semantics(
+                label: widget.label,
+                child: TextField(
+                  controller: widget.controller,
+                  focusNode: _focusNode,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  style: TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 14, color: BrandColors.ink),
+                  cursorColor: BrandColors.primary,
+                  decoration: const InputDecoration.collapsed(hintText: '9050'),
+                  onChanged: (_) => widget.onChanged(),
+                ),
               ),
             ],
           ),
@@ -367,18 +383,23 @@ class TorTestChip extends StatelessWidget {
       child: Material(
         color: BrandColors.surfaceSunken,
         shape: shape,
-        child: InkWell(
-          mouseCursor: WidgetStateMouseCursor.clickable,
-          onTap: onTap,
-          customBorder: shape,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w500,
-                color: BrandColors.primaryDeep,
+        child: Semantics(
+          container: true,
+          button: true,
+          enabled: onTap != null,
+          child: InkWell(
+            mouseCursor: WidgetStateMouseCursor.clickable,
+            onTap: onTap,
+            customBorder: shape,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                  color: BrandColors.primaryDeep,
+                ),
               ),
             ),
           ),
@@ -397,21 +418,26 @@ class _OrbotCheck extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      mouseCursor: WidgetStateMouseCursor.clickable,
-      onTap: () => onChanged(!value),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: BrandSpacing.md),
-        child: Row(
-          children: [
-            Icon(
-              value ? Icons.check_box : Icons.check_box_outline_blank,
-              color: value ? BrandColors.primary : BrandColors.inkFaint,
-              size: 22,
-            ),
-            const SizedBox(width: BrandSpacing.sm),
-            Expanded(child: Text(label, style: BrandText.caption)),
-          ],
+    // A checkbox named by its text; the box icon is drawn, not read.
+    return Semantics(
+      container: true,
+      checked: value,
+      child: InkWell(
+        mouseCursor: WidgetStateMouseCursor.clickable,
+        onTap: () => onChanged(!value),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: BrandSpacing.md),
+          child: Row(
+            children: [
+              Icon(
+                value ? Icons.check_box : Icons.check_box_outline_blank,
+                color: value ? BrandColors.primary : BrandColors.inkFaint,
+                size: 22,
+              ),
+              const SizedBox(width: BrandSpacing.sm),
+              Expanded(child: Text(label, style: BrandText.caption)),
+            ],
+          ),
         ),
       ),
     );

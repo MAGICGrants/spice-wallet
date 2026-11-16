@@ -118,6 +118,13 @@ class _ConnectionSetupScreenState extends State<ConnectionSetupScreen> {
       },
     );
 
+    // The dialog's title in the desktop modal.
+    final title = Semantics(
+      header: true,
+      namesRoute: widget.asModal,
+      child: Text(i18n.shared.connectionSetupTitle, style: BrandText.title),
+    );
+
     final body = Column(
       mainAxisSize: widget.asModal ? MainAxisSize.min : MainAxisSize.max,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -146,13 +153,19 @@ class _ConnectionSetupScreenState extends State<ConnectionSetupScreen> {
               if (widget.asModal && wallet != null)
                 Row(
                   children: [
-                    CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 34),
+                    ExcludeSemantics(
+                      child: CoinMark(
+                        coinSymbol: wallet.coinSymbol,
+                        iconAsset: wallet.iconAsset,
+                        size: 34,
+                      ),
+                    ),
                     const SizedBox(width: 11),
-                    Expanded(child: Text(i18n.shared.connectionSetupTitle, style: BrandText.title)),
+                    Expanded(child: title),
                   ],
                 )
               else
-                Text(i18n.shared.connectionSetupTitle, style: BrandText.title),
+                title,
               const SizedBox(height: 8),
               Text(
                 _selectedType == 'lws'

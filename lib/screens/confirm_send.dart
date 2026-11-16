@@ -209,7 +209,13 @@ Future<void> _showUnresolvedSendSheet(BuildContext context) {
                   color: shared.BrandColors.warning,
                 ),
                 const SizedBox(width: 11),
-                Expanded(child: Text(i18n.shared.warning, style: shared.BrandText.sheetTitle)),
+                Expanded(
+                  child: Semantics(
+                    header: true,
+                    namesRoute: true,
+                    child: Text(i18n.shared.warning, style: shared.BrandText.sheetTitle),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 7),
