@@ -168,12 +168,10 @@ Future<void> _commitTx(
     onConnectionFailed();
     return;
   } on FormatException catch (error) {
-    var errorMsg = error.toString().replaceFirst('FormatException: ', '');
-    if (error.toString().contains('HTTP error code 500')) {
-      errorMsg = 'Failed to send transaction. You might have insufficient unlocked balance.';
-    }
+    // A definite rejection: nothing moved, and the message carries the
+    // daemon's reason (node mode, and LWS servers that send it).
     if (context.mounted) {
-      shared.showBrandToast(context, errorMsg);
+      shared.showBrandToast(context, error.message);
     }
     rethrow;
   } catch (error) {
