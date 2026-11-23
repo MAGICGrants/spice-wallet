@@ -131,7 +131,11 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> with WidgetsBinding
         for (final t in c.tokens) (wallet: t, tokens: const <CryptoWallet>[]),
       ],
     ];
-    final sections = HomeSections(activity: HomeActivity.shared, labels: homeLabels(i18n));
+    final sections = HomeSections(
+      activity: HomeActivity.shared,
+      labels: homeLabels(i18n),
+      trimDigitsOf: fiatRate.trimDigitsOf,
+    );
 
     // Send and Receive open on the asset last sent or received (Receive on its
     // chain: a token arrives at its chain's address), and offer every other.
@@ -418,13 +422,24 @@ class _CoinCard extends StatelessWidget {
         ),
       );
     }
+    // Cut to Trim Decimals while a price loads; every digit with prices off,
+    // shrunk to fit rather than crowding out the coin's name.
     return Padding(
       padding: const EdgeInsets.only(right: 7),
-      child: Text(
-        (balance is double ? balance : 0.0).toStringAsFixed(
-          wallet.decimals > 6 ? 6 : wallet.decimals,
+      child: LimitedBox(
+        maxWidth: 180,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerRight,
+          child: Text(
+            formatTrimmedAmount(
+              wallet.unlockedBalanceBaseUnits ?? BigInt.zero,
+              wallet.baseUnitDecimals,
+              fiatRate.trimDigitsOf(wallet),
+            ),
+            style: _cardBalanceStyle,
+          ),
         ),
-        style: _cardBalanceStyle,
       ),
     );
   }

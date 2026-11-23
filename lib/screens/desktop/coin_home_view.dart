@@ -12,7 +12,6 @@ import 'package:spice_wallet/screens/explorer_setup.dart';
 import 'package:spice_wallet/screens/receive.dart';
 import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
-import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
 import 'package:spice_wallet/widgets/home_labels.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
@@ -60,7 +59,11 @@ class DesktopCoinHomeView extends StatelessWidget {
       (wallet: wallet, tokens: tokens),
       for (final t in tokens) (wallet: t, tokens: const <CryptoWallet>[]),
     ];
-    final sections = HomeSections(activity: HomeActivity.shared, labels: homeLabels(i18n));
+    final sections = HomeSections(
+      activity: HomeActivity.shared,
+      labels: homeLabels(i18n),
+      trimDigitsOf: context.watch<FiatRateModel>().trimDigitsOf,
+    );
     final incoming = sections.incoming(coins);
     final chart = sections.chart(coins);
 
@@ -132,8 +135,14 @@ class DesktopCoinHomeView extends StatelessWidget {
     String chainSymbol,
   ) {
     final showFiat = !fiatRate.isDisabled && totalFiat != null;
-    final coinAmount = wallet.unlockedBalance is double
-        ? '${formatAmount(wallet.unlockedBalance as double, wallet.decimals)} ${wallet.coinSymbol}'
+    final balance = wallet.unlockedBalanceBaseUnits;
+    final coinAmount = balance != null
+        ? formatTrimmedAmount(
+            balance,
+            wallet.baseUnitDecimals,
+            fiatRate.trimDigitsOf(wallet),
+            symbol: wallet.coinSymbol,
+          )
         : '—';
     // The dash stands for a balance not loaded yet.
     final loadingLabel = wallet.unlockedBalance is double ? null : i18n.shared.a11yLoading;
@@ -200,7 +209,12 @@ class DesktopCoinHomeView extends StatelessWidget {
                         style: _bigFiat,
                       )
                     else
-                      Text(coinAmount, style: _bigFiat, semanticsLabel: loadingLabel),
+                      // Every digit of an 18-decimal coin is wide at this size.
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(coinAmount, style: _bigFiat, semanticsLabel: loadingLabel),
+                      ),
                     if (showFiat) ...[
                       const SizedBox(height: 11),
                       Text(
@@ -447,8 +461,14 @@ class _AssetRow extends StatelessWidget {
     final rate = fiatRate.rateFor(wallet.coinSymbol);
     final balance = wallet.unlockedBalance;
     final fiat = rate != null && balance is double ? balance * rate : null;
-    final amount = balance is double
-        ? '${formatAmount(balance, wallet.decimals)} ${wallet.coinSymbol}'
+    final units = wallet.unlockedBalanceBaseUnits;
+    final amount = units != null
+        ? formatTrimmedAmount(
+            units,
+            wallet.baseUnitDecimals,
+            fiatRate.trimDigitsOf(wallet),
+            symbol: wallet.coinSymbol,
+          )
         : '—';
 
     // One node per asset: name, amount and value read together.

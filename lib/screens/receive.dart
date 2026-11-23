@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
@@ -172,7 +173,12 @@ class _ReceiveScreenState extends State<ReceiveScreen> with QrBrightness {
                 _ReceiveTab.labeled => i18n.shared.receiveLabeledTab,
               },
           ];
-    final labeledCoin = tab == _ReceiveTab.labeled ? labeledAddressCoinOf(wallet) : null;
+    final labeledCoin = tab == _ReceiveTab.labeled
+        ? labeledAddressCoinOf(
+            wallet,
+            trimDecimals: context.watch<FiatRateModel>().trimDigitsOf(wallet),
+          )
+        : null;
     final tabBody = labeledCoin == null ? null : _labeledList(i18n, wallet, labeledCoin);
 
     String? address;

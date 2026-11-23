@@ -16,19 +16,4 @@ void main() {
       expect(shortenMiddle('0123456789abcdef', head: 4, tail: 4), '0123…cdef');
     });
   });
-
-  group('formatAmount', () {
-    test('caps precision at the coin decimals', () {
-      expect(formatAmount(412.090412345, 5), '412.09041');
-      expect(formatAmount(1, 0), '1');
-    });
-
-    test('clamps decimals into [0, 8]', () {
-      expect(formatAmount(1.123456789012, 12), '1.12345679');
-    });
-
-    test('appends the symbol when given', () {
-      expect(formatAmount(2.5, 2, symbol: 'BTC'), '2.50 BTC');
-    });
-  });
 }

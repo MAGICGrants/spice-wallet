@@ -15,7 +15,6 @@ import 'package:spice_wallet/screens/explorer_setup.dart';
 import 'package:spice_wallet/screens/receive.dart';
 import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
-import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
@@ -203,10 +202,13 @@ double? _ownFiat(CryptoWallet wallet, FiatRateModel fiatRate) {
   return rate != null && balance is double ? balance * rate : null;
 }
 
-/// Compact coin amount ("412.09041"), capped so long-decimal coins stay legible.
-String _amountText(CryptoWallet wallet) {
-  final b = wallet.unlockedBalance;
-  return b is double ? formatAmount(b, wallet.decimals) : '—';
+/// The coin amount ("412.09041"), cut to Trim Decimals; every digit when it is
+/// off or there is no price.
+String _amountText(CryptoWallet wallet, FiatRateModel fiatRate) {
+  final b = wallet.unlockedBalanceBaseUnits;
+  return b == null
+      ? '—'
+      : formatTrimmedAmount(b, wallet.baseUnitDecimals, fiatRate.trimDigitsOf(wallet));
 }
 
 /// Incoming funds that have arrived but are not spendable yet, or null when
@@ -215,14 +217,13 @@ String _amountText(CryptoWallet wallet) {
 /// Monero locks a receipt for ten blocks, so its unlocked balance omits it. On
 /// coins that let you spend an unconfirmed receipt the two balances are equal
 /// and this is null.
-String? _pendingText(CryptoWallet wallet) {
+String? _pendingText(CryptoWallet wallet, FiatRateModel fiatRate) {
   final total = wallet.totalBalanceBaseUnits;
   final unlocked = wallet.unlockedBalanceBaseUnits;
   if (total == null || unlocked == null) return null;
   final pending = total - unlocked;
   if (pending <= BigInt.zero) return null;
-  final exact = baseUnitsToDecimalString(pending, wallet.baseUnitDecimals);
-  return formatAmount(double.parse(exact), wallet.decimals);
+  return formatTrimmedAmount(pending, wallet.baseUnitDecimals, fiatRate.trimDigitsOf(wallet));
 }
 
 class _Header extends StatelessWidget {
@@ -295,13 +296,21 @@ class _BalanceHero extends StatelessWidget {
               child: Skeletonizer(child: Text('0.0000', style: _balanceStyle)),
             )
           else
-            Text('${_amountText(wallet)} ${wallet.coinSymbol}', style: _balanceStyle),
+            // Every digit of an 18-decimal coin is wide at this size.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${_amountText(wallet, fiatRate)} ${wallet.coinSymbol}',
+                style: _balanceStyle,
+              ),
+            ),
           const SizedBox(height: 10),
           // Non-token chains show the coin amount as the subtitle; token chains
           // replace what used to be the "N assets" line with the pills.
           if (!hasTokens && showFiat)
             Text(
-              '${_amountText(wallet)} ${wallet.coinSymbol}',
+              '${_amountText(wallet, fiatRate)} ${wallet.coinSymbol}',
               style: TextStyle(
                 fontFamily: 'Ubuntu Mono',
                 fontSize: 13.5,
@@ -311,7 +320,7 @@ class _BalanceHero extends StatelessWidget {
             ),
           // Funds that have arrived but are not spendable yet. Only Monero has
           // these; elsewhere the balance above already counts them.
-          if (_pendingText(wallet) case final pending?) ...[
+          if (_pendingText(wallet, fiatRate) case final pending?) ...[
             if (!hasTokens && showFiat) const SizedBox(height: 6),
             Text(
               '${i18n.shared.pending}: +$pending ${wallet.coinSymbol}',
@@ -495,7 +504,9 @@ class _AssetRow extends StatelessWidget {
                     child: Skeletonizer(
                       enabled: loading,
                       child: Text(
-                        loading ? '0.000000' : '${_amountText(wallet)} ${wallet.coinSymbol}',
+                        loading
+                            ? '0.000000'
+                            : '${_amountText(wallet, fiatRate)} ${wallet.coinSymbol}',
                         style: _amountStyle,
                       ),
                     ),

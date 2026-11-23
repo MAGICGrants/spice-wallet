@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:spice_wallet/models/fiat_rate_model.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
 import 'package:spice_wallet/l10n/shared_strings.dart';
@@ -85,7 +86,10 @@ class _ReceiveAddressScreenState extends State<ReceiveAddressScreen> with QrBrig
     final labels = context.watch<AddressLabelModel>();
     final args = _args;
     final wallet = args == null ? null : manager.getWallet(args.coinSymbol);
-    final coin = wallet == null ? null : labeledAddressCoinOf(wallet);
+    final fiatRate = context.watch<FiatRateModel>();
+    final coin = wallet == null
+        ? null
+        : labeledAddressCoinOf(wallet, trimDecimals: fiatRate.trimDigitsOf(wallet));
     if (args == null || wallet == null || coin == null) {
       return Scaffold(
         backgroundColor: BrandColors.paper,

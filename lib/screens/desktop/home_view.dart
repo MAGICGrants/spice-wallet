@@ -212,11 +212,22 @@ class _DesktopCoinCard extends StatelessWidget {
       return BalanceText.split(formatFiat(balanceFiat, fiatRate.fiatCurrency), style: _amountStyle);
     }
     if (balance == null) return const SizedBox.shrink();
-    return Text(
-      (balance is double ? balance : 0.0).toStringAsFixed(
-        wallet.decimals > 6 ? 6 : wallet.decimals,
+    // Cut to Trim Decimals while a price loads; every digit with prices off,
+    // shrunk to fit rather than crowding out the coin's name.
+    return LimitedBox(
+      maxWidth: 200,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerRight,
+        child: Text(
+          formatTrimmedAmount(
+            wallet.unlockedBalanceBaseUnits ?? BigInt.zero,
+            wallet.baseUnitDecimals,
+            fiatRate.trimDigitsOf(wallet),
+          ),
+          style: _amountStyle,
+        ),
       ),
-      style: _amountStyle,
     );
   }
 }

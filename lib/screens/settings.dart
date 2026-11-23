@@ -301,6 +301,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void _showTrimDecimals() {
+    final i18n = AppLocalizations.of(context)!;
+    final fiatRate = context.read<FiatRateModel>();
+    // The priced mainnet coins the wallet uses, previewed in the sheet.
+    final priced = context
+        .read<WalletManager>()
+        .allWallets
+        .where((w) => !w.isTestnet && fiatRate.isSupported(w.coinSymbol))
+        .toList();
+    final configured = priced.where((w) => w.connectionAddress.isNotEmpty).toList();
+    showTrimDecimalsSheet(
+      context,
+      fiatRate: fiatRate,
+      strings: i18n.shared,
+      coins: [
+        for (final w in configured.isEmpty ? priced : configured)
+          (coinSymbol: w.coinSymbol, baseUnitDecimals: w.baseUnitDecimals),
+      ],
+    );
+  }
+
   void _showOpenAliasSettings() async {
     final changed = await showOpenAliasSheet(context);
     if (changed == true) {
@@ -369,7 +390,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       'dark': i18n.shared.settingsThemeDark,
     }[theme.theme];
 
-    final fiatCode = context.watch<FiatRateModel>().fiatCode;
+    final fiatRate = context.watch<FiatRateModel>();
+    final fiatCode = fiatRate.fiatCode;
     final hasContacts = context.watch<ContactModel>().contacts.isNotEmpty;
     final hasLabels = context.watch<AddressLabelModel>().count > 0;
     final fiatSubtitle = _fiatMode == FiatApiMode.disabled
@@ -396,6 +418,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             linkLabel: i18n.shared.settingsLwsViewKeysButton,
             onTap: _showFiatApiSettings,
           ),
+          // Needs a price to work from, so it is only offered with prices on.
+          if (_fiatMode != FiatApiMode.disabled)
+            SettingsNavTile(
+              title: i18n.shared.trimDecimalsLabel,
+              value: trimDecimalsValue(i18n.shared, fiatRate.trimDecimals, fiatRate.fiatCurrency),
+              onTap: _showTrimDecimals,
+            ),
         ],
       ),
       SettingsGroup(

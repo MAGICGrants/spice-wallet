@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_ui/wallet_ui.dart' as shared;
@@ -8,6 +10,7 @@ import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/util/logging.dart';
 import 'package:wallet_domain/wallet_domain.dart';
+import 'package:wallet_fiat/wallet_fiat.dart' show baseUnitsToFiatMinor;
 import 'package:wallet_infra/wallet_infra.dart' show RequestNotSentException;
 
 class ConfirmSendScreenArgs {
@@ -21,6 +24,10 @@ class ConfirmSendScreenArgs {
   /// when it is [destinationAddress].
   final String? destinationContactAddress;
 
+  /// The fiat amount the user typed, in the currency's minor units, when it is
+  /// what [tx] sends. The sheet shows it as typed instead of recomputing it.
+  final BigInt? typedFiatMinor;
+
   ConfirmSendScreenArgs({
     required this.coinSymbol,
     required this.tx,
@@ -28,6 +35,7 @@ class ConfirmSendScreenArgs {
     this.destinationOpenAlias,
     this.destinationContactName,
     this.destinationContactAddress,
+    this.typedFiatMinor,
   });
 }
 
@@ -56,9 +64,7 @@ Future<ConfirmSendResult> showConfirmSendSheet(
   final fiatRate = Provider.of<FiatRateModel>(context, listen: false);
   final wallet = manager.getWallet(args.coinSymbol);
 
-  final decimals = wallet?.decimals ?? 12;
   final coinSymbol = wallet?.coinSymbol ?? args.coinSymbol;
-  final feeDecimals = wallet?.feeDecimals ?? decimals;
   final feeSymbol = wallet?.feeCoinSymbol ?? coinSymbol;
   final feeIsForeign = wallet?.feeIsForeign ?? false;
 
@@ -71,7 +77,16 @@ Future<ConfirmSendResult> showConfirmSendSheet(
 
   final quote = fiatRate.quoteFor(coinSymbol);
   final coinRate = quote?.rate;
-  final amountFiat = coinRate != null ? amount * coinRate : null;
+  // As typed when the user typed fiat; otherwise the exact amount at the rate.
+  final amountFiatMinor = quote == null || wallet == null
+      ? null
+      : args.typedFiatMinor ??
+            baseUnitsToFiatMinor(
+              args.tx.amountBaseUnits,
+              quote.rate,
+              coinDecimals: wallet.baseUnitDecimals,
+              fiatDecimals: quote.currency.decimals,
+            );
   // The fee is in ETH for tokens; its fiat can't use the token's rate, so omit it.
   final networkFeeFiat = coinRate != null && !feeIsForeign ? fee * coinRate : null;
 
@@ -98,9 +113,27 @@ Future<ConfirmSendResult> showConfirmSendSheet(
     ),
     coinSymbol: coinSymbol,
     iconAsset: wallet?.iconAsset ?? '',
-    amountText: '${amount.toStringAsFixed(decimals)} $coinSymbol',
-    amountFiat: amountFiat != null ? shared.formatFiat(amountFiat, quote!.currency) : null,
-    feeText: '${fee.toStringAsFixed(feeDecimals)} $feeSymbol',
+    // Every digit, straight from base units: the confirm sheet never rounds.
+    amountText: wallet == null
+        ? '0 $coinSymbol'
+        : shared.formatExactAmount(
+            args.tx.amountBaseUnits,
+            wallet.baseUnitDecimals,
+            symbol: coinSymbol,
+          ),
+    amountFiat: amountFiatMinor != null
+        ? shared.formatFiat(
+            amountFiatMinor.toDouble() / math.pow(10, quote!.currency.decimals),
+            quote.currency,
+          )
+        : null,
+    feeText: wallet == null
+        ? '0 $feeSymbol'
+        : shared.formatExactAmount(
+            args.tx.feeBaseUnits,
+            wallet.feeBaseUnitDecimals,
+            symbol: feeSymbol,
+          ),
     feeFiat: networkFeeFiat != null ? shared.formatFiat(networkFeeFiat, quote!.currency) : null,
     address: args.destinationAddress,
     openAlias: args.destinationOpenAlias,

@@ -34,10 +34,16 @@ final _usedCache = Expando<({int revision, Future<List<UsedReceiveAddress>> addr
 
 /// How [wallet] writes its used addresses' totals and names them, or null for a
 /// wallet that keeps a single address (Ethereum and its tokens).
-LabeledAddressCoin? labeledAddressCoinOf(CryptoWallet wallet) {
+/// [trimDecimals] is `FiatRateModel.trimDigitsOf(wallet)`.
+LabeledAddressCoin? labeledAddressCoinOf(CryptoWallet wallet, {required int? trimDecimals}) {
   final kind = wallet.rotatingAddressKind;
   if (kind == null) return null;
-  return (coinSymbol: wallet.coinSymbol, baseUnitDecimals: wallet.baseUnitDecimals, kind: kind);
+  return (
+    coinSymbol: wallet.coinSymbol,
+    baseUnitDecimals: wallet.baseUnitDecimals,
+    kind: kind,
+    trimDecimals: trimDecimals,
+  );
 }
 
 /// Opens the label sheet on [used] and saves what it returns: a new label, or

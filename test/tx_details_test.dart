@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
-import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
 
 /// Guards that every value row in the tx-details popup is copyable and confirms
@@ -150,8 +149,9 @@ void main() {
 
     final wallet = _FakeWallet();
     final tx = sampleTx();
+    // Every digit, straight from base units: details never round.
     final amountText =
-        '${displayAmount(tx.amountBaseUnits, wallet.baseUnitDecimals).toStringAsFixed(wallet.decimals)} ${wallet.coinSymbol}';
+        '${baseUnitsToDecimalString(tx.amountBaseUnits, wallet.baseUnitDecimals)} ${wallet.coinSymbol}';
 
     await pumpDialog(tester, wallet, tx);
 

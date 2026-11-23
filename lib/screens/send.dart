@@ -659,6 +659,14 @@ class _SendScreenState extends State<SendScreen> {
             // token's contact address is its chain's).
             destinationContactName: contact?.name,
             destinationContactAddress: contact?.addressFor(chainSymbolOf(wallet)),
+            // The fiat the user typed, when it is what `tx` sends (not a Max,
+            // whose amount is the balance less the fee).
+            typedFiatMinor:
+                _amount.unit == AmountUnit.fiat &&
+                    !_isSweepAll &&
+                    tx.amountBaseUnits == _amount.baseUnits
+                ? _amount.fiatMinorUnits
+                : null,
           ),
         );
         if (result == ConfirmSendResult.sent) {
@@ -1357,10 +1365,12 @@ class _SendScreenState extends State<SendScreen> {
     final balance = asset.unlockedBalance;
     final quote = fiatRate.quoteFor(asset.coinSymbol);
     final fiat = (quote != null && balance is double) ? balance * quote.rate : null;
+    // Every digit: the send screen never rounds.
+    final units = asset.unlockedBalanceBaseUnits;
     final subtitle = !configured
         ? i18n.homeNoConnection
-        : (balance is double
-              ? formatAmount(balance, asset.decimals, symbol: asset.coinSymbol)
+        : (units != null
+              ? formatExactAmount(units, asset.baseUnitDecimals, symbol: asset.coinSymbol)
               : '—');
 
     return Padding(
@@ -1450,10 +1460,11 @@ class _SendScreenState extends State<SendScreen> {
 
   Widget _assetLabel(CryptoWallet wallet) {
     final i18n = AppLocalizations.of(context)!;
-    final balance = wallet.unlockedBalance;
-    final available = balance == null
+    // Every digit: the send screen never rounds.
+    final units = wallet.unlockedBalanceBaseUnits;
+    final available = units == null
         ? '—'
-        : '${formatAmount(balance, wallet.decimals)} ${i18n.shared.sendAvailableSuffix}';
+        : '${formatExactAmount(units, wallet.baseUnitDecimals)} ${i18n.shared.sendAvailableSuffix}';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1470,7 +1481,7 @@ class _SendScreenState extends State<SendScreen> {
         Text(
           available,
           // The dash stands for a balance not loaded yet.
-          semanticsLabel: balance == null ? i18n.shared.a11yLoading : null,
+          semanticsLabel: units == null ? i18n.shared.a11yLoading : null,
           style: TextStyle(
             fontFamily: 'Ubuntu Mono',
             fontSize: 11.5,
@@ -1546,7 +1557,15 @@ class _SendScreenState extends State<SendScreen> {
       );
     }
     final fee = displayAmount(feeUnits, wallet.feeBaseUnitDecimals);
-    final feeStr = formatAmount(fee, wallet.feeDecimals, symbol: wallet.feeCoinSymbol);
+    // A fee from a transaction already built (BTC, ETH, tokens, a Monero Max)
+    // is exact and shows every digit. Only Monero estimates a normal send, and
+    // its estimate assumes one input, so it keeps a "~" and 5 decimals.
+    final builtTx = (_feeTxs != null && _feeTxs!.length > _selectedPriority)
+        ? _feeTxs![_selectedPriority]
+        : null;
+    final feeStr = builtTx != null
+        ? formatExactAmount(feeUnits, wallet.feeBaseUnitDecimals, symbol: wallet.feeCoinSymbol)
+        : '~${fee.toStringAsFixed(5)} ${wallet.feeCoinSymbol}';
     final feeFiat = (quote != null && !wallet.feeIsForeign)
         ? ' · ${formatFiat(fee * quote.rate, quote.currency)}'
         : '';
