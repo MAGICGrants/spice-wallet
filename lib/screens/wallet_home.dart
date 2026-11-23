@@ -24,9 +24,8 @@ import 'package:spice_wallet/widgets/open_alias_sheet.dart';
 import 'package:spice_wallet/widgets/tor_settings_sheet.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/widgets/wallet_navigation_bar.dart';
-import 'package:wallet_backup_platform/wallet_backup_platform.dart' show MetadataBackupSetup;
+import 'package:spice_wallet/widgets/security_checklist_setup.dart';
 import 'package:wallet_domain/wallet_domain.dart';
-import 'package:wallet_fhse/security_keys_ui.dart' show securityKeysOn;
 import 'package:wallet_infra/wallet_infra.dart' show StoreReview;
 
 class WalletHomeScreen extends StatefulWidget {
@@ -37,12 +36,7 @@ class WalletHomeScreen extends StatefulWidget {
 }
 
 class _WalletHomeScreenState extends State<WalletHomeScreen> with WidgetsBindingObserver {
-  late final SecurityChecklist _checklist = SecurityChecklist(
-    autoBackupOn: MetadataBackupSetup.automaticBackupOn,
-    securityKeysOn: securityKeysOn,
-    // A wallet from before the seed was kept has no words to ask for.
-    canVerifySeed: SeedStore.exists,
-  );
+  late final SecurityChecklist _checklist = appSecurityChecklist();
 
   @override
   void initState() {

@@ -11,6 +11,7 @@ import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/widgets/fiat_api_settings_sheet.dart';
 import 'package:spice_wallet/widgets/open_alias_sheet.dart';
+import 'package:spice_wallet/widgets/security_checklist_setup.dart';
 import 'package:spice_wallet/widgets/tor_settings_sheet.dart';
 import 'package:spice_wallet/models/language_model.dart';
 import 'package:spice_wallet/models/theme_model.dart';
@@ -62,6 +63,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   SecurityKeysState? _securityKeys;
   FiatApiMode _fiatMode = FiatApiMode.torOnly;
   OpenAliasMode _openAliasMode = OpenAliasMode.torOnly;
+  var _checklistShown = true;
   // Toggles animate only after the stored values have loaded, so they don't
   // slide from off→on when the screen first appears.
   var _animateToggles = false;
@@ -98,6 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final fiatMode = await FiatRateModel.loadFiatApiMode();
     final openAliasMode = await OpenAliasMode.load();
+    final checklist = await SecurityChecklistSettings.load();
     final syncFrequency = await loadSyncFrequency();
     await _loadSecurityKeys();
 
@@ -108,6 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _testnetCoinsEnabled = testnetCoinsEnabled;
       _fiatMode = fiatMode;
       _openAliasMode = openAliasMode;
+      _checklistShown = checklist.showOnHome;
       _syncFrequency = syncFrequency;
     });
     // Enable animation a frame after the loaded values are painted.
@@ -305,6 +309,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _showSecurityChecklist() async {
+    final saved = await showAppSecurityChecklistSheet(context);
+    if (saved != true) return;
+    final checklist = await SecurityChecklistSettings.load();
+    if (mounted) setState(() => _checklistShown = checklist.showOnHome);
+  }
+
   String _openAliasModeLabel(AppLocalizations i18n) => switch (_openAliasMode) {
     OpenAliasMode.torOnly => i18n.shared.fiatApiSettingsModeTorOnly,
     OpenAliasMode.clearnet => i18n.shared.clearnetOnlyChoice,
@@ -410,6 +421,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: _openAliasModeLabel(i18n),
             linkLabel: i18n.shared.settingsLwsViewKeysButton,
             onTap: _showOpenAliasSettings,
+          ),
+          SettingsLinkTile(
+            title: i18n.shared.securityChecklistLabel,
+            subtitle: _checklistShown
+                ? i18n.shared.securityChecklistShown
+                : i18n.shared.securityChecklistHidden,
+            linkLabel: i18n.shared.settingsLwsViewKeysButton,
+            onTap: _showSecurityChecklist,
           ),
         ],
       ),
