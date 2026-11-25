@@ -81,7 +81,11 @@ class ExplorerSetupScreen extends StatelessWidget {
               onBack: () => Navigator.pop(context),
               center: CoinBadge(wallet: wallet, fallback: coinSymbol),
               action: configured
-                  ? IconCircleButton(icon: Icons.delete_outline, onPressed: onRemove)
+                  ? IconCircleButton(
+                      icon: Icons.delete_outline,
+                      onPressed: onRemove,
+                      semanticLabel: i18n.shared.a11yRemove,
+                    )
                   : null,
             ),
           ),
@@ -95,7 +99,12 @@ class ExplorerSetupScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(i18n.explorerSetupTitle, style: BrandText.title),
+                    // The dialog's title in the desktop modal.
+                    Semantics(
+                      header: true,
+                      namesRoute: asModal,
+                      child: Text(i18n.explorerSetupTitle, style: BrandText.title),
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       i18n.explorerSetupDescription,
@@ -105,7 +114,11 @@ class ExplorerSetupScreen extends StatelessWidget {
                 ),
               ),
               if (asModal && configured)
-                IconCircleButton(icon: Icons.delete_outline, onPressed: onRemove),
+                IconCircleButton(
+                  icon: Icons.delete_outline,
+                  onPressed: onRemove,
+                  semanticLabel: i18n.shared.a11yRemove,
+                ),
             ],
           ),
         ),

@@ -95,9 +95,13 @@ void showCoinSettingsSheet(BuildContext context, {required String coinSymbol}) {
         children: [
           const SheetHandle(),
           Center(
-            child: CoinBadge(
-              wallet: wallet,
-              label: '${wallet.blockchainName} ${i18n.shared.settingsTitle}',
+            child: Semantics(
+              header: true,
+              namesRoute: true,
+              child: CoinBadge(
+                wallet: wallet,
+                label: '${wallet.blockchainName} ${i18n.shared.settingsTitle}',
+              ),
             ),
           ),
           const SizedBox(height: 18),

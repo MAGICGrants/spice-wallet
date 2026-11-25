@@ -133,63 +133,74 @@ class _DesktopCoinCard extends StatelessWidget {
         side: BorderSide(color: BrandColors.border),
         borderRadius: BorderRadius.circular(18),
       ),
-      child: InkWell(
-        mouseCursor: WidgetStateMouseCursor.clickable,
-        onTap: () => _open(context),
-        borderRadius: BorderRadius.circular(18),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 44),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      wallet.blockchainName,
-                      style: TextStyle(
-                        fontFamily: 'Ubuntu',
-                        fontSize: 16,
-                        height: 1.25,
-                        fontWeight: FontWeight.w500,
-                        color: BrandColors.ink,
+      child: Semantics(
+        container: true,
+        button: true,
+        child: InkWell(
+          mouseCursor: WidgetStateMouseCursor.clickable,
+          onTap: () => _open(context),
+          borderRadius: BorderRadius.circular(18),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                // Decorative: the coin's name is read next to it.
+                ExcludeSemantics(
+                  child: CoinMark(
+                    coinSymbol: wallet.coinSymbol,
+                    iconAsset: wallet.iconAsset,
+                    size: 44,
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        wallet.blockchainName,
+                        style: TextStyle(
+                          fontFamily: 'Ubuntu',
+                          fontSize: 16,
+                          height: 1.25,
+                          fontWeight: FontWeight.w500,
+                          color: BrandColors.ink,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        if (dotColor != null) ...[
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
-                          ),
-                          const SizedBox(width: 7),
-                        ],
-                        Flexible(
-                          child: Text(
-                            statusText,
-                            style: TextStyle(
-                              fontFamily: 'Ubuntu',
-                              fontSize: 12.5,
-                              height: 1.3,
-                              color: BrandColors.inkMuted,
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          if (dotColor != null) ...[
+                            Container(
+                              width: 7,
+                              height: 7,
+                              decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
+                            ),
+                            const SizedBox(width: 7),
+                          ],
+                          Flexible(
+                            child: Text(
+                              statusText,
+                              style: TextStyle(
+                                fontFamily: 'Ubuntu',
+                                fontSize: 12.5,
+                                height: 1.3,
+                                color: BrandColors.inkMuted,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              if (configured) _trailingBalance(balance, balanceFiat),
-              const SizedBox(width: 8),
-              Icon(Icons.chevron_right, size: 20, color: BrandColors.inkMuted),
-            ],
+                const SizedBox(width: 12),
+                if (configured) _trailingBalance(balance, balanceFiat),
+                const SizedBox(width: 8),
+                Icon(Icons.chevron_right, size: 20, color: BrandColors.inkMuted),
+              ],
+            ),
           ),
         ),
       ),
@@ -201,11 +212,22 @@ class _DesktopCoinCard extends StatelessWidget {
       return BalanceText.split(formatFiat(balanceFiat, fiatRate.fiatCurrency), style: _amountStyle);
     }
     if (balance == null) return const SizedBox.shrink();
-    return Text(
-      (balance is double ? balance : 0.0).toStringAsFixed(
-        wallet.decimals > 6 ? 6 : wallet.decimals,
+    // Cut to Trim Decimals while a price loads; every digit with prices off,
+    // shrunk to fit rather than crowding out the coin's name.
+    return LimitedBox(
+      maxWidth: 200,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerRight,
+        child: Text(
+          formatTrimmedAmount(
+            wallet.unlockedBalanceBaseUnits ?? BigInt.zero,
+            wallet.baseUnitDecimals,
+            fiatRate.trimDigitsOf(wallet),
+          ),
+          style: _amountStyle,
+        ),
       ),
-      style: _amountStyle,
     );
   }
 }

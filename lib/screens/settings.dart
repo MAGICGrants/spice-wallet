@@ -11,6 +11,7 @@ import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/models/fiat_rate_model.dart';
 import 'package:spice_wallet/widgets/fiat_api_settings_sheet.dart';
 import 'package:spice_wallet/widgets/open_alias_sheet.dart';
+import 'package:spice_wallet/widgets/security_checklist_setup.dart';
 import 'package:spice_wallet/widgets/tor_settings_sheet.dart';
 import 'package:spice_wallet/models/language_model.dart';
 import 'package:spice_wallet/models/theme_model.dart';
@@ -62,6 +63,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   SecurityKeysState? _securityKeys;
   FiatApiMode _fiatMode = FiatApiMode.torOnly;
   OpenAliasMode _openAliasMode = OpenAliasMode.torOnly;
+  var _checklistShown = true;
   // Toggles animate only after the stored values have loaded, so they don't
   // slide from off→on when the screen first appears.
   var _animateToggles = false;
@@ -98,6 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final fiatMode = await FiatRateModel.loadFiatApiMode();
     final openAliasMode = await OpenAliasMode.load();
+    final checklist = await SecurityChecklistSettings.load();
     final syncFrequency = await loadSyncFrequency();
     await _loadSecurityKeys();
 
@@ -108,6 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _testnetCoinsEnabled = testnetCoinsEnabled;
       _fiatMode = fiatMode;
       _openAliasMode = openAliasMode;
+      _checklistShown = checklist.showOnHome;
       _syncFrequency = syncFrequency;
     });
     // Enable animation a frame after the loaded values are painted.
@@ -255,6 +259,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) showBrandToast(context, i18n.shared.settingsAddressBookDeleted);
   }
 
+  void _showDeleteAddressLabelsDialog() {
+    final i18n = AppLocalizations.of(context)!;
+    showConfirmSheet(
+      context: context,
+      icon: Icons.delete_outline,
+      iconBg: BrandColors.errorBg,
+      iconColor: BrandColors.error,
+      title: i18n.shared.settingsDeleteAddressLabelsButton,
+      body: i18n.shared.settingsDeleteAddressLabelsDialogText,
+      confirmLabel: i18n.shared.settingsDeleteAddressLabelsDialogDeleteButton,
+      cancelLabel: i18n.shared.cancel,
+      onConfirm: _deleteAddressLabels,
+    );
+  }
+
+  // Only the labels: the addresses and their transactions stay. A backup
+  // syncing to a location records the removals, as for the address book.
+  Future<void> _deleteAddressLabels() async {
+    final i18n = AppLocalizations.of(context)!;
+    await Provider.of<AddressLabelModel>(context, listen: false).deleteAll();
+    if (mounted) showBrandToast(context, i18n.shared.settingsAddressLabelsDeleted);
+  }
+
   Future<void> _deleteWallet() async {
     final manager = Provider.of<WalletManager>(context, listen: false);
     // Tears down background sync *before* the files go, so the foreground
@@ -274,12 +301,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void _showTrimDecimals() {
+    final i18n = AppLocalizations.of(context)!;
+    final fiatRate = context.read<FiatRateModel>();
+    // The priced mainnet coins the wallet uses, previewed in the sheet.
+    final priced = context
+        .read<WalletManager>()
+        .allWallets
+        .where((w) => !w.isTestnet && fiatRate.isSupported(w.coinSymbol))
+        .toList();
+    final configured = priced.where((w) => w.connectionAddress.isNotEmpty).toList();
+    showTrimDecimalsSheet(
+      context,
+      fiatRate: fiatRate,
+      strings: i18n.shared,
+      coins: [
+        for (final w in configured.isEmpty ? priced : configured)
+          (coinSymbol: w.coinSymbol, baseUnitDecimals: w.baseUnitDecimals),
+      ],
+    );
+  }
+
   void _showOpenAliasSettings() async {
     final changed = await showOpenAliasSheet(context);
     if (changed == true) {
       final mode = await OpenAliasMode.load();
       if (mounted) setState(() => _openAliasMode = mode);
     }
+  }
+
+  Future<void> _showSecurityChecklist() async {
+    final saved = await showAppSecurityChecklistSheet(context);
+    if (saved != true) return;
+    final checklist = await SecurityChecklistSettings.load();
+    if (mounted) setState(() => _checklistShown = checklist.showOnHome);
   }
 
   String _openAliasModeLabel(AppLocalizations i18n) => switch (_openAliasMode) {
@@ -335,7 +390,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       'dark': i18n.shared.settingsThemeDark,
     }[theme.theme];
 
-    final fiatCode = context.watch<FiatRateModel>().fiatCode;
+    final fiatRate = context.watch<FiatRateModel>();
+    final fiatCode = fiatRate.fiatCode;
+    final hasContacts = context.watch<ContactModel>().contacts.isNotEmpty;
+    final hasLabels = context.watch<AddressLabelModel>().count > 0;
     final fiatSubtitle = _fiatMode == FiatApiMode.disabled
         ? _fiatModeLabel(i18n)
         : '${_fiatModeLabel(i18n)} · $fiatCode';
@@ -360,6 +418,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             linkLabel: i18n.shared.settingsLwsViewKeysButton,
             onTap: _showFiatApiSettings,
           ),
+          // Needs a price to work from, so it is only offered with prices on.
+          if (_fiatMode != FiatApiMode.disabled)
+            SettingsNavTile(
+              title: i18n.shared.trimDecimalsLabel,
+              value: trimDecimalsValue(i18n.shared, fiatRate.trimDecimals, fiatRate.fiatCurrency),
+              onTap: _showTrimDecimals,
+            ),
         ],
       ),
       SettingsGroup(
@@ -386,6 +451,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             linkLabel: i18n.shared.settingsLwsViewKeysButton,
             onTap: _showOpenAliasSettings,
           ),
+          SettingsLinkTile(
+            title: i18n.shared.securityChecklistLabel,
+            subtitle: _checklistShown
+                ? i18n.shared.securityChecklistShown
+                : i18n.shared.securityChecklistHidden,
+            linkLabel: i18n.shared.settingsLwsViewKeysButton,
+            onTap: _showSecurityChecklist,
+          ),
         ],
       ),
       SettingsGroup(
@@ -411,11 +484,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               linkLabel: i18n.shared.settingsExportLogsButton,
               onTap: _exportLogs,
             ),
-          SettingsLinkTile(
-            title: i18n.shared.settingsDeleteAddressBookButton,
-            titleColor: BrandColors.error,
-            onTap: _showDeleteAddressBookDialog,
-          ),
+          // Each only while there is something to delete.
+          if (hasContacts)
+            SettingsLinkTile(
+              title: i18n.shared.settingsDeleteAddressBookButton,
+              titleColor: BrandColors.error,
+              onTap: _showDeleteAddressBookDialog,
+            ),
+          if (hasLabels)
+            SettingsLinkTile(
+              title: i18n.shared.settingsDeleteAddressLabelsButton,
+              titleColor: BrandColors.error,
+              onTap: _showDeleteAddressLabelsDialog,
+            ),
         ],
       ),
       SettingsGroup(
@@ -550,14 +631,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Icon(Icons.tune, size: 19, color: BrandColors.primary),
               ),
               const SizedBox(width: 13),
-              Text(
-                i18n.shared.settingsTitle,
-                style: TextStyle(
-                  fontFamily: 'Ubuntu',
-                  fontSize: 21,
-                  height: 1.25,
-                  fontWeight: FontWeight.w700,
-                  color: BrandColors.ink,
+              Semantics(
+                header: true,
+                namesRoute: true,
+                child: Text(
+                  i18n.shared.settingsTitle,
+                  style: TextStyle(
+                    fontFamily: 'Ubuntu',
+                    fontSize: 21,
+                    height: 1.25,
+                    fontWeight: FontWeight.w700,
+                    color: BrandColors.ink,
+                  ),
                 ),
               ),
             ],

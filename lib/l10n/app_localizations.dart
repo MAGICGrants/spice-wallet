@@ -554,6 +554,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Explorer removed.'**
   String get explorerRemovedMessage;
+
+  /// Screen-reader name of the sidebar chevron that shows or hides the list of blockchains under Home (never shown). Title Case.
+  ///
+  /// In en, this message translates to:
+  /// **'Blockchains'**
+  String get desktopNavChainsToggle;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

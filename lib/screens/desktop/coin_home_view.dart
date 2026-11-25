@@ -12,7 +12,6 @@ import 'package:spice_wallet/screens/explorer_setup.dart';
 import 'package:spice_wallet/screens/receive.dart';
 import 'package:spice_wallet/screens/send.dart';
 import 'package:spice_wallet/util/coin_assets.dart';
-import 'package:spice_wallet/util/format.dart';
 import 'package:spice_wallet/widgets/connection_status_indicator.dart';
 import 'package:spice_wallet/widgets/home_labels.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
@@ -60,7 +59,11 @@ class DesktopCoinHomeView extends StatelessWidget {
       (wallet: wallet, tokens: tokens),
       for (final t in tokens) (wallet: t, tokens: const <CryptoWallet>[]),
     ];
-    final sections = HomeSections(activity: HomeActivity.shared, labels: homeLabels(i18n));
+    final sections = HomeSections(
+      activity: HomeActivity.shared,
+      labels: homeLabels(i18n),
+      trimDigitsOf: context.watch<FiatRateModel>().trimDigitsOf,
+    );
     final incoming = sections.incoming(coins);
     final chart = sections.chart(coins);
 
@@ -132,9 +135,17 @@ class DesktopCoinHomeView extends StatelessWidget {
     String chainSymbol,
   ) {
     final showFiat = !fiatRate.isDisabled && totalFiat != null;
-    final coinAmount = wallet.unlockedBalance is double
-        ? '${formatAmount(wallet.unlockedBalance as double, wallet.decimals)} ${wallet.coinSymbol}'
+    final balance = wallet.unlockedBalanceBaseUnits;
+    final coinAmount = balance != null
+        ? formatTrimmedAmount(
+            balance,
+            wallet.baseUnitDecimals,
+            fiatRate.trimDigitsOf(wallet),
+            symbol: wallet.coinSymbol,
+          )
         : '—';
+    // The dash stands for a balance not loaded yet.
+    final loadingLabel = wallet.unlockedBalance is double ? null : i18n.shared.a11yLoading;
 
     return Container(
       decoration: BoxDecoration(
@@ -148,29 +159,39 @@ class DesktopCoinHomeView extends StatelessWidget {
         children: [
           Row(
             children: [
-              CoinMark(
-                coinSymbol: wallet.coinSymbol,
-                iconAsset: wallet.iconAsset,
-                size: 32,
-                statusColor: connectionDotColor(wallet),
-                statusRingColor: BrandColors.card,
+              // Decorative: the status pill beside it says what its dot means.
+              ExcludeSemantics(
+                child: CoinMark(
+                  coinSymbol: wallet.coinSymbol,
+                  iconAsset: wallet.iconAsset,
+                  size: 32,
+                  statusColor: connectionDotColor(wallet),
+                  statusRingColor: BrandColors.card,
+                ),
               ),
               const SizedBox(width: 13),
               Expanded(
-                child: Text(
-                  wallet.blockchainName,
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu',
-                    fontSize: 16,
-                    height: 1.2,
-                    fontWeight: FontWeight.w500,
-                    color: BrandColors.ink,
+                child: Semantics(
+                  header: true,
+                  namesRoute: true,
+                  child: Text(
+                    wallet.blockchainName,
+                    style: TextStyle(
+                      fontFamily: 'Ubuntu',
+                      fontSize: 16,
+                      height: 1.2,
+                      fontWeight: FontWeight.w500,
+                      color: BrandColors.ink,
+                    ),
                   ),
                 ),
               ),
               _statusPill(i18n, wallet, configured),
               const SizedBox(width: 10),
-              _GearButton(onTap: () => _openSettings(context, chainSymbol)),
+              _GearButton(
+                label: i18n.shared.settingsTitle,
+                onTap: () => _openSettings(context, chainSymbol),
+              ),
             ],
           ),
           const SizedBox(height: 22),
@@ -188,11 +209,17 @@ class DesktopCoinHomeView extends StatelessWidget {
                         style: _bigFiat,
                       )
                     else
-                      Text(coinAmount, style: _bigFiat),
+                      // Every digit of an 18-decimal coin is wide at this size.
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(coinAmount, style: _bigFiat, semanticsLabel: loadingLabel),
+                      ),
                     if (showFiat) ...[
                       const SizedBox(height: 11),
                       Text(
                         coinAmount,
+                        semanticsLabel: loadingLabel,
                         style: TextStyle(
                           fontFamily: 'Ubuntu Mono',
                           fontSize: 15,
@@ -384,8 +411,9 @@ class DesktopCoinHomeView extends StatelessWidget {
 }
 
 class _GearButton extends StatelessWidget {
+  final String label;
   final VoidCallback onTap;
-  const _GearButton({required this.onTap});
+  const _GearButton({required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -395,14 +423,19 @@ class _GearButton extends StatelessWidget {
         side: BorderSide(color: BrandColors.border),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: InkWell(
-        mouseCursor: WidgetStateMouseCursor.clickable,
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: SizedBox(
-          width: 38,
-          height: 38,
-          child: Icon(Icons.tune, size: 18, color: BrandColors.inkMuted),
+      child: Semantics(
+        container: true,
+        button: true,
+        label: label,
+        child: InkWell(
+          mouseCursor: WidgetStateMouseCursor.clickable,
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: SizedBox(
+            width: 38,
+            height: 38,
+            child: Icon(Icons.tune, size: 18, color: BrandColors.inkMuted),
+          ),
         ),
       ),
     );
@@ -428,51 +461,66 @@ class _AssetRow extends StatelessWidget {
     final rate = fiatRate.rateFor(wallet.coinSymbol);
     final balance = wallet.unlockedBalance;
     final fiat = rate != null && balance is double ? balance * rate : null;
-    final amount = balance is double
-        ? '${formatAmount(balance, wallet.decimals)} ${wallet.coinSymbol}'
+    final units = wallet.unlockedBalanceBaseUnits;
+    final amount = units != null
+        ? formatTrimmedAmount(
+            units,
+            wallet.baseUnitDecimals,
+            fiatRate.trimDigitsOf(wallet),
+            symbol: wallet.coinSymbol,
+          )
         : '—';
 
-    return Container(
-      decoration: BoxDecoration(
-        color: BrandColors.card,
-        border: Border.all(color: BrandColors.border),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
-      child: Row(
-        children: [
-          CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 34),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  wallet.assetName,
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu',
-                    fontSize: 14.5,
-                    height: 1.25,
-                    fontWeight: FontWeight.w500,
-                    color: BrandColors.ink,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  amount,
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu Mono',
-                    fontSize: 11.5,
-                    height: 1.3,
-                    color: BrandColors.inkMuted,
-                  ),
-                ),
-              ],
+    // One node per asset: name, amount and value read together.
+    return MergeSemantics(
+      child: Container(
+        decoration: BoxDecoration(
+          color: BrandColors.card,
+          border: Border.all(color: BrandColors.border),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+        child: Row(
+          children: [
+            ExcludeSemantics(
+              child: CoinMark(coinSymbol: wallet.coinSymbol, iconAsset: wallet.iconAsset, size: 34),
             ),
-          ),
-          if (fiat != null && !fiatRate.isDisabled)
-            BalanceText.split(formatFiat(fiat, fiatRate.fiatCurrency), style: _fiat),
-        ],
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    wallet.assetName,
+                    style: TextStyle(
+                      fontFamily: 'Ubuntu',
+                      fontSize: 14.5,
+                      height: 1.25,
+                      fontWeight: FontWeight.w500,
+                      color: BrandColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    amount,
+                    // The dash stands for a balance not loaded yet.
+                    semanticsLabel: balance is double
+                        ? null
+                        : AppLocalizations.of(context)!.shared.a11yLoading,
+                    style: TextStyle(
+                      fontFamily: 'Ubuntu Mono',
+                      fontSize: 11.5,
+                      height: 1.3,
+                      color: BrandColors.inkMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (fiat != null && !fiatRate.isDisabled)
+              BalanceText.split(formatFiat(fiat, fiatRate.fiatCurrency), style: _fiat),
+          ],
+        ),
       ),
     );
   }

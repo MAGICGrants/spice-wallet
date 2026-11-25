@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 import 'package:wallet_domain/wallet_domain.dart';
 
 import 'package:spice_wallet/l10n/app_localizations.dart';
-import 'package:spice_wallet/util/amount_units.dart';
 import 'package:spice_wallet/widgets/tx_details.dart';
 
 /// Guards that every value row in the tx-details popup is copyable and confirms
@@ -29,6 +29,8 @@ class _FakeWallet implements CryptoWallet {
   int get decimals => 4;
   @override
   int get feeDecimals => 4;
+  @override
+  RotatingAddressKind? get rotatingAddressKind => RotatingAddressKind.subaddress;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -50,17 +52,25 @@ void main() {
     key: '',
   );
 
-  Future<void> pumpDialog(WidgetTester tester, CryptoWallet wallet, TxDetails tx) async {
+  Future<void> pumpDialog(
+    WidgetTester tester,
+    CryptoWallet wallet,
+    TxDetails tx, {
+    List<AddressLabel> labels = const [],
+  }) async {
     await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: Center(
-              child: ElevatedButton(
-                onPressed: () => TxDetailsDialog.show(context, wallet, tx),
-                child: const Text('open'),
+      ChangeNotifierProvider(
+        create: (_) => AddressLabelModel(read: () async => labels, write: (_) async {}),
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: ElevatedButton(
+                  onPressed: () => TxDetailsDialog.show(context, wallet, tx),
+                  child: const Text('open'),
+                ),
               ),
             ),
           ),
@@ -103,6 +113,28 @@ void main() {
     expect(find.text('Recipients'), findsNothing);
   });
 
+  testWidgets('an incoming transaction names the labeled address it landed at', (tester) async {
+    await pumpDialog(
+      tester,
+      _FakeWallet(),
+      txWithRecipient(0),
+      labels: const [AddressLabel(coin: 'XMR', address: '4someaddress', label: 'Donations')],
+    );
+
+    expect(find.text('Donations'), findsOneWidget);
+  });
+
+  testWidgets("another coin's label for the same text is not shown", (tester) async {
+    await pumpDialog(
+      tester,
+      _FakeWallet(),
+      txWithRecipient(0),
+      labels: const [AddressLabel(coin: 'BTC', address: '4someaddress', label: 'Donations')],
+    );
+
+    expect(find.text('Donations'), findsNothing);
+  });
+
   testWidgets('tapping the amount copies it and shows feedback', (tester) async {
     // Capture what lands on the clipboard (SecureClipboard falls back to the
     // platform clipboard off-device).
@@ -117,8 +149,9 @@ void main() {
 
     final wallet = _FakeWallet();
     final tx = sampleTx();
+    // Every digit, straight from base units: details never round.
     final amountText =
-        '${displayAmount(tx.amountBaseUnits, wallet.baseUnitDecimals).toStringAsFixed(wallet.decimals)} ${wallet.coinSymbol}';
+        '${baseUnitsToDecimalString(tx.amountBaseUnits, wallet.baseUnitDecimals)} ${wallet.coinSymbol}';
 
     await pumpDialog(tester, wallet, tx);
 

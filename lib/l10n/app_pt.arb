@@ -139,5 +139,6 @@
   "explorerSetupTitle": "Configuração do Explorador de Blocos",
   "explorerSetupDescription": "Opcionalmente, defina uma instância do explorador Blockscout para carregar o histórico completo de transações. Selecione apenas um servidor em que você confia. Mesmo se você usar o Tor, este servidor pode obter informações sobre você.",
   "explorerAddressLabel": "Endereço do Explorador",
-  "explorerRemovedMessage": "Explorador removido."
+  "explorerRemovedMessage": "Explorador removido.",
+  "desktopNavChainsToggle": "Blockchains"
 }

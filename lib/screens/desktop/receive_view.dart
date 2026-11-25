@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import 'package:spice_wallet/l10n/app_localizations.dart';
+import 'package:spice_wallet/l10n/shared_strings.dart';
 import 'package:spice_wallet/widgets/ui/ui.dart';
 import 'package:spice_wallet/screens/desktop/home_shell.dart';
 
 /// Desktop receive (inside [DesktopShell]): a QR panel on the left, and the coin
-/// card, subaddress/primary toggle, address and Copy on the right. Presentational
-/// — the screen computes the address/heading/warning and supplies callbacks.
+/// card, tabs, address and Copy on the right. Presentational — the screen
+/// computes the address/heading/warning and supplies callbacks.
+///
+/// A tab with a [tabBody] (Labeled) has no single address: the coin card and
+/// tabs stay at the top and the body takes the full width under them.
 class DesktopReceiveView extends StatelessWidget {
   final String title;
   final String copyLabel;
@@ -24,6 +29,10 @@ class DesktopReceiveView extends StatelessWidget {
   final List<String>? tabLabels;
   final int selectedTab;
   final ValueChanged<int>? onSelectTab;
+
+  /// What the selected tab shows instead of the QR, the address and Copy: the
+  /// Labeled tab's list of used addresses.
+  final Widget? tabBody;
   final String? warning;
   final VoidCallback onCopy;
   final VoidCallback onBack;
@@ -48,6 +57,7 @@ class DesktopReceiveView extends StatelessWidget {
     this.tabLabels,
     this.selectedTab = 0,
     this.onSelectTab,
+    this.tabBody,
     this.warning,
     this.assetOptions = const [],
     this.onSelectAsset,
@@ -55,7 +65,18 @@ class DesktopReceiveView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final spinner = Center(child: CircularProgressIndicator(color: BrandColors.primary));
+    final shared = AppLocalizations.of(context)!.shared;
+    final spinner = Center(
+      child: CircularProgressIndicator(
+        color: BrandColors.primary,
+        semanticsLabel: shared.a11yLoading,
+      ),
+    );
+    final heading = Semantics(
+      header: true,
+      namesRoute: true,
+      child: Text(title, style: desktopTitleStyle),
+    );
     if (!ready) {
       if (assetOptions.length <= 1 || onSelectAsset == null) return spinner;
       // The picker stays while the address loads, so a chain whose address
@@ -65,7 +86,7 @@ class DesktopReceiveView extends StatelessWidget {
         children: [
           DesktopBackLink(label: backLabel, onTap: onBack),
           const SizedBox(height: 16),
-          Text(title, style: desktopTitleStyle),
+          heading,
           const SizedBox(height: 24),
           Align(
             alignment: Alignment.centerLeft,
@@ -86,19 +107,42 @@ class DesktopReceiveView extends StatelessWidget {
         ],
       );
     }
+    if (tabBody case final body?) {
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(44, 30, 44, 36),
+        children: [
+          DesktopBackLink(label: backLabel, onTap: onBack),
+          const SizedBox(height: 16),
+          Text(title, style: desktopTitleStyle),
+          const SizedBox(height: 24),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [_coinCard(), ..._tabs()],
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          body,
+        ],
+      );
+    }
     return ListView(
       padding: const EdgeInsets.fromLTRB(44, 30, 44, 36),
       children: [
         DesktopBackLink(label: backLabel, onTap: onBack),
         const SizedBox(height: 16),
-        Text(title, style: desktopTitleStyle),
+        heading,
         const SizedBox(height: 24),
         LayoutBuilder(
           builder: (context, constraints) {
             // Two columns (QR beside details) only when there's room; below that,
             // stack the QR above the details.
             const twoColMinWidth = 640.0;
-            final qr = SizedBox(width: 300, child: _qrCard());
+            final qr = SizedBox(width: 300, child: _qrCard(shared.a11yAddressQr));
             if (constraints.maxWidth < twoColMinWidth) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -123,7 +167,7 @@ class DesktopReceiveView extends StatelessWidget {
     );
   }
 
-  Widget _qrCard() {
+  Widget _qrCard(String qrLabel) {
     return Container(
       decoration: BoxDecoration(
         color: BrandColors.card,
@@ -139,6 +183,7 @@ class DesktopReceiveView extends StatelessWidget {
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
             child: QrImageView(
               data: address,
+              semanticsLabel: qrLabel,
               size: 232,
               backgroundColor: Colors.white,
               padding: EdgeInsets.zero,
@@ -160,35 +205,44 @@ class DesktopReceiveView extends StatelessWidget {
     );
   }
 
+  /// The asset dropdown when there is a choice of chain, else the static card.
+  Widget _coinCard() {
+    if (assetOptions.length > 1 && onSelectAsset != null) {
+      return ReceiveAssetSelectorCard(
+        coinSymbol: coinSymbol,
+        iconAsset: iconAsset,
+        coinName: coinName,
+        blockchainSubtitle: blockchainSubtitle,
+        options: assetOptions,
+        onSelect: onSelectAsset!,
+      );
+    }
+    return _CoinCard(
+      coinSymbol: coinSymbol,
+      iconAsset: iconAsset,
+      coinName: coinName,
+      blockchainSubtitle: blockchainSubtitle,
+    );
+  }
+
+  List<Widget> _tabs() => [
+    if (tabLabels != null) ...[
+      const SizedBox(height: 14),
+      BrandSegmented(
+        dense: true,
+        labels: tabLabels!,
+        selectedIndex: selectedTab,
+        onSelect: onSelectTab ?? (_) {},
+      ),
+    ],
+  ];
+
   Widget _details(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (assetOptions.length > 1 && onSelectAsset != null)
-          ReceiveAssetSelectorCard(
-            coinSymbol: coinSymbol,
-            iconAsset: iconAsset,
-            coinName: coinName,
-            blockchainSubtitle: blockchainSubtitle,
-            options: assetOptions,
-            onSelect: onSelectAsset!,
-          )
-        else
-          _CoinCard(
-            coinSymbol: coinSymbol,
-            iconAsset: iconAsset,
-            coinName: coinName,
-            blockchainSubtitle: blockchainSubtitle,
-          ),
-        if (tabLabels != null) ...[
-          const SizedBox(height: 14),
-          BrandSegmented(
-            dense: true,
-            labels: tabLabels!,
-            selectedIndex: selectedTab,
-            onSelect: onSelectTab ?? (_) {},
-          ),
-        ],
+        _coinCard(),
+        ..._tabs(),
         const SizedBox(height: 18),
         SectionHeader(label: qrHeading, padding: EdgeInsets.zero),
         const SizedBox(height: 8),
@@ -250,7 +304,9 @@ class _CoinCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
       child: Row(
         children: [
-          CoinMark(coinSymbol: coinSymbol, iconAsset: iconAsset, size: 32),
+          ExcludeSemantics(
+            child: CoinMark(coinSymbol: coinSymbol, iconAsset: iconAsset, size: 32),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

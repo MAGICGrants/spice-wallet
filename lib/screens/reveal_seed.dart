@@ -74,7 +74,12 @@ class _RevealSeedScreenState extends State<RevealSeedScreen> with SecureScreenMi
     if (!_loaded) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 56),
-        child: Center(child: CircularProgressIndicator(color: BrandColors.primary)),
+        child: Center(
+          child: CircularProgressIndicator(
+            color: BrandColors.primary,
+            semanticsLabel: i18n.shared.a11yLoading,
+          ),
+        ),
       );
     }
     return Column(
@@ -105,9 +110,14 @@ class _RevealSeedScreenState extends State<RevealSeedScreen> with SecureScreenMi
     );
   }
 
+  /// Blurred, and out of the semantics tree, until revealed: the blur alone
+  /// hides it only from the eye, not from a screen reader or any
+  /// accessibility service.
   Widget _blurUntilRevealed(Widget child) => _revealed
       ? child
-      : ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8), child: child);
+      : ExcludeSemantics(
+          child: ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8), child: child),
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -123,7 +133,11 @@ class _RevealSeedScreenState extends State<RevealSeedScreen> with SecureScreenMi
         children: [
           Padding(
             padding: EdgeInsets.fromLTRB(hpad, 2, isDesktopModal ? 34 : 20, 6),
-            child: Text(i18n.settingsSeedPhraseLabel, style: BrandText.title),
+            child: Semantics(
+              header: true,
+              namesRoute: true,
+              child: Text(i18n.settingsSeedPhraseLabel, style: BrandText.title),
+            ),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(hpad, 0, hpad, 16),
@@ -154,7 +168,10 @@ class _RevealSeedScreenState extends State<RevealSeedScreen> with SecureScreenMi
               ),
             ),
             const SizedBox(height: BrandSpacing.lg),
-            Text(i18n.shared.generateSeedTitleCovered, style: BrandText.title),
+            Semantics(
+              header: true,
+              child: Text(i18n.shared.generateSeedTitleCovered, style: BrandText.title),
+            ),
             const SizedBox(height: BrandSpacing.sm),
             Text(i18n.revealSeedSubtitleRevealed, style: BrandText.bodyMuted),
             const SizedBox(height: BrandSpacing.xl),

@@ -84,10 +84,12 @@ class _LwsKeysScreenState extends State<LwsKeysScreen> with SecureScreenMixin {
       ),
       // Desktop modal matches the other settings modals' 34px header icon; the
       // mobile full-screen header keeps the compact 22px size.
-      headerIcon: CoinMark(
-        coinSymbol: 'XMR',
-        iconAsset: wallet?.iconAsset ?? '',
-        size: widget.asModal ? 34 : 22,
+      headerIcon: ExcludeSemantics(
+        child: CoinMark(
+          coinSymbol: 'XMR',
+          iconAsset: wallet?.iconAsset ?? '',
+          size: widget.asModal ? 34 : 22,
+        ),
       ),
       primaryAddress: wallet?.getPrimaryAddress() ?? '',
       secretViewKey: _secretViewKey,
